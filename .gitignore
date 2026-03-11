@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Archives
+*.zip
+
+# Editor files
+.vscode/
+.idea/

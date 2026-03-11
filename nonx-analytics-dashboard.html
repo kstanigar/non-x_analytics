@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NON-X Analytics Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap');
+
+  :root {
+    --cyan: #00FFFF;
+    --cyan-dim: rgba(0,255,255,0.15);
+    --cyan-glow: rgba(0,255,255,0.4);
+    --magenta: #FF00FF;
+    --mag-dim: rgba(255,0,255,0.15);
+    --green: #39FF14;
+    --red: #FF3366;
+    --yellow: #FFD700;
+    --bg: #03060F;
+    --bg2: #060D1A;
+    --bg3: #0A1428;
+    --border: rgba(0,255,255,0.2);
+    --text: #C8E8FF;
+    --text-dim: rgba(200,232,255,0.5);
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Exo 2', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 10%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 42% 55%, rgba(0,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 88% 32%, rgba(255,0,255,0.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .scanlines {
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── Layout ── */
+  .wrapper {
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 32px 0 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .logo-block h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--cyan);
+    text-shadow: 0 0 20px var(--cyan-glow), 0 0 60px rgba(0,255,255,0.2);
+    line-height: 1;
+  }
+
+  .logo-block p {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  .header-meta {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .header-meta span {
+    color: var(--cyan);
+  }
+
+  /* ── Nav tabs ── */
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+
+  .tab {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    cursor: pointer;
+    color: var(--text-dim);
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: transparent;
+    position: relative;
+    bottom: -1px;
+    transition: all 0.2s;
+  }
+
+  .tab:hover { color: var(--cyan); border-color: var(--border); background: var(--cyan-dim); }
+  .tab.active {
+    color: var(--cyan);
+    border-color: var(--border);
+    border-bottom-color: var(--bg);
+    background: var(--bg2);
+    text-shadow: 0 0 10px var(--cyan-glow);
+  }
+
+  /* ── Pages ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Section header ── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── KPI Scorecards ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .kpi {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--cyan);
+    opacity: 0.6;
+  }
+
+  .kpi.mag::before { background: var(--magenta); }
+  .kpi.grn::before { background: var(--green); }
+  .kpi.red::before { background: var(--red); }
+  .kpi.yel::before { background: var(--yellow); }
+
+  .kpi:hover { border-color: var(--cyan-glow); }
+
+  .kpi-label {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .kpi-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--cyan);
+    line-height: 1;
+    text-shadow: 0 0 12px var(--cyan-glow);
+  }
+
+  .kpi.mag .kpi-value { color: var(--magenta); text-shadow: 0 0 12px rgba(255,0,255,0.4); }
+  .kpi.grn .kpi-value { color: var(--green); text-shadow: 0 0 12px rgba(57,255,20,0.4); }
+  .kpi.red .kpi-value { color: var(--red); text-shadow: 0 0 12px rgba(255,51,102,0.4); }
+  .kpi.yel .kpi-value { color: var(--yellow); text-shadow: 0 0 12px rgba(255,215,0,0.4); }
+
+  .kpi-sub {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .kpi-delta {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    margin-top: 4px;
+  }
+
+  .kpi-delta.up { color: var(--green); }
+  .kpi-delta.down { color: var(--red); }
+
+  /* ── Chart cards ── */
+  .chart-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .chart-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .chart-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .chart-grid.cols-12 { grid-template-columns: 1.4fr 0.6fr; }
+  .chart-grid.cols-21 { grid-template-columns: 0.6fr 1.4fr; }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .card-title {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+    flex-shrink: 0;
+  }
+
+  .card-title .dot.mag { background: var(--magenta); box-shadow: 0 0 6px var(--magenta); }
+  .card-title .dot.grn { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .card-title .dot.yel { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+
+  .chart-wrap { position: relative; }
+  .chart-wrap canvas { max-height: 280px; }
+  .chart-wrap.tall canvas { max-height: 340px; }
+  .chart-wrap.short canvas { max-height: 200px; }
+
+  /* ── Funnel ── */
+  .funnel-wrap {
+    padding: 10px 0;
+  }
+
+  .funnel-stage {
+    margin-bottom: 10px;
+  }
+
+  .funnel-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+
+  .funnel-name {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+
+  .funnel-stats {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--text-dim);
+  }
+
+  .funnel-bar-bg {
+    height: 28px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .funnel-bar {
+    height: 100%;
+    border-radius: 2px;
+    position: relative;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+  }
+
+  .funnel-bar-pct {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--bg);
+    white-space: nowrap;
+  }
+
+  .funnel-drop {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--red);
+    margin-top: 3px;
+    padding-left: 4px;
+  }
+
+  /* ── AB comparison ── */
+  .ab-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .ab-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+  }
+
+  .ab-card.winner { border-color: var(--green); }
+  .ab-card.loser { border-color: rgba(255,51,102,0.3); }
+
+  .ab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .ab-group-badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    padding: 3px 10px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  .ab-group-badge.a { background: rgba(0,255,255,0.15); color: var(--cyan); border: 1px solid var(--cyan); }
+  .ab-group-badge.b { background: rgba(255,0,255,0.15); color: var(--magenta); border: 1px solid var(--magenta); }
+
+  .ab-winner-tag {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--green);
+    letter-spacing: 0.1em;
+  }
+
+  .ab-metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .ab-metric-row:last-child { border-bottom: none; }
+
+  .ab-metric-name {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .ab-metric-val {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .ab-metric-val.better { color: var(--green); }
+  .ab-metric-val.worse { color: var(--red); }
+
+  /* ── Boss meter ── */
+  .boss-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 14px;
+  }
+
+  .boss-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px;
+    text-align: center;
+  }
+
+  .boss-name {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+
+  .boss-ring {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 14px;
+    position: relative;
+  }
+
+  .boss-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+  .boss-ring-pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+
+  .boss-stats-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .boss-stat-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+  }
+
+  .boss-stat-val {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  /* ── Platform table ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+  }
+
+  .data-table th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--text-dim);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(0,255,255,0.03); }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+
+  .pill.desktop { background: rgba(0,255,255,0.12); color: var(--cyan); border: 1px solid rgba(0,255,255,0.3); }
+  .pill.mobile { background: rgba(255,0,255,0.12); color: var(--magenta); border: 1px solid rgba(255,0,255,0.3); }
+  .pill.green-phase { background: rgba(57,255,20,0.1); color: var(--green); }
+  .pill.red-phase { background: rgba(255,51,102,0.1); color: var(--red); }
+  .pill.purple-phase { background: rgba(180,0,255,0.1); color: #CC88FF; }
+
+  .bar-mini {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .bar-mini-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+
+  /* ── Looker guide ── */
+  .guide-section { margin-bottom: 28px; }
+
+  .formula-block {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    border-radius: 2px;
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: #90EE90;
+    line-height: 1.7;
+    margin: 8px 0 16px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .guide-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .step-list {
+    list-style: none;
+    counter-reset: steps;
+  }
+
+  .step-list li {
+    counter-increment: steps;
+    padding: 10px 0 10px 36px;
+    position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .step-list li:last-child { border-bottom: none; }
+
+  .step-list li::before {
+    content: counter(steps);
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 24px;
+    height: 24px;
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--cyan);
+    text-align: center;
+    line-height: 24px;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.78em;
+    color: var(--cyan);
+    background: var(--cyan-dim);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  .insight-box {
+    background: rgba(255,215,0,0.05);
+    border: 1px solid rgba(255,215,0,0.25);
+    border-left: 3px solid var(--yellow);
+    border-radius: 2px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.8rem;
+    color: rgba(255,215,0,0.85);
+    line-height: 1.6;
+  }
+
+  .insight-box strong { color: var(--yellow); }
+
+  /* ── CSV Drop Zone ── */
+  #drop-zone {
+    position: fixed;
+    inset: 0;
+    background: rgba(3,6,15,0.92);
+    border: 2px dashed var(--cyan);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    backdrop-filter: blur(4px);
+  }
+
+  #drop-zone.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  #drop-zone .drop-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  #drop-zone h2 {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--cyan);
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 20px var(--cyan-glow);
+    margin-bottom: 8px;
+  }
+
+  #drop-zone p {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── CSV toolbar ── */
+  .csv-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(0,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    flex-wrap: wrap;
+  }
+
+  .csv-toolbar strong { color: var(--cyan); }
+
+  .csv-btn {
+    padding: 6px 14px;
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan);
+    border-radius: 2px;
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .csv-btn:hover { background: rgba(0,255,255,0.25); }
+
+  .csv-version-badge {
+    padding: 3px 10px;
+    background: rgba(57,255,20,0.1);
+    border: 1px solid rgba(57,255,20,0.4);
+    border-radius: 2px;
+    color: #39FF14;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Toast ── */
+  .csv-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    border-radius: 4px;
+    padding: 12px 18px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text);
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.25s, transform 0.25s;
+    max-width: 420px;
+  }
+
+  .csv-toast.show { opacity: 1; transform: translateY(0); }
+  .csv-toast.success { border-left-color: #39FF14; color: #39FF14; }
+  .csv-toast.error { border-left-color: var(--red); color: var(--red); }
+  .csv-toast.info { border-left-color: var(--yellow); color: var(--yellow); }
+
+  @media (max-width: 900px) {
+    .chart-grid.cols-2, .chart-grid.cols-3, .chart-grid.cols-12, .chart-grid.cols-21 {
+      grid-template-columns: 1fr;
+    }
+    .boss-grid { grid-template-columns: 1fr; }
+    .ab-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    header { flex-direction: column; gap: 16px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div id="drop-zone">
+  <div class="drop-icon">📥</div>
+  <h2>DROP GA4 CSV EXPORT</h2>
+  <p>analytics_version: 3.0 filter applied automatically</p>
+  <p style="margin-top:8px;color:rgba(0,255,255,0.4)">Supports: funnel · deaths · boss · A/B music · platform</p>
+</div>
+
+<div class="csv-toast" id="csv-toast"></div>
+<input type="file" id="csv-file-input" accept=".csv" multiple style="display:none">
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-block">
+      <h1>NON-X</h1>
+      <p>Analytics Command Center &nbsp;·&nbsp; GA4 + Looker Studio</p>
+    </div>
+    <div class="header-meta">
+      <div>Measurement ID <span>G-9ECFZ9JBE5</span></div>
+      <div>Events tracked <span>16</span></div>
+      <div>Platforms <span>Desktop · Mobile</span></div>
+      <div>Active A/B tests <span>Music · Movement</span></div>
+    </div>
+  </header>
+
+  <!-- CSV TOOLBAR -->
+  <div class="csv-toolbar">
+    <span>📊 <strong>DATA SOURCE</strong></span>
+    <span class="csv-version-badge">analytics_version: 3.0 ✓</span>
+    <span style="flex:1">Drop a GA4 CSV export anywhere on this page, or click to browse</span>
+    <button class="csv-btn" onclick="document.getElementById('csv-file-input').click()">⬆ Load CSV</button>
+    <span style="color:rgba(200,232,255,0.25)">|</span>
+    <span id="csv-status" style="color:var(--text-dim)">Sample data — connect GA4 export to update</span>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav-tabs">
+    <div class="tab active" onclick="switchTab('overview')">Overview</div>
+    <div class="tab" onclick="switchTab('funnel')">Funnel</div>
+    <div class="tab" onclick="switchTab('bosses')">Boss Analysis</div>
+    <div class="tab" onclick="switchTab('ab')">A/B Tests</div>
+    <div class="tab" onclick="switchTab('platform')">Platform</div>
+    <div class="tab" onclick="switchTab('looker')">Looker Guide</div>
+  </nav>
+
+  <!-- ════════════════════════════════════════
+       PAGE 1: OVERVIEW
+  ═══════════════════════════════════════════ -->
+  <div class="page active" id="page-overview">
+
+    <div class="section-label">Top-Line KPIs</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Total Sessions</div>
+        <div class="kpi-value" id="kpi-sessions">—</div>
+        <div class="kpi-sub">All platforms</div>
+      </div>
+      <div class="kpi mag">
+        <div class="kpi-label">New vs Returning</div>
+        <div class="kpi-value" id="kpi-new-pct">—</div>
+        <div class="kpi-sub">% first-time players</div>
+      </div>
+      <div class="kpi grn">
+        <div class="kpi-label">Win Rate</div>
+        <div class="kpi-value" id="kpi-winrate">—</div>
+        <div class="kpi-sub">player_won / game_start</div>
+      </div>
+      <div class="kpi red">
+        <div class="kpi-label">Death Rate</div>
+        <div class="kpi-value" id="kpi-deathrate">—</div>
+        <div class="kpi-sub">player_death / game_start</div>
+      </div>
+      <div class="kpi yel">
+        <div class="kpi-label">Play-Again Rate</div>
+        <div class="kpi-value" id="kpi-replay">—</div>
+        <div class="kpi-sub">game_start per user</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg Survival</div>
+        <div class="kpi-value" id="kpi-survival">—</div>
+        <div class="kpi-sub">seconds per run</div>
+      </div>
+      <div class="kpi mag">
+        <div class="kpi-label">Leaderboard Rate</div>
+        <div class="kpi-value" id="kpi-lb-rate">—</div>
+        <div class="kpi-sub">leaderboard_submit / win</div>
+      </div>
+      <div class="kpi grn">
+        <div class="kpi-label">Avg Level Reached</div>
+        <div class="kpi-value" id="kpi-avg-level">—</div>
+        <div class="kpi-sub">of 12 levels</div>
+      </div>
+    </div>
+
+    <div class="insight-box" id="overview-insight">
+      <strong>📡 Connect your GA4 data source</strong> — This dashboard uses sample data. To populate with real data, connect GA4 via the Looker Studio guide (tab 6) and export event metrics to replace the placeholder values.
+    </div>
+
+    <div class="chart-grid cols-12">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Daily Plays & Wins (last 14 days)</div>
+        <div class="chart-wrap">
+          <canvas id="chart-daily"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot mag"></span> Device Mix</div>
+        <div class="chart-wrap short">
+          <canvas id="chart-device"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid cols-2">
+      <div class="card">
+        <div class="card-title"><span class="dot yel"></span> Music A/B Split</div>
+        <div class="chart-wrap short">
+          <canvas id="chart-ab-split"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot grn"></span> Powerup Collection by Phase</div>
+        <div class="chart-wrap short">
+          <canvas id="chart-powerup"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PAGE 2: FUNNEL
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-funnel">
+
+    <div class="section-label">Player Progression Funnel</div>
+
+    <div class="chart-grid cols-21">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Full Progression Funnel</div>
+        <div class="funnel-wrap" id="funnel-main"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot yel"></span> Wave Drop-off (Deaths by Level)</div>
+        <div class="chart-wrap tall">
+          <canvas id="chart-dropdoff"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Funnel by Music Variant</div>
+    <div class="chart-grid cols-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Music ON — Funnel</div>
+        <div class="funnel-wrap" id="funnel-music-on"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot mag"></span> Music OFF — Funnel</div>
+        <div class="funnel-wrap" id="funnel-music-off"></div>
+      </div>
+    </div>
+
+    <div class="section-label">Conversion Rates Table</div>
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Stage Transition</th>
+            <th>Overall</th>
+            <th>Music ON</th>
+            <th>Music OFF</th>
+            <th>Delta</th>
+          </tr>
+        </thead>
+        <tbody id="funnel-table"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PAGE 3: BOSS ANALYSIS
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-bosses">
+
+    <div class="section-label">Boss Defeat Rates</div>
+    <div class="boss-grid" id="boss-cards"></div>
+
+    <div class="section-label" style="margin-top:28px">Boss Progression Depth</div>
+    <div class="chart-grid cols-2">
+      <div class="card">
+        <div class="card-title"><span class="dot red"></span> Attempt-to-Defeat Ratio by Boss</div>
+        <div class="chart-wrap">
+          <canvas id="chart-boss-ratio"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Boss Conversion by Platform</div>
+        <div class="chart-wrap">
+          <canvas id="chart-boss-platform"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Boss Difficulty Assessment</div>
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Boss</th>
+            <th>Phase</th>
+            <th>Score Threshold</th>
+            <th>Attempts / Player</th>
+            <th>Defeat Rate</th>
+            <th>Avg Attempts to Kill</th>
+            <th>Assessment</th>
+          </tr>
+        </thead>
+        <tbody id="boss-table"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PAGE 4: A/B TESTS
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-ab">
+
+    <div class="section-label">A/B Test 1 — Music Default (ON vs OFF)</div>
+    <div class="ab-grid" id="ab-music-cards"></div>
+
+    <div class="chart-grid cols-2" style="margin-bottom:28px">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Win Rate by Music Group</div>
+        <div class="chart-wrap short">
+          <canvas id="chart-ab-winrate"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot mag"></span> Avg Survival Time by Music Group</div>
+        <div class="chart-wrap short">
+          <canvas id="chart-ab-survival"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">A/B Test 2 — Movement Scheme</div>
+    <div class="ab-grid" id="ab-movement-cards"></div>
+
+    <div class="section-label" style="margin-top:28px">Statistical Significance</div>
+    <div class="card">
+      <div class="guide-desc" style="margin-bottom:14px">
+        Current sample size status and significance thresholds. Need ≥100 players per group for valid results.
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Group A (n)</th>
+            <th>Group B (n)</th>
+            <th>Status</th>
+            <th>Metric</th>
+            <th>P-value Target</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody id="ab-sig-table"></tbody>
+      </table>
+    </div>
+
+    <div class="insight-box" style="margin-top:16px">
+      <strong>💡 Decision Framework:</strong> If Music ON (Group A) wins on win rate + replay: keep ON as default. If Music OFF (Group B) wins or no difference: default OFF (respects user autonomy). For movement, measure avg level reached and session duration as primary signals. Minimum 200 sessions per group before concluding.
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PAGE 5: PLATFORM
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-platform">
+
+    <div class="section-label">Desktop vs Mobile Comparison</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Desktop Win Rate</div>
+        <div class="kpi-value" id="kpi-desk-win">—</div>
+        <div class="kpi-sub">player_won / game_start</div>
+      </div>
+      <div class="kpi mag">
+        <div class="kpi-label">Mobile Win Rate</div>
+        <div class="kpi-value" id="kpi-mob-win">—</div>
+        <div class="kpi-sub">player_won / game_start</div>
+      </div>
+      <div class="kpi grn">
+        <div class="kpi-label">Desktop Avg Level</div>
+        <div class="kpi-value" id="kpi-desk-level">—</div>
+        <div class="kpi-sub">of 12 levels</div>
+      </div>
+      <div class="kpi yel">
+        <div class="kpi-label">Mobile Avg Level</div>
+        <div class="kpi-value" id="kpi-mob-level">—</div>
+        <div class="kpi-sub">of 12 levels</div>
+      </div>
+    </div>
+
+    <div class="chart-grid cols-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Completion Funnel — Desktop vs Mobile</div>
+        <div class="chart-wrap">
+          <canvas id="chart-platform-funnel"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot mag"></span> Survival Time Distribution</div>
+        <div class="chart-wrap">
+          <canvas id="chart-survival-dist"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Full Platform Breakdown</div>
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Desktop</th>
+            <th>Mobile</th>
+            <th>Winner</th>
+            <th>Delta</th>
+          </tr>
+        </thead>
+        <tbody id="platform-table"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PAGE 6: LOOKER GUIDE
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-looker">
+
+    <div class="section-label">Looker Studio Setup Guide</div>
+
+    <div class="guide-section">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Step 1 — Register GA4 Custom Dimensions</div>
+        <div class="guide-desc" style="margin:12px 0 8px">
+          Go to <strong>GA4 Admin → Property → Custom Definitions → Custom Dimensions → Create</strong>. Register all of these as event-scoped dimensions:
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Parameter Name</th><th>Scope</th><th>Description</th><th>Used In Events</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ab_music_group</code></td><td>Event</td><td>Music A/B cohort — 'music_on' or 'music_off'</td><td>All 16 events</td></tr>
+            <tr><td><code>music_variant</code></td><td>Event</td><td>Actual music state at event time</td><td>All in-game events</td></tr>
+            <tr><td><code>platform</code></td><td>Event</td><td>'desktop' or 'mobile'</td><td>All in-game events</td></tr>
+            <tr><td><code>level_number</code></td><td>Event</td><td>Level reached (1–12)</td><td>wave_reached</td></tr>
+            <tr><td><code>phase</code></td><td>Event</td><td>'green' / 'red' / 'purple' difficulty phase</td><td>wave_reached, player_death</td></tr>
+            <tr><td><code>level_reached</code></td><td>Event</td><td>Highest level before death</td><td>player_death</td></tr>
+            <tr><td><code>boss_id</code></td><td>Event</td><td>Boss number: 1, 2, or 3</td><td>boss_attempt, boss_defeated</td></tr>
+            <tr><td><code>visit_count</code></td><td>Event</td><td>Lifetime visit number</td><td>returning_user</td></tr>
+            <tr><td><code>is_replay</code></td><td>Event</td><td>true = Play Again, false = fresh</td><td>game_start</td></tr>
+            <tr><td><code>games_played</code></td><td>Event</td><td>Lifetime game count at event time</td><td>game_start, survey_submitted</td></tr>
+            <tr><td><code>instagram_provided</code></td><td>Event</td><td>true/false — handle submitted</td><td>leaderboard_submit</td></tr>
+            <tr><td><code>powerup_type</code></td><td>Event</td><td>'health', 'double_laser', 'shield', 'quad_shot'</td><td>powerup_collected</td></tr>
+          </tbody>
+        </table>
+        <div class="guide-desc" style="margin-top:12px">
+          Also register these as <strong>Custom Metrics</strong> (numeric): <code>session_duration_seconds</code>, <code>score</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="card">
+        <div class="card-title"><span class="dot yel"></span> Step 2 — Calculated Fields (Looker Studio Syntax)</div>
+        <div class="guide-desc">Create these in your Looker Studio data source under <strong>Add a field → Calculated field</strong>:</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px">
+
+          <div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">PLAYS</div>
+            <div class="formula-block">SUM(CASE
+  WHEN event_name = "game_start"
+  THEN event_count
+  ELSE 0
+END)</div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">WINS</div>
+            <div class="formula-block">SUM(CASE
+  WHEN event_name = "player_won"
+  THEN event_count
+  ELSE 0
+END)</div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">DEATHS</div>
+            <div class="formula-block">SUM(CASE
+  WHEN event_name = "player_death"
+  THEN event_count
+  ELSE 0
+END)</div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">WIN RATE</div>
+            <div class="formula-block">SAFE_DIVIDE(
+  Wins,
+  Plays
+)</div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">BOSS 1 DEFEATS</div>
+            <div class="formula-block">SUM(CASE
+  WHEN event_name = "boss_defeated"
+    AND boss_id = 1
+  THEN event_count
+  ELSE 0
+END)</div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">BOSS 1 CONVERSION</div>
+            <div class="formula-block">SAFE_DIVIDE(
+  Boss1Defeats,
+  Plays
+)</div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">BOSS 2→3 CONVERSION</div>
+            <div class="formula-block">SAFE_DIVIDE(
+  Boss2Defeats,
+  Boss1Defeats
+)</div>
+          </div>
+
+          <div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">LEADERBOARD RATE</div>
+            <div class="formula-block">SAFE_DIVIDE(
+  LeaderboardSubmits,
+  Wins
+)</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="card">
+        <div class="card-title"><span class="dot grn"></span> Step 3 — Looker Studio Page Layout</div>
+        <div class="guide-desc" style="margin-bottom:14px">Build these 4 pages in Looker Studio. Add <strong>Date Range</strong>, <strong>music_variant</strong>, and <strong>platform</strong> as page-level filters on every page.</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px">
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.12em;margin-bottom:10px">PAGE 1 — EXECUTIVE SUMMARY</div>
+            <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+              Row A: Scorecards — Users · Sessions · Win Rate · Avg Survival · Leaderboard Rate<br>
+              Row B: Line chart (daily) — Plays + Wins + Avg Survival<br>
+              Row C: Donut — Device mix | Bar — music_variant split
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px">
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.12em;margin-bottom:10px">PAGE 2 — GAMEPLAY FUNNEL</div>
+            <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+              Funnel: game_start → boss_1 → boss_2 → boss_3 → player_won<br>
+              Side-by-side by music_variant<br>
+              Conversion rate table per stage
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px">
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.12em;margin-bottom:10px">PAGE 3 — PROGRESSION DEPTH</div>
+            <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+              Bar: Wave drop-off — level_reached × player_death count<br>
+              Histogram: time_survived_sec distribution<br>
+              Bar: Avg max level by music_variant + by platform
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px">
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.12em;margin-bottom:10px">PAGE 4 — REPLAY + VALUE</div>
+            <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.8">
+              Scorecards: Attempts per User · % Returning · Avg Duration<br>
+              Line: Attempts over time<br>
+              Table: leaderboard_submit rate by variant + platform
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="card">
+        <div class="card-title"><span class="dot mag"></span> Step 4 — GA4 Explorations to Build</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Exploration Name</th><th>Type</th><th>Event Sequence / Setup</th><th>Answers</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Completion Funnel</td>
+              <td>Funnel</td>
+              <td>game_start → boss_attempt(1) → boss_defeated(1) → boss_defeated(2) → player_won</td>
+              <td>Where do players drop off?</td>
+            </tr>
+            <tr>
+              <td>Death Drop-off by Level</td>
+              <td>Free Form</td>
+              <td>Dim: level_reached · Metric: event_count(player_death) · Segment by phase</td>
+              <td>Which levels are most lethal?</td>
+            </tr>
+            <tr>
+              <td>Music A/B Impact</td>
+              <td>Free Form</td>
+              <td>Segment: ab_music_group · Metrics: win rate, session duration, replay rate</td>
+              <td>Does music lift completion?</td>
+            </tr>
+            <tr>
+              <td>Boss Kill Rate</td>
+              <td>Free Form</td>
+              <td>boss_attempt / boss_defeated per boss_id</td>
+              <td>Are any bosses too hard?</td>
+            </tr>
+            <tr>
+              <td>Powerup Correlation</td>
+              <td>Free Form</td>
+              <td>powerup_type × subsequent player_won rate</td>
+              <td>Do shield collectors win more?</td>
+            </tr>
+            <tr>
+              <td>Leaderboard Prominence</td>
+              <td>Free Form</td>
+              <td>menu_view → play_clicked conversion by ab group</td>
+              <td>Does social proof increase play-through?</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <div class="card" style="border-color:rgba(255,215,0,0.3)">
+        <div class="card-title"><span class="dot yel"></span> Future: AI Adaptive Engine (v2)</div>
+        <div class="guide-desc" style="margin-bottom:12px">
+          Your spec already defines the full pipeline. Once baseline analytics confirm the music experiment, the Claude API adaptive engine slots in cleanly. Key signals already being tracked:
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);line-height:1.9">
+            ✦ <code>wave_reached</code> → skill fingerprint<br>
+            ✦ <code>boss_attempt</code> → aggression pattern<br>
+            ✦ <code>powerup_collected</code> → play style<br>
+            ✦ <code>session_duration_seconds</code> → engagement depth
+          </div>
+          <div style="font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);line-height:1.9">
+            ✦ <code>is_replay</code> → motivation signal<br>
+            ✦ <code>games_played</code> → session history<br>
+            ✦ <code>phase</code> → difficulty tier progress<br>
+            ✦ <code>score</code> → performance trajectory
+          </div>
+        </div>
+        <div class="insight-box" style="margin-top:14px">
+          <strong>Proxy:</strong> Use Netlify Functions for the Claude API call (free tier, ~0.0003¢/session). Model: <code>claude-sonnet-4-6</code>. Profile stored in <code>localStorage.nonx_difficulty_profile</code>.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /looker page -->
+
+</div><!-- /wrapper -->
+
+<script>
+// ── SAMPLE DATA (replace with GA4 exports) ──────────────────────
+const DATA = {
+  kpis: {
+    sessions: '2,841',
+    newPct: '73%',
+    winRate: '8.4%',
+    deathRate: '84.2%',
+    replay: '2.3×',
+    survival: '142s',
+    lbRate: '31%',
+    avgLevel: '5.2',
+    deskWin: '11.2%',
+    mobWin: '5.7%',
+    deskLevel: '6.1',
+    mobLevel: '4.3',
+  },
+  daily: {
+    labels: ['Feb 25','Feb 26','Feb 27','Feb 28','Mar 1','Mar 2','Mar 3','Mar 4','Mar 5','Mar 6','Mar 7','Mar 8','Mar 9','Mar 10'],
+    plays:  [28,  41,  55,  38,  62,  79,  91, 104,  88,  73,  95, 118, 107, 132],
+    wins:   [ 2,   3,   4,   3,   5,   7,   8,   9,   7,   5,   8,  10,   9,  11],
+    survival:[110,118,125,122,134,140,145,148,143,138,147,152,149,155],
+  },
+  deviceMix: { desktop: 54, mobile: 46 },
+  abSplit: { musicOn: 51, musicOff: 49 },
+  powerups: {
+    labels: ['Health','Double Laser','Shield','Quad Shot'],
+    green: [420, 310, 280, 190],
+    red:   [510, 390, 340, 220],
+    purple:[280, 210, 430, 310],
+  },
+  funnel: [
+    { name:'game_start',       n:2841, pct:100,  dropPct: null },
+    { name:'wave_reached L4',  n:1562, pct:55.0, dropPct:45.0 },
+    { name:'boss_attempt 1',   n:1034, pct:36.4, dropPct:33.8 },
+    { name:'boss_defeated 1',  n: 687, pct:24.2, dropPct:33.6 },
+    { name:'boss_defeated 2',  n: 382, pct:13.4, dropPct:44.4 },
+    { name:'boss_defeated 3',  n: 271, pct: 9.5, dropPct:29.1 },
+    { name:'player_won',       n: 239, pct: 8.4, dropPct:11.8 },
+  ],
+  funnelMusicOn: [
+    { name:'game_start',    n:1449, pct:100  },
+    { name:'boss_1 defeated', n: 372, pct:25.7 },
+    { name:'boss_2 defeated', n: 211, pct:14.6 },
+    { name:'player_won',    n: 139, pct: 9.6 },
+  ],
+  funnelMusicOff: [
+    { name:'game_start',    n:1392, pct:100  },
+    { name:'boss_1 defeated', n: 315, pct:22.6 },
+    { name:'boss_2 defeated', n: 171, pct:12.3 },
+    { name:'player_won',    n: 100, pct: 7.2 },
+  ],
+  deathsByLevel: {
+    labels:['L1','L2','L3','L4','L5','L6','L7','L8','L9','L10','L11','L12'],
+    counts:[  88, 124, 210, 187,  98, 143, 221, 195,  62,  91, 128,  87],
+    phase: ['grn','grn','grn','grn','red','red','red','red','pur','pur','pur','pur'],
+  },
+  bosses: [
+    { id:1, name:'BOSS 1',  phase:'GREEN', threshold:400,  attempts:1034, defeats:687, defeat_rate:66.4, avg_attempts:1.5, color:'#39FF14' },
+    { id:2, name:'BOSS 2',  phase:'RED',   threshold:1200, attempts: 690, defeats:382, defeat_rate:55.4, avg_attempts:1.8, color:'#FF3366' },
+    { id:3, name:'BOSS 3',  phase:'PURPLE',threshold:2000, attempts: 389, defeats:271, defeat_rate:69.7, avg_attempts:1.4, color:'#CC88FF' },
+  ],
+  abMusic: {
+    A: { label:'Music ON', sessions:1449, winRate:'9.6%', survival:'152s', replay:'2.5×', lbRate:'34%', avgLevel:'5.7', musicToggle:'18%' },
+    B: { label:'Music OFF', sessions:1392, winRate:'7.2%', survival:'131s', replay:'2.1×', lbRate:'27%', avgLevel:'4.8', musicToggle:'22%' },
+  },
+  abMovement: {
+    A: { label:'Scheme A', sessions:1389, winRate:'8.1%', survival:'139s', avgLevel:'5.0' },
+    B: { label:'Scheme B', sessions:1452, winRate:'8.7%', survival:'145s', avgLevel:'5.4' },
+  },
+  platform: {
+    desktop: { sessions:1534, winRate:'11.2%', survival:'158s', replay:'2.5×', avgLevel:'6.1', lbRate:'36%', boss1:'28.4%', boss2:'17.1%', boss3:'12.8%' },
+    mobile:  { sessions:1307, winRate:'5.7%',  survival:'124s', replay:'2.1×', avgLevel:'4.3', lbRate:'24%', boss1:'19.6%', boss2:'10.1%', boss3: '6.7%' },
+  },
+};
+
+// ── KPIs ──────────────────────────────────────────────────────────
+function populateKPIs() {
+  const k = DATA.kpis;
+  document.getElementById('kpi-sessions').textContent = k.sessions;
+  document.getElementById('kpi-new-pct').textContent = k.newPct;
+  document.getElementById('kpi-winrate').textContent = k.winRate;
+  document.getElementById('kpi-deathrate').textContent = k.deathRate;
+  document.getElementById('kpi-replay').textContent = k.replay;
+  document.getElementById('kpi-survival').textContent = k.survival;
+  document.getElementById('kpi-lb-rate').textContent = k.lbRate;
+  document.getElementById('kpi-avg-level').textContent = k.avgLevel;
+  document.getElementById('kpi-desk-win').textContent = k.deskWin;
+  document.getElementById('kpi-mob-win').textContent = k.mobWin;
+  document.getElementById('kpi-desk-level').textContent = k.deskLevel;
+  document.getElementById('kpi-mob-level').textContent = k.mobLevel;
+}
+
+// ── Chart defaults ─────────────────────────────────────────────────
+Chart.defaults.color = 'rgba(200,232,255,0.5)';
+Chart.defaults.font.family = "'Share Tech Mono', monospace";
+Chart.defaults.font.size = 11;
+
+const CYAN = '#00FFFF', MAG = '#FF00FF', GRN = '#39FF14', RED = '#FF3366', YEL = '#FFD700', PUR = '#CC88FF';
+
+function gridOpts(axis='both') {
+  return {
+    x: { grid: { color:'rgba(0,255,255,0.07)', drawBorder:false }, ticks:{ color:'rgba(200,232,255,0.4)' }, display: axis!=='y-only' },
+    y: { grid: { color:'rgba(0,255,255,0.07)', drawBorder:false }, ticks:{ color:'rgba(200,232,255,0.4)' } },
+  };
+}
+
+// ── CHART: Daily ───────────────────────────────────────────────────
+function chartDaily() {
+  const d = DATA.daily;
+  new Chart(document.getElementById('chart-daily'), {
+    type:'line',
+    data:{
+      labels:d.labels,
+      datasets:[
+        { label:'Plays', data:d.plays, borderColor:CYAN, backgroundColor:'rgba(0,255,255,0.06)', tension:0.4, borderWidth:2, pointRadius:3, pointBackgroundColor:CYAN },
+        { label:'Wins', data:d.wins, borderColor:GRN, backgroundColor:'rgba(57,255,20,0.06)', tension:0.4, borderWidth:2, pointRadius:3, pointBackgroundColor:GRN },
+      ]
+    },
+    options:{ responsive:true, plugins:{ legend:{ labels:{ boxWidth:12, color:CYAN } } }, scales: gridOpts() }
+  });
+}
+
+// ── CHART: Device donut ────────────────────────────────────────────
+function chartDevice() {
+  new Chart(document.getElementById('chart-device'),{
+    type:'doughnut',
+    data:{
+      labels:['Desktop','Mobile'],
+      datasets:[{ data:[DATA.deviceMix.desktop, DATA.deviceMix.mobile], backgroundColor:[CYAN+'33', MAG+'33'], borderColor:[CYAN, MAG], borderWidth:2 }]
+    },
+    options:{ responsive:true, cutout:'65%', plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.6)', boxWidth:12 } } } }
+  });
+}
+
+// ── CHART: AB split ────────────────────────────────────────────────
+function chartABSplit() {
+  new Chart(document.getElementById('chart-ab-split'),{
+    type:'doughnut',
+    data:{
+      labels:['Music ON (A)','Music OFF (B)'],
+      datasets:[{ data:[DATA.abSplit.musicOn, DATA.abSplit.musicOff], backgroundColor:[CYAN+'33', MAG+'33'], borderColor:[CYAN, MAG], borderWidth:2 }]
+    },
+    options:{ responsive:true, cutout:'65%', plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.6)', boxWidth:12 } } } }
+  });
+}
+
+// ── CHART: Powerup ─────────────────────────────────────────────────
+function chartPowerup() {
+  const d = DATA.powerups;
+  new Chart(document.getElementById('chart-powerup'),{
+    type:'bar',
+    data:{
+      labels:d.labels,
+      datasets:[
+        { label:'Green Phase', data:d.green, backgroundColor:GRN+'55', borderColor:GRN, borderWidth:1 },
+        { label:'Red Phase',   data:d.red,   backgroundColor:RED+'55', borderColor:RED, borderWidth:1 },
+        { label:'Purple Phase',data:d.purple,backgroundColor:PUR+'55', borderColor:PUR, borderWidth:1 },
+      ]
+    },
+    options:{ responsive:true, scales:gridOpts(), plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.5)', boxWidth:12 } } } }
+  });
+}
+
+// ── FUNNEL render ──────────────────────────────────────────────────
+function renderFunnel(containerId, stages, color=CYAN) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  const maxN = stages[0].n;
+  stages.forEach((s,i) => {
+    const w = (s.n / maxN * 100).toFixed(1);
+    const div = document.createElement('div');
+    div.className = 'funnel-stage';
+    div.innerHTML = `
+      <div class="funnel-label-row">
+        <span class="funnel-name">${s.name}</span>
+        <span class="funnel-stats">${s.n.toLocaleString()} users</span>
+      </div>
+      <div class="funnel-bar-bg">
+        <div class="funnel-bar" style="width:${w}%;background:${color}99">
+          <span class="funnel-bar-pct">${s.pct}%</span>
+        </div>
+      </div>
+      ${s.dropPct ? `<div class="funnel-drop">▼ ${s.dropPct}% drop here</div>` : ''}
+    `;
+    el.appendChild(div);
+  });
+}
+
+function buildFunnelTable() {
+  const conversions = [
+    { from:'game_start', to:'wave_reached L4', overall:'55.0%', on:'~57%', off:'~53%', delta:'+4pp' },
+    { from:'wave_reached', to:'boss_attempt 1', overall:'66.2%', on:'~68%', off:'~64%', delta:'+4pp' },
+    { from:'boss_attempt', to:'boss_defeated 1', overall:'66.4%', on:'68.1%', off:'64.8%', delta:'+3.3pp' },
+    { from:'boss_1', to:'boss_defeated 2', overall:'55.6%', on:'56.7%', off:'54.3%', delta:'+2.4pp' },
+    { from:'boss_2', to:'boss_defeated 3', overall:'71.0%', on:'72.5%', off:'69.3%', delta:'+3.2pp' },
+    { from:'boss_3', to:'player_won', overall:'88.2%', on:'89.1%', off:'87.0%', delta:'+2.1pp' },
+  ];
+  const tbody = document.getElementById('funnel-table');
+  conversions.forEach(r => {
+    tbody.innerHTML += `<tr>
+      <td>${r.from} → ${r.to}</td>
+      <td>${r.overall}</td>
+      <td style="color:${CYAN}">${r.on}</td>
+      <td style="color:${MAG}">${r.off}</td>
+      <td style="color:${GRN}">${r.delta}</td>
+    </tr>`;
+  });
+}
+
+// ── CHART: Drop-off ────────────────────────────────────────────────
+function chartDropoff() {
+  const d = DATA.deathsByLevel;
+  const phaseColors = d.phase.map(p => p==='grn' ? GRN+'AA' : p==='red' ? RED+'AA' : PUR+'AA');
+  new Chart(document.getElementById('chart-dropdoff'),{
+    type:'bar',
+    data:{
+      labels:d.labels,
+      datasets:[{ label:'Deaths', data:d.counts, backgroundColor:phaseColors, borderWidth:0 }]
+    },
+    options:{
+      indexAxis:'y', responsive:true,
+      scales:{ x:{ grid:{color:'rgba(0,255,255,0.07)'}, ticks:{color:'rgba(200,232,255,0.4)'} }, y:{ grid:{color:'rgba(0,255,255,0.07)'}, ticks:{color:'rgba(200,232,255,0.4)'} } },
+      plugins:{ legend:{ display:false } }
+    }
+  });
+}
+
+// ── BOSS CARDS ─────────────────────────────────────────────────────
+function buildBossCards() {
+  const container = document.getElementById('boss-cards');
+  DATA.bosses.forEach(b => {
+    const r = 44, circ = 2*Math.PI*r;
+    const fill = (b.defeat_rate/100)*circ;
+    const phaseClass = b.phase==='GREEN'?'green-phase':b.phase==='RED'?'red-phase':'purple-phase';
+    container.innerHTML += `
+      <div class="boss-card">
+        <div class="boss-name">${b.name} &nbsp;<span class="pill ${phaseClass}">${b.phase}</span></div>
+        <div class="boss-ring">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
+            <circle cx="50" cy="50" r="${r}" fill="none" stroke="${b.color}" stroke-width="8"
+              stroke-dasharray="${fill} ${circ}" stroke-linecap="round"
+              style="filter:drop-shadow(0 0 6px ${b.color})"/>
+          </svg>
+          <div class="boss-ring-pct" style="color:${b.color}">${b.defeat_rate}%</div>
+        </div>
+        <div class="boss-stats-row">
+          <span class="boss-stat-label">Attempts</span>
+          <span class="boss-stat-val" style="color:${b.color}">${b.attempts.toLocaleString()}</span>
+        </div>
+        <div class="boss-stats-row">
+          <span class="boss-stat-label">Defeats</span>
+          <span class="boss-stat-val" style="color:${b.color}">${b.defeats.toLocaleString()}</span>
+        </div>
+        <div class="boss-stats-row">
+          <span class="boss-stat-label">Avg attempts</span>
+          <span class="boss-stat-val">${b.avg_attempts}×</span>
+        </div>
+        <div class="boss-stats-row">
+          <span class="boss-stat-label">Score threshold</span>
+          <span class="boss-stat-val">${b.threshold}</span>
+        </div>
+      </div>`;
+  });
+}
+
+function chartBossRatio() {
+  new Chart(document.getElementById('chart-boss-ratio'),{
+    type:'bar',
+    data:{
+      labels:['Boss 1 (Green)','Boss 2 (Red)','Boss 3 (Purple)'],
+      datasets:[
+        { label:'Attempts', data:[1034,690,389], backgroundColor:[GRN+'44',RED+'44',PUR+'44'], borderColor:[GRN,RED,PUR], borderWidth:1 },
+        { label:'Defeats',  data:[687, 382,271],  backgroundColor:[GRN+'88',RED+'88',PUR+'88'], borderColor:[GRN,RED,PUR], borderWidth:1 },
+      ]
+    },
+    options:{ responsive:true, scales:gridOpts(), plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.5)', boxWidth:12 } } } }
+  });
+}
+
+function chartBossPlatform() {
+  new Chart(document.getElementById('chart-boss-platform'),{
+    type:'bar',
+    data:{
+      labels:['Boss 1','Boss 2','Boss 3'],
+      datasets:[
+        { label:'Desktop', data:[28.4,17.1,12.8], backgroundColor:CYAN+'44', borderColor:CYAN, borderWidth:1 },
+        { label:'Mobile',  data:[19.6,10.1,6.7],  backgroundColor:MAG+'44',  borderColor:MAG,  borderWidth:1 },
+      ]
+    },
+    options:{
+      responsive:true,
+      scales:{ ...gridOpts(), y:{ ...gridOpts().y, ticks:{ ...gridOpts().y.ticks, callback:v=>v+'%' } } },
+      plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.5)', boxWidth:12 } } }
+    }
+  });
+}
+
+function buildBossTable() {
+  const tbody = document.getElementById('boss-table');
+  const assessments = ['Balanced — 55-67% defeat rate is healthy','⚠ Hardest wall — only 55% pass, largest drop-off','Slightly easy — 70% defeat rate after reaching here'];
+  DATA.bosses.forEach((b,i) => {
+    const phaseClass = b.phase==='GREEN'?'green-phase':b.phase==='RED'?'red-phase':'purple-phase';
+    tbody.innerHTML += `<tr>
+      <td style="color:${b.color};font-weight:600">${b.name}</td>
+      <td><span class="pill ${phaseClass}">${b.phase}</span></td>
+      <td>${b.threshold}</td>
+      <td>${b.attempts.toLocaleString()}</td>
+      <td style="color:${b.color}">${b.defeat_rate}%</td>
+      <td>${b.avg_attempts}×</td>
+      <td style="font-size:0.7rem;color:rgba(200,232,255,0.6)">${assessments[i]}</td>
+    </tr>`;
+  });
+}
+
+// ── AB CARDS ───────────────────────────────────────────────────────
+function buildABCards() {
+  const ab = DATA.abMusic;
+  const metrics = [
+    { k:'winRate',     label:'Win Rate',          better:'higher' },
+    { k:'survival',    label:'Avg Survival',       better:'higher' },
+    { k:'replay',      label:'Play-Again Rate',    better:'higher' },
+    { k:'lbRate',      label:'Leaderboard Rate',   better:'higher' },
+    { k:'avgLevel',    label:'Avg Level Reached',  better:'higher' },
+    { k:'musicToggle', label:'Music Toggle Rate',  better:'lower' },
+  ];
+  const container = document.getElementById('ab-music-cards');
+  ['A','B'].forEach(grp => {
+    const d = ab[grp];
+    const isWinner = grp === 'A';
+    let rows = metrics.map(m => {
+      const aVal = ab.A[m.k]; const bVal = ab.B[m.k];
+      const isThisWinner = (m.better==='higher') ? (grp==='A' ? parseFloat(aVal)>=parseFloat(bVal) : parseFloat(bVal)>parseFloat(aVal))
+                                                  : (grp==='A' ? parseFloat(aVal)<=parseFloat(bVal) : parseFloat(bVal)<parseFloat(aVal));
+      return `<div class="ab-metric-row">
+        <span class="ab-metric-name">${m.label}</span>
+        <span class="ab-metric-val ${isThisWinner?'better':'worse'}">${d[m.k]}</span>
+      </div>`;
+    }).join('');
+    container.innerHTML += `
+      <div class="ab-card ${isWinner?'winner':'loser'}">
+        <div class="ab-header">
+          <span class="ab-group-badge ${grp.toLowerCase()}">Group ${grp} — ${d.label}</span>
+          ${isWinner ? '<span class="ab-winner-tag">▲ WINNING</span>' : ''}
+        </div>
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--text-dim);margin-bottom:12px">${d.sessions.toLocaleString()} sessions</div>
+        ${rows}
+      </div>`;
+  });
+
+  const mov = DATA.abMovement;
+  const movMetrics = [
+    { k:'winRate',  label:'Win Rate' },
+    { k:'survival', label:'Avg Survival' },
+    { k:'avgLevel', label:'Avg Level' },
+  ];
+  const movContainer = document.getElementById('ab-movement-cards');
+  ['A','B'].forEach(grp => {
+    const d = mov[grp];
+    const isWinner = grp === 'B';
+    let rows = movMetrics.map(m => {
+      const isThisWinner = grp==='B' ? parseFloat(mov.B[m.k])>=parseFloat(mov.A[m.k]) : parseFloat(mov.A[m.k])>parseFloat(mov.B[m.k]);
+      return `<div class="ab-metric-row">
+        <span class="ab-metric-name">${m.label}</span>
+        <span class="ab-metric-val ${isThisWinner?'better':'worse'}">${d[m.k]}</span>
+      </div>`;
+    }).join('');
+    movContainer.innerHTML += `
+      <div class="ab-card ${isWinner?'winner':'loser'}">
+        <div class="ab-header">
+          <span class="ab-group-badge ${grp.toLowerCase()}">Movement ${grp} — ${d.label}</span>
+          ${isWinner ? '<span class="ab-winner-tag">▲ WINNING</span>' : ''}
+        </div>
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--text-dim);margin-bottom:12px">${d.sessions.toLocaleString()} sessions</div>
+        ${rows}
+      </div>`;
+  });
+
+  const sigTbody = document.getElementById('ab-sig-table');
+  sigTbody.innerHTML = `
+    <tr>
+      <td>Music Default (A/B)</td>
+      <td style="color:${CYAN}">1,449</td>
+      <td style="color:${MAG}">1,392</td>
+      <td style="color:${GRN}">✓ Significant (n>1000)</td>
+      <td>Win Rate, Replay, Survival</td>
+      <td>p &lt; 0.05</td>
+      <td style="color:${GRN}">Ship Music ON as default</td>
+    </tr>
+    <tr>
+      <td>Movement Scheme (A/B)</td>
+      <td style="color:${CYAN}">1,389</td>
+      <td style="color:${MAG}">1,452</td>
+      <td style="color:${YEL}">Emerging (n>1000)</td>
+      <td>Avg Level, Win Rate</td>
+      <td>p &lt; 0.05</td>
+      <td style="color:${YEL}">Monitor 1 more week</td>
+    </tr>`;
+}
+
+function chartABWinRate() {
+  new Chart(document.getElementById('chart-ab-winrate'),{
+    type:'bar',
+    data:{
+      labels:['Music ON (A)','Music OFF (B)'],
+      datasets:[{ data:[9.6,7.2], backgroundColor:[CYAN+'55',MAG+'55'], borderColor:[CYAN,MAG], borderWidth:2 }]
+    },
+    options:{
+      responsive:true, plugins:{legend:{display:false}},
+      scales:{
+        ...gridOpts(),
+        y:{ ...gridOpts().y, ticks:{ ...gridOpts().y.ticks, callback:v=>v+'%' }, suggestedMax:12 }
+      }
+    }
+  });
+}
+
+function chartABSurvival() {
+  new Chart(document.getElementById('chart-ab-survival'),{
+    type:'bar',
+    data:{
+      labels:['Music ON (A)','Music OFF (B)'],
+      datasets:[{ data:[152,131], backgroundColor:[CYAN+'55',MAG+'55'], borderColor:[CYAN,MAG], borderWidth:2 }]
+    },
+    options:{
+      responsive:true, plugins:{legend:{display:false}},
+      scales:{ ...gridOpts(), y:{ ...gridOpts().y, ticks:{ ...gridOpts().y.ticks, callback:v=>v+'s' } } }
+    }
+  });
+}
+
+// ── PLATFORM ───────────────────────────────────────────────────────
+function chartPlatformFunnel() {
+  const d = DATA.platform;
+  new Chart(document.getElementById('chart-platform-funnel'),{
+    type:'bar',
+    data:{
+      labels:['game_start','boss_1','boss_2','player_won'],
+      datasets:[
+        { label:'Desktop', data:[100, 28.4, 17.1, 11.2], backgroundColor:CYAN+'44', borderColor:CYAN, borderWidth:1 },
+        { label:'Mobile',  data:[100, 19.6, 10.1,  5.7], backgroundColor:MAG+'44',  borderColor:MAG,  borderWidth:1 },
+      ]
+    },
+    options:{
+      responsive:true,
+      scales:{ ...gridOpts(), y:{ ...gridOpts().y, ticks:{ ...gridOpts().y.ticks, callback:v=>v+'%' } } },
+      plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.5)', boxWidth:12 } } }
+    }
+  });
+}
+
+function chartSurvivalDist() {
+  new Chart(document.getElementById('chart-survival-dist'),{
+    type:'bar',
+    data:{
+      labels:['0-30s','30-60s','60-120s','120-180s','180-240s','240+s'],
+      datasets:[
+        { label:'Desktop', data:[8, 15, 28, 24, 16, 9],  backgroundColor:CYAN+'55', borderColor:CYAN, borderWidth:1 },
+        { label:'Mobile',  data:[14, 22, 31, 19, 10, 4], backgroundColor:MAG+'55',  borderColor:MAG,  borderWidth:1 },
+      ]
+    },
+    options:{
+      responsive:true,
+      scales:{ ...gridOpts(), y:{ ...gridOpts().y, ticks:{ ...gridOpts().y.ticks, callback:v=>v+'%' } } },
+      plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.5)', boxWidth:12 } } }
+    }
+  });
+}
+
+function buildPlatformTable() {
+  const d = DATA.platform;
+  const metrics = [
+    { label:'Sessions',        desk:d.desktop.sessions, mob:d.mobile.sessions, higherBetter:true },
+    { label:'Win Rate',        desk:d.desktop.winRate,  mob:d.mobile.winRate,  higherBetter:true },
+    { label:'Avg Survival',    desk:d.desktop.survival, mob:d.mobile.survival, higherBetter:true },
+    { label:'Play-Again Rate', desk:d.desktop.replay,   mob:d.mobile.replay,   higherBetter:true },
+    { label:'Avg Level',       desk:d.desktop.avgLevel, mob:d.mobile.avgLevel, higherBetter:true },
+    { label:'Leaderboard Rate',desk:d.desktop.lbRate,   mob:d.mobile.lbRate,   higherBetter:true },
+    { label:'Boss 1 Defeat %', desk:d.desktop.boss1,    mob:d.mobile.boss1,    higherBetter:true },
+    { label:'Boss 2 Defeat %', desk:d.desktop.boss2,    mob:d.mobile.boss2,    higherBetter:true },
+    { label:'Boss 3 Defeat %', desk:d.desktop.boss3,    mob:d.mobile.boss3,    higherBetter:true },
+  ];
+  const tbody = document.getElementById('platform-table');
+  metrics.forEach(m => {
+    const deskWins = true; // desktop consistently better
+    tbody.innerHTML += `<tr>
+      <td>${m.label}</td>
+      <td style="color:${deskWins?CYAN:MAG}">${m.desk}</td>
+      <td style="color:${!deskWins?CYAN:MAG}">${m.mob}</td>
+      <td><span class="pill desktop">Desktop</span></td>
+      <td style="color:${GRN};font-family:var(--mono);font-size:0.7rem">Desktop leads</td>
+    </tr>`;
+  });
+}
+
+// ── TAB SWITCHING ──────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CSV DRAG-AND-DROP LOADER
+// Drop a GA4 CSV export onto the dashboard to auto-populate charts.
+// Supports: funnel, death drop-off, boss kill rate, A/B music, platform.
+// Automatically filters rows where analytics_version !== '3.0' if present.
+// ═══════════════════════════════════════════════════════════════════
+
+const CSV_VERSION_FILTER = '3.0';
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/ /g,'_'));
+  return lines.slice(1).map(line => {
+    const vals = line.match(/(".*?"|[^,]+)/g) || line.split(',');
+    const obj = {};
+    headers.forEach((h,i) => { obj[h] = (vals[i]||'').replace(/^"|"$/g,'').trim(); });
+    return obj;
+  });
+}
+
+function filterByVersion(rows) {
+  if (!rows.length) return rows;
+  const hasVersionCol = 'analytics_version' in rows[0];
+  if (!hasVersionCol) return rows; // no column — pass all through
+  const filtered = rows.filter(r => r.analytics_version === CSV_VERSION_FILTER);
+  const dropped = rows.length - filtered.length;
+  if (dropped > 0) showToast(`Filtered out ${dropped} row(s) without analytics_version=${CSV_VERSION_FILTER}`,'info');
+  return filtered;
+}
+
+function detectReportType(headers) {
+  const h = headers.join(',');
+  if (h.includes('boss_id')) return 'boss';
+  if (h.includes('ab_music_group') && h.includes('event_name')) return 'ab_music';
+  if (h.includes('level_reached') || h.includes('phase')) return 'deaths';
+  if (h.includes('funnel') || h.includes('step')) return 'funnel';
+  if (h.includes('platform') && h.includes('event_name')) return 'platform';
+  // fallback: try to detect from event_name values
+  return 'generic';
+}
+
+function applyFunnelCSV(rows) {
+  const starts = rows.filter(r => r.event_name === 'game_start');
+  const won    = rows.filter(r => r.event_name === 'player_won');
+  const b1     = rows.filter(r => r.event_name === 'boss_defeated' && r.boss_id === '1');
+  const b2     = rows.filter(r => r.event_name === 'boss_defeated' && r.boss_id === '2');
+  const b3     = rows.filter(r => r.event_name === 'boss_defeated' && r.boss_id === '3');
+  const sum = arr => arr.reduce((s,r) => s + (parseInt(r.event_count)||0), 0);
+  const n0 = sum(starts); if (!n0) return false;
+  const funnel = [
+    { name:'game_start',      n:n0,       pct:100,                         dropPct:null },
+    { name:'boss_defeated 1', n:sum(b1),  pct:+(sum(b1)/n0*100).toFixed(1), dropPct:+(100-sum(b1)/n0*100).toFixed(1) },
+    { name:'boss_defeated 2', n:sum(b2),  pct:+(sum(b2)/n0*100).toFixed(1), dropPct:+(sum(b1)/n0*100-sum(b2)/n0*100).toFixed(1) },
+    { name:'boss_defeated 3', n:sum(b3),  pct:+(sum(b3)/n0*100).toFixed(1), dropPct:+(sum(b2)/n0*100-sum(b3)/n0*100).toFixed(1) },
+    { name:'player_won',      n:sum(won), pct:+(sum(won)/n0*100).toFixed(1), dropPct:+(sum(b3)/n0*100-sum(won)/n0*100).toFixed(1) },
+  ];
+  DATA.funnel = funnel;
+  DATA.kpis.winRate = funnel[4].pct + '%';
+  DATA.kpis.deathrate = (100 - funnel[4].pct).toFixed(1) + '%';
+  DATA.kpis.sessions = n0.toLocaleString();
+  return true;
+}
+
+function applyDeathsCSV(rows) {
+  const deaths = {};
+  const phases = {};
+  rows.filter(r => !r.event_name || r.event_name === 'player_death').forEach(r => {
+    const lvl = r.level_reached || r.level || r.dimension1;
+    if (!lvl) return;
+    deaths[lvl] = (deaths[lvl]||0) + (parseInt(r.event_count)||1);
+    if (r.phase) phases[lvl] = r.phase;
+  });
+  const levels = Object.keys(deaths).sort((a,b) => parseInt(a)-parseInt(b));
+  if (!levels.length) return false;
+  DATA.deathsByLevel.labels = levels.map(l => 'L'+l);
+  DATA.deathsByLevel.counts = levels.map(l => deaths[l]);
+  DATA.deathsByLevel.phase  = levels.map(l => {
+    const ph = (phases[l]||'').toLowerCase();
+    return ph === 'red' ? 'red' : ph === 'purple' ? 'pur' : 'grn';
+  });
+  return true;
+}
+
+function applyBossCSV(rows) {
+  [1,2,3].forEach(id => {
+    const attempts = rows.filter(r => r.event_name === 'boss_attempt' && r.boss_id == id);
+    const defeats  = rows.filter(r => r.event_name === 'boss_defeated' && r.boss_id == id);
+    const sumE = arr => arr.reduce((s,r)=>s+(parseInt(r.event_count)||0),0);
+    const att = sumE(attempts), def = sumE(defeats);
+    if (!att && !def) return;
+    DATA.bosses[id-1].attempts = att || DATA.bosses[id-1].attempts;
+    DATA.bosses[id-1].defeats  = def || DATA.bosses[id-1].defeats;
+    DATA.bosses[id-1].defeat_rate = att ? +(def/att*100).toFixed(1) : DATA.bosses[id-1].defeat_rate;
+  });
+  return true;
+}
+
+function applyABMusicCSV(rows) {
+  const groupA = rows.filter(r => r.ab_music_group === 'music_on' || r.ab_music_group === 'A');
+  const groupB = rows.filter(r => r.ab_music_group === 'music_off' || r.ab_music_group === 'B');
+  const getCount = (arr, eName) => arr.filter(r=>r.event_name===eName).reduce((s,r)=>s+(parseInt(r.event_count)||0),0);
+  ['A','B'].forEach((grp,i) => {
+    const arr = i===0 ? groupA : groupB;
+    const starts = getCount(arr,'game_start');
+    const wins   = getCount(arr,'player_won');
+    const lbs    = getCount(arr,'leaderboard_submit');
+    if (!starts) return;
+    DATA.abMusic[grp].sessions = starts;
+    DATA.abMusic[grp].winRate  = (wins/starts*100).toFixed(1)+'%';
+    DATA.abMusic[grp].lbRate   = wins ? (lbs/wins*100).toFixed(1)+'%' : DATA.abMusic[grp].lbRate;
+  });
+  return true;
+}
+
+function applyPlatformCSV(rows) {
+  ['desktop','mobile'].forEach(plat => {
+    const arr = rows.filter(r => r.platform === plat);
+    const getCount = (eName) => arr.filter(r=>r.event_name===eName).reduce((s,r)=>s+(parseInt(r.event_count)||0),0);
+    const starts = getCount('game_start');
+    const wins   = getCount('player_won');
+    if (!starts) return;
+    DATA.platform[plat].sessions = starts;
+    DATA.platform[plat].winRate  = (wins/starts*100).toFixed(1)+'%';
+    const key = plat === 'desktop' ? 'deskWin' : 'mobWin';
+    DATA.kpis[key] = DATA.platform[plat].winRate;
+  });
+  return true;
+}
+
+function reinitAllCharts() {
+  // Destroy all existing Chart.js instances before re-rendering
+  Object.values(Chart.instances).forEach(c => c.destroy());
+  document.querySelectorAll('.funnel-wrap').forEach(el => el.innerHTML='');
+  document.getElementById('boss-cards').innerHTML='';
+  document.getElementById('ab-music-cards').innerHTML='';
+  document.getElementById('ab-movement-cards').innerHTML='';
+  document.getElementById('funnel-table').innerHTML='';
+  document.getElementById('boss-table').innerHTML='';
+  document.getElementById('platform-table').innerHTML='';
+  document.getElementById('ab-sig-table').innerHTML='';
+  populateKPIs();
+  chartDaily(); chartDevice(); chartABSplit(); chartPowerup();
+  renderFunnel('funnel-main', DATA.funnel, CYAN);
+  renderFunnel('funnel-music-on', DATA.funnelMusicOn, CYAN);
+  renderFunnel('funnel-music-off', DATA.funnelMusicOff, MAG);
+  buildFunnelTable(); chartDropoff();
+  buildBossCards(); chartBossRatio(); chartBossPlatform(); buildBossTable();
+  buildABCards(); chartABWinRate(); chartABSurvival();
+  chartPlatformFunnel(); chartSurvivalDist(); buildPlatformTable();
+}
+
+function processCSVFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const rows = parseCSV(e.target.result);
+      if (!rows.length) { showToast('CSV appears empty or malformed','error'); return; }
+      const filtered = filterByVersion(rows);
+      const headers = Object.keys(filtered[0]||rows[0]);
+      const type = detectReportType(headers);
+      let applied = false;
+      if (type==='boss')      applied = applyBossCSV(filtered);
+      else if (type==='ab_music') applied = applyABMusicCSV(filtered);
+      else if (type==='deaths')   applied = applyDeathsCSV(filtered);
+      else if (type==='platform') applied = applyPlatformCSV(filtered);
+      else if (type==='funnel')   applied = applyFunnelCSV(filtered);
+      else {
+        // Generic: try all parsers
+        applied = applyFunnelCSV(filtered) || applyDeathsCSV(filtered) || applyBossCSV(filtered) || applyABMusicCSV(filtered);
+      }
+      if (applied) {
+        reinitAllCharts();
+        showToast(`✓ ${file.name} loaded (${filtered.length} rows, type: ${type})`, 'success');
+        document.getElementById('overview-insight').innerHTML =
+          `<strong>✓ Live data loaded</strong> — ${file.name} · ${filtered.length} rows · analytics_version filtered · Last updated: ${new Date().toLocaleString()}`;
+      } else {
+        showToast('Could not parse this CSV — check column names match GA4 export format','error');
+      }
+    } catch(err) {
+      showToast('Error reading file: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function showToast(msg, type) {
+  const el = document.getElementById('csv-toast');
+  el.textContent = msg;
+  el.className = 'csv-toast show ' + (type||'');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── DROP ZONE SETUP ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('drop-zone');
+  const body = document.body;
+
+  body.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('active'); });
+  body.addEventListener('dragleave', e => { if (!e.relatedTarget) zone.classList.remove('active'); });
+  body.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('active');
+    const files = [...e.dataTransfer.files].filter(f => f.name.endsWith('.csv'));
+    if (!files.length) { showToast('Please drop a .csv file exported from GA4', 'error'); return; }
+    files.forEach(processCSVFile);
+  });
+
+  document.getElementById('csv-file-input').addEventListener('change', e => {
+    [...e.target.files].forEach(processCSVFile);
+    e.target.value='';
+  });
+});
+
+// ── INIT ───────────────────────────────────────────────────────────
+populateKPIs();
+chartDaily();
+chartDevice();
+chartABSplit();
+chartPowerup();
+renderFunnel('funnel-main',     DATA.funnel,        CYAN);
+renderFunnel('funnel-music-on', DATA.funnelMusicOn, CYAN);
+renderFunnel('funnel-music-off',DATA.funnelMusicOff,MAG);
+buildFunnelTable();
+chartDropoff();
+buildBossCards();
+chartBossRatio();
+chartBossPlatform();
+buildBossTable();
+buildABCards();
+chartABWinRate();
+chartABSurvival();
+chartPlatformFunnel();
+chartSurvivalDist();
+buildPlatformTable();
+</script>
+</body>
+</html>
