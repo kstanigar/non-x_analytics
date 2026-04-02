@@ -695,6 +695,75 @@
 
   .csv-toolbar strong { color: var(--cyan); }
 
+  /* CSV upload tracker */
+  .csv-tracker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 16px 10px;
+    margin-top: -14px;
+    margin-bottom: 20px;
+    background: rgba(0,255,255,0.02);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+  }
+  /* ── Drop-off platform toggle buttons ─────────────────────── */
+  .dop-btn {
+    background: transparent;
+    border: 1px solid rgba(200,232,255,0.2);
+    color: rgba(200,232,255,0.4);
+    padding: 3px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    transition: all 0.15s;
+  }
+  .dop-btn:hover {
+    border-color: rgba(200,232,255,0.5);
+    color: rgba(200,232,255,0.8);
+  }
+  .dop-btn.dop-active {
+    background: rgba(0,180,200,0.15);
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .csv-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(200,232,255,0.1);
+    background: rgba(200,232,255,0.04);
+    color: rgba(200,232,255,0.3);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+  .csv-chip.loaded {
+    border-color: rgba(57,255,20,0.4);
+    background: rgba(57,255,20,0.08);
+    color: rgba(57,255,20,0.9);
+  }
+  .csv-chip.loaded .chip-dot {
+    background: #39FF14;
+    box-shadow: 0 0 6px #39FF14;
+  }
+  .csv-chip .chip-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(200,232,255,0.2);
+    flex-shrink: 0;
+  }
+  .csv-chip .chip-name { font-weight: 600; letter-spacing: 0.03em; }
+  .csv-chip .chip-file { opacity: 0.7; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+  .csv-chip .chip-time { opacity: 0.5; }
+
   .csv-btn {
     padding: 6px 14px;
     background: var(--cyan-dim);
@@ -796,11 +865,57 @@
     <span id="csv-status" style="color:var(--text-dim)">Sample data — connect GA4 export to update</span>
   </div>
 
+  <!-- CSV UPLOAD TRACKER -->
+  <div class="csv-tracker" id="csv-tracker">
+    <span style="color:rgba(200,232,255,0.25);font-size:0.6rem;letter-spacing:0.08em;margin-right:4px">LOADED:</span>
+    <div class="csv-chip" id="chip-funnel">
+      <span class="chip-dot"></span>
+      <span class="chip-name">FUNNEL</span>
+      <span class="chip-file" id="chip-funnel-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-deaths">
+      <span class="chip-dot"></span>
+      <span class="chip-name">DEATHS</span>
+      <span class="chip-file" id="chip-deaths-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-boss">
+      <span class="chip-dot"></span>
+      <span class="chip-name">BOSS</span>
+      <span class="chip-file" id="chip-boss-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-attempts">
+      <span class="chip-dot"></span>
+      <span class="chip-name">ATTEMPTS</span>
+      <span class="chip-file" id="chip-attempts-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-ab_music">
+      <span class="chip-dot"></span>
+      <span class="chip-name">A/B MUSIC</span>
+      <span class="chip-file" id="chip-ab_music-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-platform">
+      <span class="chip-dot"></span>
+      <span class="chip-name">PLATFORM</span>
+      <span class="chip-file" id="chip-platform-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-deaths_mobile">
+      <span class="chip-dot"></span>
+      <span class="chip-name">DEATHS MOBILE</span>
+      <span class="chip-file" id="chip-deaths_mobile-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-generic">
+      <span class="chip-dot"></span>
+      <span class="chip-name">OTHER</span>
+      <span class="chip-file" id="chip-generic-file">not loaded</span>
+    </div>
+  </div>
+
   <!-- NAV -->
   <nav class="nav-tabs">
     <div class="tab active" onclick="switchTab('overview')">Overview</div>
     <div class="tab" onclick="switchTab('funnel')">Funnel</div>
     <div class="tab" onclick="switchTab('bosses')">Boss Analysis</div>
+    <div class="tab" onclick="switchTab('ai')">AI Agent</div>
     <div class="tab" onclick="switchTab('ab')">A/B Tests</div>
     <div class="tab" onclick="switchTab('platform')">Platform</div>
     <div class="tab" onclick="switchTab('looker')">Looker Guide</div>
@@ -831,7 +946,7 @@
       <div class="kpi red">
         <div class="kpi-label">Death Rate</div>
         <div class="kpi-value" id="kpi-deathrate">—</div>
-        <div class="kpi-sub">player_death / game_start</div>
+        <div class="kpi-sub">player_death / game_start (excl. abandoned)</div>
       </div>
       <div class="kpi yel">
         <div class="kpi-label">Play-Again Rate</div>
@@ -841,7 +956,7 @@
       <div class="kpi">
         <div class="kpi-label">Avg Survival</div>
         <div class="kpi-value" id="kpi-survival">—</div>
-        <div class="kpi-sub">seconds per run</div>
+        <div class="kpi-sub">minutes per run</div>
       </div>
       <div class="kpi mag">
         <div class="kpi-label">Leaderboard Rate</div>
@@ -904,9 +1019,34 @@
         <div class="funnel-wrap" id="funnel-main"></div>
       </div>
       <div class="card">
-        <div class="card-title"><span class="dot yel"></span> Wave Drop-off (Deaths by Level)</div>
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <span><span class="dot yel"></span> Wave Drop-off (Deaths by Level)</span>
+          <div id="dropoff-toggle" style="display:flex;gap:4px;font-family:var(--mono);font-size:0.68rem">
+            <button onclick="setDropoffPlatform('all')"   id="dop-all"     class="dop-btn dop-active">ALL</button>
+            <button onclick="setDropoffPlatform('mobile')" id="dop-mobile"  class="dop-btn">MOBILE</button>
+            <button onclick="setDropoffPlatform('desktop')" id="dop-desktop" class="dop-btn">DESKTOP</button>
+          </div>
+        </div>
         <div class="chart-wrap tall">
           <canvas id="chart-dropdoff"></canvas>
+        </div>
+        <div id="death-rate-table" style="display:none;margin-top:14px;overflow-x:auto">
+          <div style="font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.05em">
+            DEATH RATE BY LEVEL (deaths / wave_reached attempts) · <span id="drt-platform-label" style="color:var(--cyan)">ALL PLATFORMS</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:0.7rem">
+            <thead>
+              <tr id="drt-head"></tr>
+            </thead>
+            <tbody>
+              <tr id="drt-attempts"></tr>
+              <tr id="drt-deaths"></tr>
+              <tr id="drt-rate"></tr>
+            </tbody>
+          </table>
+          <div style="font-size:0.62rem;color:var(--text-dim);margin-top:6px;opacity:0.7">
+            ⚠ Deaths may exceed attempts where multi-session replays inflate the deaths count vs unique level entries tracked.
+          </div>
         </div>
       </div>
     </div>
@@ -972,7 +1112,7 @@
           <tr>
             <th>Boss</th>
             <th>Phase</th>
-            <th>Score Threshold</th>
+            <th>Level Gate</th>
             <th>Attempts / Player</th>
             <th>Defeat Rate</th>
             <th>Avg Attempts to Kill</th>
@@ -986,7 +1126,119 @@
   </div>
 
   <!-- ════════════════════════════════════════
-       PAGE 4: A/B TESTS
+       PAGE 4: AI AGENT
+  ═══════════════════════════════════════════ -->
+  <div class="page" id="page-ai">
+
+    <div class="section-label">AI Agent v1.0 — Adaptive Difficulty System</div>
+
+    <div class="insight-box" style="margin-bottom:24px">
+      <strong>📊 7-Tier System:</strong> AI adjusts difficulty from Tier -3 (Tutorial) to +3 (Expert).
+      Die 2× in phase → decrease tier. Complete cycle (all 3 bosses) → increase tier.
+      Speed locks after 1st cycle (can't drop below Easy). Score multipliers prevent easy-mode leaderboard exploitation.
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" style="margin-bottom:32px">
+      <div class="kpi">
+        <div class="kpi-label">Avg Starting Tier</div>
+        <div class="kpi-value" id="kpi-ai-avg-start">—</div>
+        <div class="kpi-sub">First session</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg Final Tier</div>
+        <div class="kpi-value" id="kpi-ai-avg-final">—</div>
+        <div class="kpi-sub">At victory/death</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Speed Lock Rate</div>
+        <div class="kpi-value" id="kpi-ai-speed-lock">—</div>
+        <div class="kpi-sub">Players who completed 1+ cycles</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg Tier Adjustments</div>
+        <div class="kpi-value" id="kpi-ai-avg-adjustments">—</div>
+        <div class="kpi-sub">Per session</div>
+      </div>
+    </div>
+
+    <!-- Tier Distribution -->
+    <div class="chart-grid cols-2" style="margin-bottom:28px">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Player Distribution by Tier</div>
+        <div class="chart-wrap">
+          <canvas id="chart-ai-tier-dist"></canvas>
+        </div>
+        <div class="chart-note">Shows final tier reached at session end (victory or death)</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot mag"></span> Tier Progression Flow</div>
+        <div class="chart-wrap">
+          <canvas id="chart-ai-tier-flow"></canvas>
+        </div>
+        <div class="chart-note">How tiers change during sessions (increases vs decreases)</div>
+      </div>
+    </div>
+
+    <!-- Score Multiplier Impact -->
+    <div class="section-label">Tier-Based Scoring Impact</div>
+    <div class="chart-grid cols-2" style="margin-bottom:28px">
+      <div class="card">
+        <div class="card-title"><span class="dot grn"></span> Score Multiplier Distribution</div>
+        <div class="chart-wrap">
+          <canvas id="chart-ai-score-mult"></canvas>
+        </div>
+        <div class="chart-note">Combined tier × movement multipliers (0.50× to 2.19×)</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot ylw"></span> Tier vs Final Score</div>
+        <div class="chart-wrap">
+          <canvas id="chart-ai-tier-score"></canvas>
+        </div>
+        <div class="chart-note">Average final scores by tier (validates multiplier balance)</div>
+      </div>
+    </div>
+
+    <!-- Death Triggers -->
+    <div class="section-label">Tier Adjustment Triggers</div>
+    <div class="card" style="margin-bottom:28px">
+      <div class="card-title"><span class="dot red"></span> Death Triggers by Phase</div>
+      <div class="chart-wrap short">
+        <canvas id="chart-ai-death-triggers"></canvas>
+      </div>
+      <div class="chart-note">Which phase causes most tier decreases (2 deaths = tier down)</div>
+    </div>
+
+    <!-- Difficulty Metrics Table -->
+    <div class="section-label">Tier Performance Metrics</div>
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Name</th>
+            <th>Bullet Speed</th>
+            <th>Score Mult</th>
+            <th>Players</th>
+            <th>Avg Level Reached</th>
+            <th>Win Rate</th>
+            <th>Avg Session Time</th>
+          </tr>
+        </thead>
+        <tbody id="ai-tier-table"></tbody>
+      </table>
+    </div>
+
+    <div class="insight-box" style="margin-top:16px">
+      <strong>💡 Success Metrics:</strong> AI Agent should show: (1) Broad tier distribution (not everyone stuck at -3 or +3),
+      (2) Tier decreases correlate with player deaths (responsive system), (3) Score multipliers prevent Tutorial/Easy
+      from dominating leaderboard, (4) Players progress through tiers over multiple sessions (learning curve).
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PAGE 5: A/B TESTS
   ═══════════════════════════════════════════ -->
   <div class="page" id="page-ab">
 
@@ -1082,7 +1334,7 @@
       </div>
     </div>
 
-    <div class="section-label">Full Platform Breakdown</div>
+    <div class="section-label">Full Platform Breakdown <span style="font-size:10px;opacity:0.6;font-weight:normal">— gap narrows as mobile controls are learned</span></div>
     <div class="card">
       <table class="data-table">
         <thead>
@@ -1348,7 +1600,7 @@ const DATA = {
     winRate: '8.4%',
     deathRate: '84.2%',
     replay: '2.3×',
-    survival: '142s',
+    survival: '2:22',
     lbRate: '31%',
     avgLevel: '5.2',
     deskWin: '11.2%',
@@ -1392,26 +1644,61 @@ const DATA = {
     { name:'player_won',    n: 100, pct: 7.2 },
   ],
   deathsByLevel: {
-    labels:['L1','L2','L3','L4','L5','L6','L7','L8','L9','L10','L11','L12'],
-    counts:[  88, 124, 210, 187,  98, 143, 221, 195,  62,  91, 128,  87],
-    phase: ['grn','grn','grn','grn','red','red','red','red','pur','pur','pur','pur'],
+    // Labels interleave level deaths + boss fight deaths after L4/L8/L12
+    labels:['L1','L2','L3','L4','Boss 1','L5','L6','L7','L8','Boss 2','L9','L10','L11','L12','Boss 3'],
+    counts:[  88, 124, 210, 187,     347,  98, 143, 221, 195,     308,  62,  91,  128,  87,     118],
+    phase: ['grn','grn','grn','grn','grn','red','red','red','red','red','pur','pur','pur','pur','pur'],
+    isBoss:[false,false,false,false,true,false,false,false,false,true,false,false,false,false,true],
   },
+  levelAttempts: {}, // keyed by level string '1'–'12', populated by Level Attempts CSV
   bosses: [
-    { id:1, name:'BOSS 1',  phase:'GREEN', threshold:400,  attempts:1034, defeats:687, defeat_rate:66.4, avg_attempts:1.5, color:'#39FF14' },
-    { id:2, name:'BOSS 2',  phase:'RED',   threshold:1200, attempts: 690, defeats:382, defeat_rate:55.4, avg_attempts:1.8, color:'#FF3366' },
-    { id:3, name:'BOSS 3',  phase:'PURPLE',threshold:2000, attempts: 389, defeats:271, defeat_rate:69.7, avg_attempts:1.4, color:'#CC88FF' },
+    { id:1, name:'BOSS 1',  phase:'GREEN', threshold:'L4',  attempts:1034, defeats:687, defeat_rate:66.4, avg_attempts:1.5, color:'#39FF14' },
+    { id:2, name:'BOSS 2',  phase:'RED',   threshold:'L8',  attempts: 690, defeats:382, defeat_rate:55.4, avg_attempts:1.8, color:'#FF3366' },
+    { id:3, name:'BOSS 3',  phase:'PURPLE',threshold:'L12', attempts: 389, defeats:271, defeat_rate:69.7, avg_attempts:1.4, color:'#CC88FF' },
   ],
   abMusic: {
-    A: { label:'Music ON', sessions:1449, winRate:'9.6%', survival:'152s', replay:'2.5×', lbRate:'34%', avgLevel:'5.7', musicToggle:'18%' },
-    B: { label:'Music OFF', sessions:1392, winRate:'7.2%', survival:'131s', replay:'2.1×', lbRate:'27%', avgLevel:'4.8', musicToggle:'22%' },
+    A: { label:'Music ON', sessions:1449, winRate:'9.6%', survival:'2:32', replay:'2.5×', lbRate:'34%', avgLevel:'5.7', musicToggle:'18%' },
+    B: { label:'Music OFF', sessions:1392, winRate:'7.2%', survival:'2:11', replay:'2.1×', lbRate:'27%', avgLevel:'4.8', musicToggle:'22%' },
   },
   abMovement: {
-    A: { label:'Scheme A', sessions:1389, winRate:'8.1%', survival:'139s', avgLevel:'5.0' },
-    B: { label:'Scheme B', sessions:1452, winRate:'8.7%', survival:'145s', avgLevel:'5.4' },
+    A: { label:'Scheme A', sessions:1389, winRate:'8.1%', survival:'2:19', avgLevel:'5.0' },
+    B: { label:'Scheme B', sessions:1452, winRate:'8.7%', survival:'2:25', avgLevel:'5.4' },
   },
   platform: {
-    desktop: { sessions:1534, winRate:'11.2%', survival:'158s', replay:'2.5×', avgLevel:'6.1', lbRate:'36%', boss1:'28.4%', boss2:'17.1%', boss3:'12.8%' },
-    mobile:  { sessions:1307, winRate:'5.7%',  survival:'124s', replay:'2.1×', avgLevel:'4.3', lbRate:'24%', boss1:'19.6%', boss2:'10.1%', boss3: '6.7%' },
+    desktop: { sessions:1534, winRate:'11.2%', survival:'2:38', replay:'2.5×', avgLevel:'6.1', lbRate:'36%', boss1:'28.4%', boss2:'17.1%', boss3:'12.8%' },
+    mobile:  { sessions:1307, winRate:'5.7%',  survival:'2:04', replay:'2.1×', avgLevel:'4.3', lbRate:'24%', boss1:'19.6%', boss2:'10.1%', boss3: '6.7%' },
+  },
+  aiAgent: {
+    kpis: {
+      avgStartTier: '—',
+      avgFinalTier: '—',
+      speedLockRate: '—',
+      avgAdjustments: '—',
+    },
+    tierDist: {
+      labels: ['-3 Tutorial','-2 Beginner','-1 Easy','0 Normal','1 Challenge','2 Veteran','3 Expert'],
+      counts: [0, 0, 0, 0, 0, 0, 0], // Populated by CSV
+    },
+    tierFlow: {
+      increases: 0,
+      decreases: 0,
+    },
+    scoreMultDist: {
+      labels: ['0.50×','0.70×','0.85×','1.00×','1.20×','1.40×','1.75×','1.50×+'],
+      counts: [0, 0, 0, 0, 0, 0, 0, 0], // Populated by CSV
+    },
+    tierScores: {
+      labels: ['-3','-2','-1','0','1','2','3'],
+      avgScores: [0, 0, 0, 0, 0, 0, 0], // Populated by CSV
+    },
+    deathTriggers: {
+      labels: ['Green','Red','Purple'],
+      counts: [0, 0, 0], // Populated by CSV
+    },
+    tierMetrics: [
+      // { tier:-3, name:'Tutorial', speed:3.5, mult:0.50, players:0, avgLevel:0, winRate:'—', avgTime:'—' },
+      // Populated by CSV
+    ],
   },
 };
 
@@ -1439,6 +1726,25 @@ Chart.defaults.font.size = 11;
 
 const CYAN = '#00FFFF', MAG = '#FF00FF', GRN = '#39FF14', RED = '#FF3366', YEL = '#FFD700', PUR = '#CC88FF';
 
+// ── Platform toggle state for wave drop-off chart ──────────────────
+let dropoffPlatform = 'all'; // 'all' | 'mobile' | 'desktop'
+
+function setDropoffPlatform(p) {
+  // Guard: mobile/desktop split requires levelMobile/levelDesktop data
+  const hasSplit = Object.values(DATA.deathsByLevel.levelMobile || {}).some(v => v > 0);
+  if (!hasSplit && p !== 'all') {
+    showToast('Load the Deaths CSV to enable platform split', 'warn');
+    return;
+  }
+  dropoffPlatform = p;
+  ['all','mobile','desktop'].forEach(id => {
+    const btn = document.getElementById('dop-' + id);
+    if (btn) btn.classList.toggle('dop-active', id === p);
+  });
+  chartDropoff();
+  renderDeathRateTable();
+}
+
 function gridOpts(axis='both') {
   return {
     x: { grid: { color:'rgba(0,255,255,0.07)', drawBorder:false }, ticks:{ color:'rgba(200,232,255,0.4)' }, display: axis!=='y-only' },
@@ -1449,6 +1755,7 @@ function gridOpts(axis='both') {
 // ── CHART: Daily ───────────────────────────────────────────────────
 function chartDaily() {
   const d = DATA.daily;
+    const _ex_chart_daily = Chart.getChart('chart-daily'); if (_ex_chart_daily) _ex_chart_daily.destroy();
   new Chart(document.getElementById('chart-daily'), {
     type:'line',
     data:{
@@ -1464,6 +1771,7 @@ function chartDaily() {
 
 // ── CHART: Device donut ────────────────────────────────────────────
 function chartDevice() {
+    const _ex_chart_device = Chart.getChart('chart-device'); if (_ex_chart_device) _ex_chart_device.destroy();
   new Chart(document.getElementById('chart-device'),{
     type:'doughnut',
     data:{
@@ -1476,6 +1784,7 @@ function chartDevice() {
 
 // ── CHART: AB split ────────────────────────────────────────────────
 function chartABSplit() {
+    const _ex_chart_ab_split = Chart.getChart('chart-ab-split'); if (_ex_chart_ab_split) _ex_chart_ab_split.destroy();
   new Chart(document.getElementById('chart-ab-split'),{
     type:'doughnut',
     data:{
@@ -1489,6 +1798,7 @@ function chartABSplit() {
 // ── CHART: Powerup ─────────────────────────────────────────────────
 function chartPowerup() {
   const d = DATA.powerups;
+    const _ex_chart_powerup = Chart.getChart('chart-powerup'); if (_ex_chart_powerup) _ex_chart_powerup.destroy();
   new Chart(document.getElementById('chart-powerup'),{
     type:'bar',
     data:{
@@ -1552,18 +1862,91 @@ function buildFunnelTable() {
 
 // ── CHART: Drop-off ────────────────────────────────────────────────
 function chartDropoff() {
+  // Destroy existing chart instance before recreating — prevents "Canvas already in use" error
+  const existing = Chart.getChart('chart-dropdoff');
+  if (existing) existing.destroy();
+
   const d = DATA.deathsByLevel;
-  const phaseColors = d.phase.map(p => p==='grn' ? GRN+'AA' : p==='red' ? RED+'AA' : PUR+'AA');
+  const phaseFor = l => parseInt(l) <= 4 ? 'grn' : parseInt(l) <= 8 ? 'red' : 'pur';
+
+  // Build interleaved arrays live — so boss bars always reflect current DATA.bosses
+  const labels=[], counts=[], isBoss=[], phases=[];
+  // Pick the right deaths column based on platform toggle
+  const lm = d.levelMobile  || {};
+  const lk = d.levelDesktop || {};
+  const ld = dropoffPlatform === 'mobile'  ? lm :
+             dropoffPlatform === 'desktop' ? lk :
+             d.levelDeaths || {};
+  const useReal = d.hasRealData;
+
+  if (useReal) {
+    // Real data path: interleave level deaths + live boss deaths
+    for (let lvl = 1; lvl <= 12; lvl++) {
+      const k = String(lvl), ph = phaseFor(k);
+      labels.push('L'+k); counts.push(ld[k]||0); isBoss.push(false); phases.push(ph);
+      if (lvl === 4 || lvl === 8 || lvl === 12) {
+        const bIdx = lvl===4 ? 0 : lvl===8 ? 1 : 2;
+        const b = DATA.bosses[bIdx];
+        const bDeaths = Math.max(0, (b.attempts||0) - (b.defeats||0));
+        labels.push('Boss '+(bIdx+1)); counts.push(bDeaths);
+        isBoss.push(true); phases.push(ph);
+      }
+    }
+  } else {
+    // Sample data path: use pre-built arrays
+    (d.labels||[]).forEach((lbl,i) => {
+      labels.push(lbl); counts.push((d.counts||[])[i]||0);
+      isBoss.push((d.isBoss||[])[i]||lbl.startsWith('Boss'));
+      phases.push((d.phase||[])[i]||'grn');
+    });
+  }
+
+  const bgColors = phases.map((p,i) => {
+    const base = p==='grn' ? GRN : p==='red' ? RED : PUR;
+    if (counts[i] === 0) return 'rgba(200,232,255,0.08)'; // zero bar — dim placeholder
+    return isBoss[i] ? base+'55' : base+'AA';
+  });
+  const borderColors = phases.map((p,i) => {
+    if (!isBoss[i]) return 'transparent';
+    return p==='grn' ? GRN : p==='red' ? RED : PUR;
+  });
+
   new Chart(document.getElementById('chart-dropdoff'),{
     type:'bar',
     data:{
-      labels:d.labels,
-      datasets:[{ label:'Deaths', data:d.counts, backgroundColor:phaseColors, borderWidth:0 }]
+      labels,
+      datasets:[{
+        label:'Deaths', data:counts,
+        backgroundColor:bgColors,
+        borderColor:borderColors,
+        borderWidth: isBoss.map(b => b ? 1.5 : 0),
+        clip: false,
+      }]
     },
     options:{
       indexAxis:'y', responsive:true,
       scales:{ x:{ grid:{color:'rgba(0,255,255,0.07)'}, ticks:{color:'rgba(200,232,255,0.4)'} }, y:{ grid:{color:'rgba(0,255,255,0.07)'}, ticks:{color:'rgba(200,232,255,0.4)'} } },
-      plugins:{ legend:{ display:false } }
+      plugins:{ legend:{ display:false },
+        tooltip:{ callbacks:{ label: ctx => {
+          const raw = ctx.raw;
+          const lbl = labels[ctx.dataIndex]; // e.g. 'L4' or 'Boss 1'
+          if (isBoss[ctx.dataIndex]) return raw === 0 ? ` Boss fight deaths: 0` : ` Boss fight deaths: ${raw}`;
+          if (raw === 0) return ` Level deaths: 0 — no deaths recorded`;
+          // Show death rate % if attempts data is loaded
+          const lvlNum = lbl.replace('L','');
+          const att = DATA.levelAttempts[lvlNum];
+          if (att && att > 0) {
+            const pct = (raw / att * 100).toFixed(1);
+            const caveat = raw > att ? ' ⚠ deaths > attempts (multi-session replays)' : '';
+            return ` Deaths: ${raw} / ${att} attempts = ${pct}% death rate${caveat}`;
+          }
+          return ` Level deaths: ${raw} (load Attempts CSV for death rate %)`;
+        }}}
+      },
+      // Show a minimum bar so zero-death levels/bosses still appear as labels
+      // minBarLength:2 is enough to anchor the label without causing bracket artifacts
+      datasets: { bar: { minBarLength: 2 } },
+      layout: { padding: { right: 0 } }
     }
   });
 }
@@ -1600,7 +1983,7 @@ function buildBossCards() {
           <span class="boss-stat-val">${b.avg_attempts}×</span>
         </div>
         <div class="boss-stats-row">
-          <span class="boss-stat-label">Score threshold</span>
+          <span class="boss-stat-label">Level gate</span>
           <span class="boss-stat-val">${b.threshold}</span>
         </div>
       </div>`;
@@ -1608,6 +1991,7 @@ function buildBossCards() {
 }
 
 function chartBossRatio() {
+    const _ex_chart_boss_ratio = Chart.getChart('chart-boss-ratio'); if (_ex_chart_boss_ratio) _ex_chart_boss_ratio.destroy();
   new Chart(document.getElementById('chart-boss-ratio'),{
     type:'bar',
     data:{
@@ -1622,6 +2006,7 @@ function chartBossRatio() {
 }
 
 function chartBossPlatform() {
+    const _ex_chart_boss_platform = Chart.getChart('chart-boss-platform'); if (_ex_chart_boss_platform) _ex_chart_boss_platform.destroy();
   new Chart(document.getElementById('chart-boss-platform'),{
     type:'bar',
     data:{
@@ -1641,7 +2026,23 @@ function chartBossPlatform() {
 
 function buildBossTable() {
   const tbody = document.getElementById('boss-table');
-  const assessments = ['Balanced — 55-67% defeat rate is healthy','⚠ Hardest wall — only 55% pass, largest drop-off','Slightly easy — 70% defeat rate after reaching here'];
+  const assessments = DATA.bosses.map((b, i) => {
+    const r = b.defeat_rate;
+    if (i === 2) { // Boss 3
+      if (r === 100) return '✓ All who reach here win — survivorship reward';
+      if (r >= 80)   return 'Slightly easy — high defeat rate after reaching here';
+      return `${r}% defeat rate at final boss`;
+    }
+    if (i === 1) { // Boss 2
+      if (r >= 80)   return `Strong pass rate — ${r}% defeat Boss 2`;
+      if (r >= 60)   return `⚠ Moderate wall — ${r}% pass rate`;
+      return `🔴 Hardest wall — only ${r}% pass, largest drop-off`;
+    }
+    // Boss 1
+    if (r >= 75)     return `✓ Healthy difficulty — ${r}% defeat rate`;
+    if (r >= 60)     return `Balanced — ${r}% defeat rate is healthy`;
+    return `⚠ High barrier — only ${r}% pass Boss 1`;
+  });
   DATA.bosses.forEach((b,i) => {
     const phaseClass = b.phase==='GREEN'?'green-phase':b.phase==='RED'?'red-phase':'purple-phase';
     tbody.innerHTML += `<tr>
@@ -1742,6 +2143,7 @@ function buildABCards() {
 }
 
 function chartABWinRate() {
+    const _ex_chart_ab_winrate = Chart.getChart('chart-ab-winrate'); if (_ex_chart_ab_winrate) _ex_chart_ab_winrate.destroy();
   new Chart(document.getElementById('chart-ab-winrate'),{
     type:'bar',
     data:{
@@ -1759,6 +2161,7 @@ function chartABWinRate() {
 }
 
 function chartABSurvival() {
+    const _ex_chart_ab_survival = Chart.getChart('chart-ab-survival'); if (_ex_chart_ab_survival) _ex_chart_ab_survival.destroy();
   new Chart(document.getElementById('chart-ab-survival'),{
     type:'bar',
     data:{
@@ -1775,6 +2178,7 @@ function chartABSurvival() {
 // ── PLATFORM ───────────────────────────────────────────────────────
 function chartPlatformFunnel() {
   const d = DATA.platform;
+    const _ex_chart_platform_funnel = Chart.getChart('chart-platform-funnel'); if (_ex_chart_platform_funnel) _ex_chart_platform_funnel.destroy();
   new Chart(document.getElementById('chart-platform-funnel'),{
     type:'bar',
     data:{
@@ -1793,6 +2197,7 @@ function chartPlatformFunnel() {
 }
 
 function chartSurvivalDist() {
+    const _ex_chart_survival_dist = Chart.getChart('chart-survival-dist'); if (_ex_chart_survival_dist) _ex_chart_survival_dist.destroy();
   new Chart(document.getElementById('chart-survival-dist'),{
     type:'bar',
     data:{
@@ -1815,7 +2220,7 @@ function buildPlatformTable() {
   const metrics = [
     { label:'Sessions',        desk:d.desktop.sessions, mob:d.mobile.sessions, higherBetter:true },
     { label:'Win Rate',        desk:d.desktop.winRate,  mob:d.mobile.winRate,  higherBetter:true },
-    { label:'Avg Survival',    desk:d.desktop.survival, mob:d.mobile.survival, higherBetter:true },
+    { label:'Avg Survival',    desk:d.desktop.survival, mob:d.mobile.survival, higherBetter:true, unit:'min' },
     { label:'Play-Again Rate', desk:d.desktop.replay,   mob:d.mobile.replay,   higherBetter:true },
     { label:'Avg Level',       desk:d.desktop.avgLevel, mob:d.mobile.avgLevel, higherBetter:true },
     { label:'Leaderboard Rate',desk:d.desktop.lbRate,   mob:d.mobile.lbRate,   higherBetter:true },
@@ -1836,6 +2241,155 @@ function buildPlatformTable() {
   });
 }
 
+// ── AI AGENT ───────────────────────────────────────────────────────
+function populateAIKPIs() {
+  const k = DATA.aiAgent.kpis;
+  document.getElementById('kpi-ai-avg-start').textContent = k.avgStartTier;
+  document.getElementById('kpi-ai-avg-final').textContent = k.avgFinalTier;
+  document.getElementById('kpi-ai-speed-lock').textContent = k.speedLockRate;
+  document.getElementById('kpi-ai-avg-adjustments').textContent = k.avgAdjustments;
+}
+
+function chartAITierDist() {
+  const d = DATA.aiAgent.tierDist;
+  const _ex_chart = Chart.getChart('chart-ai-tier-dist'); if (_ex_chart) _ex_chart.destroy();
+  new Chart(document.getElementById('chart-ai-tier-dist'),{
+    type:'bar',
+    data:{
+      labels: d.labels,
+      datasets:[{
+        label:'Players',
+        data: d.counts,
+        backgroundColor: [RED+'55',RED+'55',YEL+'55',GRN+'55',CYAN+'55',MAG+'55',PUR+'55'],
+        borderColor: [RED,RED,YEL,GRN,CYAN,MAG,PUR],
+        borderWidth:1
+      }]
+    },
+    options:{
+      responsive:true,
+      scales: gridOpts(),
+      plugins:{ legend:{ display:false } }
+    }
+  });
+}
+
+function chartAITierFlow() {
+  const d = DATA.aiAgent.tierFlow;
+  const _ex_chart = Chart.getChart('chart-ai-tier-flow'); if (_ex_chart) _ex_chart.destroy();
+  new Chart(document.getElementById('chart-ai-tier-flow'),{
+    type:'doughnut',
+    data:{
+      labels: ['Tier Increases','Tier Decreases'],
+      datasets:[{
+        data: [d.increases, d.decreases],
+        backgroundColor: [GRN+'55', RED+'55'],
+        borderColor: [GRN, RED],
+        borderWidth:1
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.5)', boxWidth:12 } } }
+    }
+  });
+}
+
+function chartAIScoreMult() {
+  const d = DATA.aiAgent.scoreMultDist;
+  const _ex_chart = Chart.getChart('chart-ai-score-mult'); if (_ex_chart) _ex_chart.destroy();
+  new Chart(document.getElementById('chart-ai-score-mult'),{
+    type:'bar',
+    data:{
+      labels: d.labels,
+      datasets:[{
+        label:'Sessions',
+        data: d.counts,
+        backgroundColor: GRN+'55',
+        borderColor: GRN,
+        borderWidth:1
+      }]
+    },
+    options:{
+      responsive:true,
+      scales: gridOpts(),
+      plugins:{ legend:{ display:false } }
+    }
+  });
+}
+
+function chartAITierScore() {
+  const d = DATA.aiAgent.tierScores;
+  const _ex_chart = Chart.getChart('chart-ai-tier-score'); if (_ex_chart) _ex_chart.destroy();
+  new Chart(document.getElementById('chart-ai-tier-score'),{
+    type:'line',
+    data:{
+      labels: d.labels,
+      datasets:[{
+        label:'Avg Final Score',
+        data: d.avgScores,
+        backgroundColor: YEL+'33',
+        borderColor: YEL,
+        borderWidth:2,
+        fill:true,
+        tension:0.3
+      }]
+    },
+    options:{
+      responsive:true,
+      scales: gridOpts(),
+      plugins:{ legend:{ labels:{ color:'rgba(200,232,255,0.5)', boxWidth:12 } } }
+    }
+  });
+}
+
+function chartAIDeathTriggers() {
+  const d = DATA.aiAgent.deathTriggers;
+  const _ex_chart = Chart.getChart('chart-ai-death-triggers'); if (_ex_chart) _ex_chart.destroy();
+  new Chart(document.getElementById('chart-ai-death-triggers'),{
+    type:'bar',
+    data:{
+      labels: d.labels,
+      datasets:[{
+        label:'Tier Decreases',
+        data: d.counts,
+        backgroundColor: [GRN+'55',RED+'55',PUR+'55'],
+        borderColor: [GRN,RED,PUR],
+        borderWidth:1
+      }]
+    },
+    options:{
+      responsive:true,
+      indexAxis:'y',
+      scales: gridOpts(),
+      plugins:{ legend:{ display:false } }
+    }
+  });
+}
+
+function buildAITierTable() {
+  const tbody = document.getElementById('ai-tier-table');
+  if (!tbody) return;
+  const metrics = DATA.aiAgent.tierMetrics;
+
+  if (!metrics.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;opacity:0.5">Load AI Agent CSV to see tier performance metrics</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = metrics.map(m => `
+    <tr>
+      <td><strong>${m.tier}</strong></td>
+      <td>${m.name}</td>
+      <td>${m.speed.toFixed(1)}</td>
+      <td>${m.mult.toFixed(2)}×</td>
+      <td>${m.players}</td>
+      <td>${m.avgLevel.toFixed(1)}</td>
+      <td>${m.winRate}</td>
+      <td>${m.avgTime}</td>
+    </tr>
+  `).join('');
+}
+
 // ── TAB SWITCHING ──────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1851,10 +2405,10 @@ function switchTab(name) {
 // Automatically filters rows where analytics_version !== '3.0' if present.
 // ═══════════════════════════════════════════════════════════════════
 
-const CSV_VERSION_FILTER = '3.0';
+const CSV_VERSION_FILTER = '4.3';
 
 function parseCSV(text) {
-  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  const lines = text.trim().split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
   if (lines.length < 2) return [];
   const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/ /g,'_'));
   return lines.slice(1).map(line => {
@@ -1878,12 +2432,86 @@ function filterByVersion(rows) {
 function detectReportType(headers) {
   const h = headers.join(',');
   if (h.includes('boss_id')) return 'boss';
+  // Level Attempts CSV: level_number + event_count only (wave_reached export)
+  if (h.includes('level_number') && h.includes('event_count') && !h.includes('platform') && !h.includes('event_name')) return 'attempts';
   if (h.includes('ab_music_group') && h.includes('event_name')) return 'ab_music';
   if (h.includes('level_reached') || h.includes('phase')) return 'deaths';
+  // GA4 death pivot: Platform col + mobile/desktop/totals columns
+  if (h.includes('platform') && h.includes('mobile') && h.includes('totals') && !h.includes('event_name')) return 'deaths';
+  // GA4 funnel export has 'active_users' + 'abandonment_rate' — check BEFORE generic 'step'
+  if (h.includes('active_users') && h.includes('abandonment_rate')) return 'funnel_ga4';
   if (h.includes('funnel') || h.includes('step')) return 'funnel';
   if (h.includes('platform') && h.includes('event_name')) return 'platform';
-  // fallback: try to detect from event_name values
   return 'generic';
+}
+
+function markChipLoaded(type, filename) {
+  // Map CSV type to chip id
+  const typeMap = {
+    'funnel_ga4': 'funnel', 'funnel': 'funnel',
+    'deaths':     'deaths',
+    'boss':       'boss',
+    'attempts':   'attempts',
+    'ab_music':   'ab_music',
+    'platform':   'platform',
+    'generic':    'generic',
+  };
+  const chipId = typeMap[type] || 'generic';
+  const chip = document.getElementById('chip-' + chipId);
+  const fileEl = document.getElementById('chip-' + chipId + '-file');
+  if (!chip || !fileEl) return;
+  const now = new Date();
+  const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  // Trim filename — strip path, truncate
+  const short = filename.replace(/^.*[\\/]/, '').replace(/\.csv$/i, '');
+  fileEl.textContent = short + ' · ' + t;
+  chip.classList.add('loaded');
+}
+
+function secsToMin(s) {
+  // Convert integer seconds to "M:SS" display format
+  s = Math.round(parseFloat(s) || 0);
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+}
+
+function applyFunnelGA4CSV(rows) {
+  // Handles GA4 funnel export: Step | Active users | Completion rate | Abandonments | Abandonment rate
+  if (!rows.length) return false;
+  const stepKey  = Object.keys(rows[0]).find(k => k.includes('step'));
+  const usersKey = Object.keys(rows[0]).find(k => k.includes('active_user'));
+  if (!stepKey || !usersKey) return false;
+
+  const stepMap = {
+    'session start': 'Session Start', 'game start': 'Game Start',
+    'level 1': 'Level 1', 'level 4': 'Level 4', 'boss 1': 'Boss 1 Attempt',
+    'level 8': 'Level 8', 'boss 2': 'Boss 2 Attempt', 'level 12': 'Level 12',
+    'boss attempt 3': 'Boss 3 Attempt', 'boss 3': 'Boss 3 Attempt',
+    'player won': 'Player Won', 'game complete': 'Game Complete',
+  };
+
+  // Sort keys by length descending — prevents 'level 1' matching inside 'level 12'
+  const sortedStepKeys = Object.keys(stepMap).sort((a, b) => b.length - a.length);
+  const funnelRows = rows.map(r => {
+    const rawStep = (r[stepKey] || '').toLowerCase().replace(/^\d+\.\s*/, '').trim();
+    const label   = sortedStepKeys.find(k => rawStep.includes(k));
+    const n       = parseInt((r[usersKey]||'0').toString().replace(/,/g,'')) || 0;
+    return { label: label ? stepMap[label] : rawStep, n };
+  }).filter(r => r.n > 0);
+
+  if (!funnelRows.length) return false;
+  const base = funnelRows[0].n;
+  DATA.funnel = funnelRows.map((r, i) => ({
+    name: r.label, n: r.n,
+    pct: +(r.n / base * 100).toFixed(1),
+    dropPct: i === 0 ? null : +((funnelRows[i-1].n - r.n) / base * 100).toFixed(1),
+  }));
+  const wonStep = DATA.funnel.find(f => f.label === 'Player Won' || f.label === 'Game Complete');
+  if (wonStep) {
+    DATA.kpis.winRate   = wonStep.pct + '%';
+    DATA.kpis.deathRate = (100 - wonStep.pct).toFixed(1) + '%';
+  }
+  DATA.kpis.sessions = base.toLocaleString();
+  return true;
 }
 
 function applyFunnelCSV(rows) {
@@ -1909,22 +2537,58 @@ function applyFunnelCSV(rows) {
 }
 
 function applyDeathsCSV(rows) {
-  const deaths = {};
-  const phases = {};
-  rows.filter(r => !r.event_name || r.event_name === 'player_death').forEach(r => {
-    const lvl = r.level_reached || r.level || r.dimension1;
-    if (!lvl) return;
-    deaths[lvl] = (deaths[lvl]||0) + (parseInt(r.event_count)||1);
-    if (r.phase) phases[lvl] = r.phase;
+  const deaths = {}, mobile = {}, desktop = {}, phases = {};
+
+  // Detect GA4 pivot format: headers are platform/mobile/desktop/totals
+  // and level numbers live in the 'platform' column (first col after two-row header)
+  const firstKey = Object.keys(rows[0] || {})[0];
+  const isPivot  = firstKey === 'platform' && 'mobile' in rows[0] && 'totals' in rows[0];
+
+  if (isPivot) {
+    rows.forEach(r => {
+      const lvl = (r.platform || '').trim();
+      // Skip: non-numeric level, grand total row (totals col contains text), or level > 12
+      if (!/^\d+$/.test(lvl)) return;
+      if (isNaN(parseInt(r.totals)) || /[a-zA-Z]/.test(r.totals || '')) return;
+      if (parseInt(lvl) > 12) return; // guard against shifted grand-total row
+      const mob  = parseInt(r.mobile)  || 0;
+      const desk = parseInt(r.desktop) || 0;
+      const tot  = parseInt(r.totals)  || (mob + desk);
+      deaths[lvl]  = tot;
+      mobile[lvl]  = mob;
+      desktop[lvl] = desk;
+    });
+  } else {
+    // Standard format: level_reached + event_count columns
+    rows.filter(r => !r.event_name || r.event_name === 'player_death').forEach(r => {
+      const lvl = r.level_reached || r.level || r.dimension1;
+      if (!lvl) return;
+      deaths[lvl] = (deaths[lvl]||0) + (parseInt(r.event_count)||1);
+      if (r.platform === 'mobile')  mobile[lvl]  = (mobile[lvl]||0)  + (parseInt(r.event_count)||1);
+      if (r.platform === 'desktop') desktop[lvl] = (desktop[lvl]||0) + (parseInt(r.event_count)||1);
+      if (r.phase) phases[lvl] = r.phase;
+    });
+  }
+
+  if (!Object.keys(deaths).length) return false;
+
+  // Phase by level: L1-4=green, L5-8=red, L9-12=purple
+  const phaseFor = l => parseInt(l) <= 4 ? 'grn' : parseInt(l) <= 8 ? 'red' : 'pur';
+
+  // Store only level deaths — boss bars computed live in chartDropoff
+  // so they update when boss CSV is loaded independently
+  const allLevels = [];
+  for (let lvl = 1; lvl <= 12; lvl++) allLevels.push(String(lvl));
+
+  DATA.deathsByLevel.levelDeaths  = {};
+  DATA.deathsByLevel.levelMobile  = {};
+  DATA.deathsByLevel.levelDesktop = {};
+  allLevels.forEach(k => {
+    DATA.deathsByLevel.levelDeaths[k]  = deaths[k]  || 0;
+    DATA.deathsByLevel.levelMobile[k]  = mobile[k]  || 0;
+    DATA.deathsByLevel.levelDesktop[k] = desktop[k] || 0;
   });
-  const levels = Object.keys(deaths).sort((a,b) => parseInt(a)-parseInt(b));
-  if (!levels.length) return false;
-  DATA.deathsByLevel.labels = levels.map(l => 'L'+l);
-  DATA.deathsByLevel.counts = levels.map(l => deaths[l]);
-  DATA.deathsByLevel.phase  = levels.map(l => {
-    const ph = (phases[l]||'').toLowerCase();
-    return ph === 'red' ? 'red' : ph === 'purple' ? 'pur' : 'grn';
-  });
+  DATA.deathsByLevel.hasRealData = true;
   return true;
 }
 
@@ -1939,6 +2603,65 @@ function applyBossCSV(rows) {
     DATA.bosses[id-1].defeats  = def || DATA.bosses[id-1].defeats;
     DATA.bosses[id-1].defeat_rate = att ? +(def/att*100).toFixed(1) : DATA.bosses[id-1].defeat_rate;
   });
+  return true;
+}
+
+function renderDeathRateTable() {
+  const la = DATA.levelAttempts;
+  const d  = DATA.deathsByLevel;
+  // Use same platform column as the chart
+  const ld = dropoffPlatform === 'mobile'  ? (d.levelMobile  || {}) :
+             dropoffPlatform === 'desktop' ? (d.levelDesktop || {}) :
+             d.levelDeaths || {};
+  if (!Object.keys(la).length) return;
+  const table = document.getElementById('death-rate-table');
+  if (!table) return;
+  table.style.display = 'block';
+  const levels = [1,2,3,4,5,6,7,8,9,10,11,12];
+  const phaseColor = l => l<=4 ? '#39FF14' : l<=8 ? '#FF3366' : '#CC88FF';
+  const thStyle = l => `style="padding:3px 8px;text-align:center;color:${phaseColor(l)};border-bottom:1px solid rgba(255,255,255,0.07)"`;
+  const tdBase = "padding:3px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.05)";
+  // Update platform label in table header
+  const lblEl = document.getElementById('drt-platform-label');
+  if (lblEl) lblEl.textContent = dropoffPlatform === 'all' ? 'ALL PLATFORMS' :
+                                  dropoffPlatform === 'mobile' ? 'MOBILE ONLY' : 'DESKTOP ONLY';
+
+  document.getElementById('drt-head').innerHTML =
+    '<th style="padding:3px 8px;text-align:left;color:var(--text-dim)">Metric</th>' +
+    levels.map(l => `<th ${thStyle(l)}>L${l}</th>`).join('');
+  document.getElementById('drt-attempts').innerHTML =
+    '<td style="padding:3px 8px;color:var(--text-dim)">Attempts</td>' +
+    levels.map(l => `<td style="${tdBase};color:rgba(200,232,255,0.5)">${la[String(l)]||'—'}</td>`).join('');
+  document.getElementById('drt-deaths').innerHTML =
+    '<td style="padding:3px 8px;color:var(--text-dim)">Deaths</td>' +
+    levels.map(l => `<td style="${tdBase};color:rgba(200,232,255,0.5)">${ld[String(l)]||0}</td>`).join('');
+  document.getElementById('drt-rate').innerHTML =
+    '<td style="padding:3px 8px;color:var(--text-dim);font-weight:bold">Death %</td>' +
+    levels.map(l => {
+      const att = la[String(l)];
+      const d = ld[String(l)] || 0;
+      if (!att || att === 0) return `<td style="${tdBase};color:var(--text-dim)">—</td>`;
+      const pct = Math.round(d / att * 100);
+      const over = d > att;
+      const col = over ? '#FF9900' : pct < 25 ? '#39FF14' : pct < 60 ? '#FFD700' : '#FF3366';
+      return `<td style="${tdBase};color:${col};font-weight:bold">${over?'>':''}${pct}%</td>`;
+    }).join('');
+}
+
+function applyAttemptsCSV(rows) {
+  // Handles Level Attempts CSV: Level Number | Event count (wave_reached export)
+  const attempts = {};
+  rows.forEach(r => {
+    const lvl = (r.level_number || r['Level Number'] || '').toString().trim();
+    const cnt = parseInt(r.event_count || r['Event count'] || 0);
+    if (!lvl || isNaN(cnt)) return;
+    const n = parseInt(lvl);
+    if (n >= 1 && n <= 12) attempts[String(n)] = cnt;
+  });
+  if (!Object.keys(attempts).length) return false;
+  DATA.levelAttempts = attempts;
+  chartDropoff();       // re-render so tooltips show death rate %
+  renderDeathRateTable();
   return true;
 }
 
@@ -2006,17 +2729,20 @@ function processCSVFile(file) {
       const headers = Object.keys(filtered[0]||rows[0]);
       const type = detectReportType(headers);
       let applied = false;
-      if (type==='boss')      applied = applyBossCSV(filtered);
-      else if (type==='ab_music') applied = applyABMusicCSV(filtered);
-      else if (type==='deaths')   applied = applyDeathsCSV(filtered);
-      else if (type==='platform') applied = applyPlatformCSV(filtered);
-      else if (type==='funnel')   applied = applyFunnelCSV(filtered);
+      if (type==='boss')          applied = applyBossCSV(filtered);
+      else if (type==='attempts')   applied = applyAttemptsCSV(filtered);
+      else if (type==='ab_music')   applied = applyABMusicCSV(filtered);
+      else if (type==='deaths')     applied = applyDeathsCSV(filtered);
+      else if (type==='platform')   applied = applyPlatformCSV(filtered);
+      else if (type==='funnel_ga4') applied = applyFunnelGA4CSV(filtered);
+      else if (type==='funnel')     applied = applyFunnelCSV(filtered);
       else {
         // Generic: try all parsers
-        applied = applyFunnelCSV(filtered) || applyDeathsCSV(filtered) || applyBossCSV(filtered) || applyABMusicCSV(filtered);
+        applied = applyFunnelGA4CSV(filtered) || applyFunnelCSV(filtered) || applyDeathsCSV(filtered) || applyBossCSV(filtered) || applyABMusicCSV(filtered);
       }
       if (applied) {
         reinitAllCharts();
+        markChipLoaded(type, file.name);
         showToast(`✓ ${file.name} loaded (${filtered.length} rows, type: ${type})`, 'success');
         document.getElementById('overview-insight').innerHTML =
           `<strong>✓ Live data loaded</strong> — ${file.name} · ${filtered.length} rows · analytics_version filtered · Last updated: ${new Date().toLocaleString()}`;
@@ -2080,6 +2806,13 @@ chartABSurvival();
 chartPlatformFunnel();
 chartSurvivalDist();
 buildPlatformTable();
+populateAIKPIs();
+chartAITierDist();
+chartAITierFlow();
+chartAIScoreMult();
+chartAITierScore();
+chartAIDeathTriggers();
+buildAITierTable();
 </script>
 </body>
 </html>
