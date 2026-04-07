@@ -903,6 +903,21 @@
       <span class="chip-name">DEATHS MOBILE</span>
       <span class="chip-file" id="chip-deaths_mobile-file">not loaded</span>
     </div>
+    <div class="csv-chip" id="chip-ai-tier">
+      <span class="chip-dot"></span>
+      <span class="chip-name">AI TIER</span>
+      <span class="chip-file" id="chip-ai-tier-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-ai-adjust">
+      <span class="chip-dot"></span>
+      <span class="chip-name">TIER ADJUST</span>
+      <span class="chip-file" id="chip-ai-adjust-file">not loaded</span>
+    </div>
+    <div class="csv-chip" id="chip-ai-mult">
+      <span class="chip-dot"></span>
+      <span class="chip-name">SCORE MULT</span>
+      <span class="chip-file" id="chip-ai-mult-file">not loaded</span>
+    </div>
     <div class="csv-chip" id="chip-generic">
       <span class="chip-dot"></span>
       <span class="chip-name">OTHER</span>
@@ -2430,18 +2445,43 @@ function filterByVersion(rows) {
 }
 
 function detectReportType(headers) {
-  const h = headers.join(',');
-  if (h.includes('boss_id')) return 'boss';
+  const h = headers.join(',').toLowerCase();
+
+  // AI Agent CSVs (check these FIRST before other types to avoid conflicts)
+  // AI Tier Adjustment Events: has old_tier, new_tier, direction
+  if (h.includes('old_tier') || h.includes('old tier')) {
+    if (h.includes('new_tier') || h.includes('new tier')) return 'ai_tier_adjust';
+  }
+
+  // AI Score Multiplier Impact: has tier_multiplier or effective_multiplier
+  if (h.includes('tier_multiplier') || h.includes('tier multiplier') ||
+      h.includes('effective_multiplier') || h.includes('effective multiplier') ||
+      h.includes('movement_multiplier') || h.includes('movement multiplier')) {
+    return 'ai_score_mult';
+  }
+
+  // AI Tier Distribution: has tier dimension + event_count (but not old_tier/new_tier)
+  if ((h.includes('tier') || h.includes('dimension')) && h.includes('event_count')) {
+    // Make sure it's not a tier adjustment CSV
+    if (!h.includes('old_tier') && !h.includes('new_tier') &&
+        !h.includes('direction') && !h.includes('boss_id')) {
+      return 'ai_tier_dist';
+    }
+  }
+
+  // Existing detections...
+  const hOriginal = headers.join(',');
+  if (hOriginal.includes('boss_id')) return 'boss';
   // Level Attempts CSV: level_number + event_count only (wave_reached export)
-  if (h.includes('level_number') && h.includes('event_count') && !h.includes('platform') && !h.includes('event_name')) return 'attempts';
-  if (h.includes('ab_music_group') && h.includes('event_name')) return 'ab_music';
-  if (h.includes('level_reached') || h.includes('phase')) return 'deaths';
+  if (hOriginal.includes('level_number') && hOriginal.includes('event_count') && !hOriginal.includes('platform') && !hOriginal.includes('event_name')) return 'attempts';
+  if (hOriginal.includes('ab_music_group') && hOriginal.includes('event_name')) return 'ab_music';
+  if (hOriginal.includes('level_reached') || hOriginal.includes('phase')) return 'deaths';
   // GA4 death pivot: Platform col + mobile/desktop/totals columns
-  if (h.includes('platform') && h.includes('mobile') && h.includes('totals') && !h.includes('event_name')) return 'deaths';
+  if (hOriginal.includes('platform') && hOriginal.includes('mobile') && hOriginal.includes('totals') && !hOriginal.includes('event_name')) return 'deaths';
   // GA4 funnel export has 'active_users' + 'abandonment_rate' — check BEFORE generic 'step'
-  if (h.includes('active_users') && h.includes('abandonment_rate')) return 'funnel_ga4';
-  if (h.includes('funnel') || h.includes('step')) return 'funnel';
-  if (h.includes('platform') && h.includes('event_name')) return 'platform';
+  if (hOriginal.includes('active_users') && hOriginal.includes('abandonment_rate')) return 'funnel_ga4';
+  if (hOriginal.includes('funnel') || hOriginal.includes('step')) return 'funnel';
+  if (hOriginal.includes('platform') && hOriginal.includes('event_name')) return 'platform';
   return 'generic';
 }
 
@@ -2454,6 +2494,12 @@ function markChipLoaded(type, filename) {
     'attempts':   'attempts',
     'ab_music':   'ab_music',
     'platform':   'platform',
+    'ai_tier_dist':   'ai-tier',
+    'ai_tier_adjust': 'ai-adjust',
+    'ai_score_mult':  'ai-mult',
+    'AI_TIER':    'ai-tier',
+    'AI_ADJUST':  'ai-adjust',
+    'AI_MULT':    'ai-mult',
     'generic':    'generic',
   };
   const chipId = typeMap[type] || 'generic';
@@ -2697,6 +2743,168 @@ function applyPlatformCSV(rows) {
   return true;
 }
 
+// ── AI AGENT CSV PARSERS ───────────────────────────────────────────
+
+function applyAITierDistCSV(rows) {
+  // Reset tier distribution counts
+  DATA.aiAgent.tierDist.counts = [0, 0, 0, 0, 0, 0, 0];
+
+  // Map tier values to array indices
+  // Supports both 0-3 scale and -3 to +3 scale
+  const tierMap = {
+    '-3': 0, '-2': 1, '-1': 2, '0': 3, '1': 4, '2': 5, '3': 6,
+    '0': 3, '1': 4, '2': 5, '3': 6,
+  };
+
+  let totalEvents = 0;
+  let weightedSum = 0;
+
+  rows.forEach(r => {
+    // Handle different possible column names (GA4 exports vary)
+    const tier = (r.tier || r.Tier || r.dimension || r.Dimension || '').toString().trim();
+    const count = parseInt(r.event_count || r['Event count'] || r.eventCount || 0);
+
+    if (!tier || tier === '(not set)' || tier === 'null') return; // Skip unset tiers
+
+    const idx = tierMap[tier];
+    if (idx !== undefined) {
+      DATA.aiAgent.tierDist.counts[idx] += count;
+      totalEvents += count;
+      weightedSum += parseInt(tier) * count;
+    }
+  });
+
+  // Calculate average starting tier
+  if (totalEvents > 0) {
+    const avgTier = (weightedSum / totalEvents).toFixed(1);
+    DATA.aiAgent.kpis.avgStartTier = avgTier;
+  }
+
+  markChipLoaded('AI_TIER');
+  showToast('AI Tier Distribution loaded', 'success');
+  return true;
+}
+
+function applyAITierAdjustmentCSV(rows) {
+  let increases = 0;
+  let decreases = 0;
+  let totalAdjustments = 0;
+  let uniqueUsers = new Set();
+
+  rows.forEach(r => {
+    // Handle different possible column names
+    const direction = (r.direction || r.Direction || r.dim_direction || '').toLowerCase().trim();
+    const count = parseInt(r.event_count || r['Event count'] || r.eventCount || 0);
+    const users = parseInt(r.total_users || r['Total users'] || r.totalUsers || 0);
+
+    totalAdjustments += count;
+
+    if (direction === 'increase' || direction === 'up') {
+      increases += count;
+    } else if (direction === 'decrease' || direction === 'down') {
+      decreases += count;
+    }
+
+    // Track unique users if user_id column exists
+    const userId = r.user_id || r['User ID'] || r.userId || r.user_pseudo_id;
+    if (userId) {
+      uniqueUsers.add(userId);
+    }
+  });
+
+  DATA.aiAgent.tierFlow.increases = increases;
+  DATA.aiAgent.tierFlow.decreases = decreases;
+
+  // Calculate average adjustments per user
+  const userCount = uniqueUsers.size > 0 ? uniqueUsers.size : Math.max(1, Math.ceil(totalAdjustments / 2.5));
+  DATA.aiAgent.kpis.avgAdjustments = (totalAdjustments / userCount).toFixed(1);
+
+  markChipLoaded('AI_ADJUST');
+  showToast(`Tier Adjustments loaded: ${increases} up, ${decreases} down`, 'success');
+  return true;
+}
+
+function applyAIScoreMultCSV(rows) {
+  // Reset score multiplier distribution
+  DATA.aiAgent.scoreMultDist.counts = [0, 0, 0, 0, 0, 0, 0, 0];
+
+  // Reset tier scores
+  DATA.aiAgent.tierScores.avgScores = [0, 0, 0, 0, 0, 0, 0];
+  const tierScoreCounts = [0, 0, 0, 0, 0, 0, 0];
+
+  // Map multipliers to array indices
+  const multMap = {
+    '0.50': 0, '0.5': 0, '0.70': 1, '0.7': 1, '0.85': 2,
+    '1.00': 3, '1': 3, '1.0': 3,
+    '1.20': 4, '1.2': 4, '1.40': 5, '1.4': 5, '1.75': 6,
+  };
+
+  const tierMap = {
+    '-3': 0, '-2': 1, '-1': 2, '0': 3, '1': 4, '2': 5, '3': 6,
+  };
+
+  let totalVictoryEvents = 0;
+  let weightedTierSum = 0;
+
+  rows.forEach(r => {
+    // Handle different possible column names
+    const eventName = (r.event_name || r['Event name'] || r.eventName || '').toLowerCase().trim();
+    const mult = (r.effective_multiplier || r['Effective multiplier'] ||
+                  r.tier_multiplier || r['Tier multiplier'] ||
+                  r.effectiveMultiplier || r.tierMultiplier || '1.00').toString().trim();
+    const tier = (r.tier || r.Tier || r.dimension || '0').toString().trim();
+    const count = parseInt(r.event_count || r['Event count'] || r.eventCount || 0);
+
+    // Only process player_won events for final tier calculation
+    const isVictory = eventName === 'player_won' || eventName === 'playerwon';
+
+    // Score multiplier distribution (from all victory-related events)
+    if (isVictory || eventName === 'game_complete' || eventName === 'gamecomplete') {
+      const multValue = parseFloat(mult);
+      const multIdx = multMap[mult];
+
+      if (multIdx !== undefined) {
+        DATA.aiAgent.scoreMultDist.counts[multIdx] += count;
+      } else if (multValue >= 1.50) {
+        DATA.aiAgent.scoreMultDist.counts[7] += count; // 1.50+ bucket
+      } else if (multIdx === undefined && multValue > 0) {
+        // Try to map to closest bucket
+        if (multValue < 0.6) DATA.aiAgent.scoreMultDist.counts[0] += count; // 0.50
+        else if (multValue < 0.775) DATA.aiAgent.scoreMultDist.counts[1] += count; // 0.70
+        else if (multValue < 0.925) DATA.aiAgent.scoreMultDist.counts[2] += count; // 0.85
+        else if (multValue < 1.1) DATA.aiAgent.scoreMultDist.counts[3] += count; // 1.00
+        else if (multValue < 1.3) DATA.aiAgent.scoreMultDist.counts[4] += count; // 1.20
+        else if (multValue < 1.575) DATA.aiAgent.scoreMultDist.counts[5] += count; // 1.40
+        else DATA.aiAgent.scoreMultDist.counts[7] += count; // 1.50+
+      }
+    }
+
+    // Tier tracking at victory
+    if (isVictory) {
+      const tierIdx = tierMap[tier];
+      if (tierIdx !== undefined && tier !== '(not set)') {
+        totalVictoryEvents += count;
+        weightedTierSum += parseInt(tier) * count;
+
+        // Track tier distribution (for future tier score correlation)
+        tierScoreCounts[tierIdx] += count;
+      }
+    }
+  });
+
+  // Calculate average final tier (at victory)
+  if (totalVictoryEvents > 0) {
+    const avgFinalTier = (weightedTierSum / totalVictoryEvents).toFixed(1);
+    DATA.aiAgent.kpis.avgFinalTier = avgFinalTier;
+  }
+
+  markChipLoaded('AI_MULT');
+  showToast('Score Multiplier Impact loaded', 'success');
+  return true;
+}
+
+// ───────────────────────────────────────────────────────────────────
+
 function reinitAllCharts() {
   // Destroy all existing Chart.js instances before re-rendering
   Object.values(Chart.instances).forEach(c => c.destroy());
@@ -2717,6 +2925,10 @@ function reinitAllCharts() {
   buildBossCards(); chartBossRatio(); chartBossPlatform(); buildBossTable();
   buildABCards(); chartABWinRate(); chartABSurvival();
   chartPlatformFunnel(); chartSurvivalDist(); buildPlatformTable();
+  // AI Agent charts
+  populateAIKPIs(); chartAITierDist(); chartAITierFlow();
+  chartAIScoreMult(); chartAITierScore(); chartAIDeathTriggers();
+  buildAITierTable();
 }
 
 function processCSVFile(file) {
@@ -2729,13 +2941,18 @@ function processCSVFile(file) {
       const headers = Object.keys(filtered[0]||rows[0]);
       const type = detectReportType(headers);
       let applied = false;
-      if (type==='boss')          applied = applyBossCSV(filtered);
-      else if (type==='attempts')   applied = applyAttemptsCSV(filtered);
-      else if (type==='ab_music')   applied = applyABMusicCSV(filtered);
-      else if (type==='deaths')     applied = applyDeathsCSV(filtered);
-      else if (type==='platform')   applied = applyPlatformCSV(filtered);
-      else if (type==='funnel_ga4') applied = applyFunnelGA4CSV(filtered);
-      else if (type==='funnel')     applied = applyFunnelCSV(filtered);
+      // AI Agent CSVs (check these FIRST)
+      if (type==='ai_tier_dist')        applied = applyAITierDistCSV(filtered);
+      else if (type==='ai_tier_adjust') applied = applyAITierAdjustmentCSV(filtered);
+      else if (type==='ai_score_mult')  applied = applyAIScoreMultCSV(filtered);
+      // Existing CSV types
+      else if (type==='boss')           applied = applyBossCSV(filtered);
+      else if (type==='attempts')       applied = applyAttemptsCSV(filtered);
+      else if (type==='ab_music')       applied = applyABMusicCSV(filtered);
+      else if (type==='deaths')         applied = applyDeathsCSV(filtered);
+      else if (type==='platform')       applied = applyPlatformCSV(filtered);
+      else if (type==='funnel_ga4')     applied = applyFunnelGA4CSV(filtered);
+      else if (type==='funnel')         applied = applyFunnelCSV(filtered);
       else {
         // Generic: try all parsers
         applied = applyFunnelGA4CSV(filtered) || applyFunnelCSV(filtered) || applyDeathsCSV(filtered) || applyBossCSV(filtered) || applyABMusicCSV(filtered);
