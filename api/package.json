@@ -1,0 +1,9 @@
+{
+  "name": "non-x-analytics-api",
+  "version": "1.0.0",
+  "description": "AWS Lambda bridge for GA4 Data API",
+  "main": "index.js",
+  "dependencies": {
+    "@google-analytics/data": "^4.1.0"
+  }
+}
