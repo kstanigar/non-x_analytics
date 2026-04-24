@@ -11,8 +11,8 @@ A checklist for building the serverless API connecting GA4 to the NON-X analytic
 
 ## Phase 2: AWS Lambda Setup (The API)
 - [x] Scaffold local Node.js structure (`index.js` and `package.json` created).
-- [ ] Inject actual `propertyId` for the GA4 property.
-- [ ] Zip `index.js` and `node_modules` and upload to an AWS Node.js Lambda function.
+- [x] Inject actual `propertyId` for the GA4 property.
+- [x] Zip `index.js` and `node_modules` and upload to an AWS Node.js Lambda function.
 - [ ] Add the Google JSON payload into the AWS Environment Variables (`GOOGLE_CREDENTIALS`).
 - [ ] Test the function execution natively in the AWS Lambda console.
 
