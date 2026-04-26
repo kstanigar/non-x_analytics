@@ -50,6 +50,12 @@ git push -u origin feature/recovery-branch
 - Add 3-bullet summary to SESSION HISTORY at end of each session
 - Include: (1) What was implemented/fixed, (2) Files modified, (3) Next steps
 
+### 6. SESSION HISTORY PROTOCOL (REVERSE CHRONOLOGICAL)
+- Session history MUST be in reverse chronological order (newest first, oldest last)
+- Add new entries IMMEDIATELY AFTER the first `---` separator (becomes first entry)
+- Pre-commit hook validates entry order (can bypass with `--no-verify` if needed)
+- Format: `### [Date] — [Model Name] — [Project: Xenon_3 or non-x_analytics]`
+
 **Full details in sections below ↓**
 
 ---
@@ -68,6 +74,7 @@ This is the single source of truth for the NON-X project. It is shared with ever
 7. **Investigate and report before making any changes** — always trace root cause first, confirm findings, then implement with comments and revert instructions.
 8. **Git workflow: NEVER push directly to `main`** — always create a feature branch, push to remote, then create a PR. Main branch is protected and requires pull request review.
 9. **Session summaries required** — At the end of each work session, add a 3-bullet summary to the "Session History" section below. Include: (1) What was implemented/fixed, (2) Files modified, (3) Next steps or blockers. This ensures continuity between AI sessions.
+10. **Session history reverse chronological order** — Session history (`docs/NON-X_PAIM_SessionHistory.md`) MUST be in reverse chronological order (newest first, oldest last). Add new entries IMMEDIATELY AFTER the first `---` separator. Pre-commit hook validates order. Format: `### [Date] — [Model Name] — [Project: ...]`
 
 ---
 
@@ -998,6 +1005,121 @@ print('draw function:', 'function draw(' in c)
 
 ### Events (index.html — 7 total)
 `menu_view`, `play_clicked`, `platform_selected`, `music_toggled`, `movement_toggled`, `analytics_toggled`
+
+### AWS Lambda & API Gateway Infrastructure (Completed: April 25-26, 2026)
+
+**Purpose:** Serverless bridge connecting GA4 Data API to live analytics dashboard, replacing CSV drag-and-drop workflow.
+
+**Architecture:**
+- **Lambda Function:** `non-x-analytics-api` (Node.js 22.x, us-east-2)
+- **API Gateway:** `NON-X_Analytics_Gateway` (REST API, Regional, TLS 1.3)
+- **Service Account:** Google Cloud project `non-x-analytics-server` with GA4 Viewer access
+
+**Lambda Configuration:**
+| Setting | Value | Notes |
+|---------|-------|-------|
+| ARN | `arn:aws:lambda:us-east-2:032614958698:function:non-x-analytics-api` | |
+| Runtime | Node.js 22.x | ✅ Upgraded Apr 26, 2026 (was 20.x, EOL Apr 30, 2026) |
+| Architecture | x86_64 | |
+| Memory | 256 MB | ✅ Optimized Apr 26, 2026 (was 512 MB, uses only 135 MB) |
+| Timeout | 20 seconds | |
+| Handler | index.handler | |
+| Code Size | 5.01 MB (lambda-payload.zip) | Includes @google-analytics/data v4.1.0 |
+
+**Environment Variables:**
+- `GOOGLE_CREDENTIALS` = Service Account JSON (encrypted at rest)
+- `GA4_PROPERTY_ID` = `525680032`
+
+**API Gateway Configuration:**
+| Setting | Value |
+|---------|-------|
+| API ID | `6waopo3jh1` |
+| Endpoint Type | Regional |
+| Security Policy | `SecurityPolicy_TLS13_1_2_2021_06` (TLS 1.3 + 1.2) |
+| Resource | `/analytics` (ID: `b33u3w`) |
+| Method | GET (Lambda Proxy integration enabled) |
+| Authorization | NONE |
+| API Key Required | ✅ TRUE (enforced Apr 26, 2026) |
+| Stage | `prod` |
+
+**CORS Configuration:**
+- `Access-Control-Allow-Origin: *`
+- `Access-Control-Allow-Methods: GET, OPTIONS`
+- `Access-Control-Allow-Headers: Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token`
+
+**Rate Limiting (Usage Plan):**
+- Usage Plan ID: `vuve5j`
+- Name: `NON-X-Analytics-Rate-Limit`
+- Rate: 10 requests/second
+- Burst: 20 requests
+- Quota: 1000 requests/day
+- ✅ **Enforced** (API key requirement enabled Apr 26, 2026)
+
+**API Key Authentication:**
+- API Key ID: `ekkzs8n9i3`
+- API Key Name: `NON-X-Analytics-Key-2026-04`
+- Created: April 26, 2026
+- Status: Active
+- Description: Client-side API key for live.html dashboard
+- **Rotation Schedule:** Every 6-12 months or on-demand if abuse detected
+- **Next Rotation:** October 2026 (6 months)
+- **Usage:** Required in `X-API-Key` header for all API requests
+
+**Live API Endpoints:**
+
+**Realtime Endpoint** (Last 30 Minutes):
+```
+https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?type=realtime
+```
+Returns: GA4 realtime events by `eventName` with `eventCount` metric
+
+**Standard Endpoint** (Last 7 Days):
+```
+https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?type=standard
+```
+Returns: Historical GA4 events by `eventName` with `eventCount` metric
+
+**GA4 Configuration:**
+- Property ID: `525680032`
+- Measurement ID: `G-9ECFZ9JBE5`
+- Stream ID: `13654534884`
+- Stream Name: `NON-X AWS`
+- Stream URL: `https://nonx.standingtiger.com/`
+
+**Critical Bug Fix (April 25, 2026):**
+- **Issue:** Realtime endpoint returned `INVALID_ARGUMENT: Selected dimensions and metrics cannot be queried together`
+- **Root Cause:** `eventName` (event-scoped dimension) paired with `activeUsers` (user-scoped metric)
+- **Fix:** Changed `api/index.js` line 21 from `activeUsers` to `eventCount` (both event-scoped)
+- **Status:** ✅ Resolved - realtime endpoint now returns live data
+
+**Performance Metrics (Validated April 26, 2026):**
+- Lambda execution time: 50-153 ms (avg ~80 ms)
+- Memory usage: 135 MB (53% of allocated 256 MB - optimized allocation)
+- API Gateway latency: <2 seconds (includes cold start)
+- Error rate: <1% (minimal 4XX/5XX from testing)
+- Cost: ~$0.10/month at current usage (50% reduction from memory optimization)
+
+**Testing Status:**
+- ✅ Basic functionality: Both endpoints working
+- ✅ CORS headers: Configured correctly
+- ✅ Error handling: Graceful defaults (invalid/missing params → standard API)
+- ✅ CloudWatch logs: No errors, fast execution, low memory
+- ✅ API Gateway metrics: Working well, minimal errors
+- ✅ Rate limiting: **Enforced** (tested Apr 26, 2026 - requests without API key return 403 Forbidden)
+
+**Optimization History (April 26, 2026):**
+1. ✅ Lambda runtime upgraded: Node.js 20.x → 22.x (EOL mitigation)
+2. ✅ Lambda memory optimized: 512 MB → 256 MB (50% cost reduction)
+3. ✅ API key authentication enabled for rate limiting enforcement
+4. ✅ Testing validated: 403 without key, 200 with valid key
+
+**Next Phase:** Phase 4 - Live Dashboard Integration (remove CSV drag-and-drop, implement `fetch()` calls to API endpoints)
+
+**Documentation:**
+- Implementation Plan: `docs/AWS_Lambda_GA4_Bridge_Plan.md`
+- API Task List: `docs/API_Task_List.md`
+- Phase 3 Setup Guide: `docs/Phase3_API_Gateway_Setup_Guide.md`
+- Session History: `docs/NON-X_PAIM_SessionHistory.md` (April 25, 2026 entry)
 
 ---
 
