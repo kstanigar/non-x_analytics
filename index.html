@@ -1633,9 +1633,9 @@ const DATA = {
   abSplit: { musicOn: 51, musicOff: 49 },
   powerups: {
     labels: ['Health','Double Laser','Shield','Quad Shot'],
-    green: [420, 310, 280, 190],
-    red:   [510, 390, 340, 220],
-    purple:[280, 210, 430, 310],
+    green: [420, 310, 280, 0],    // Quad Shot not available in Green Phase
+    red:   [510, 390, 340, 0],    // Quad Shot not available in Red Phase
+    purple:[280, 210, 430, 310],  // Quad Shot only available in Purple Phase
   },
   funnel: [
     { name:'game_start',       n:2841, pct:100,  dropPct: null },

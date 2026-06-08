@@ -680,6 +680,49 @@
     transform: translateY(0);
   }
 
+  /* ── Version Filter ── */
+  .version-filter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: rgba(0,40,60,0.4);
+    border: 1px solid rgba(0,255,255,0.3);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+
+  .version-filter label {
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+
+  #version-select {
+    background: rgba(0,40,60,0.8);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #version-select:hover {
+    background: rgba(0,255,255,0.1);
+    border-color: var(--yellow);
+  }
+
+  #version-select:focus {
+    outline: none;
+    border-color: var(--yellow);
+    box-shadow: 0 0 8px rgba(255,255,0,0.3);
+  }
+
   /* ── Loading Overlay ─────────────────────────────────────── */
   .loading-overlay {
     position: fixed;
@@ -842,6 +885,16 @@
     <span id="api-status" style="color:var(--cyan)">Initializing...</span>
     <span id="last-update" style="color:var(--text-dim);flex:1;text-align:right">Last updated: —</span>
     <button class="refresh-btn" onclick="manualRefresh()">🔄 Refresh</button>
+  </div>
+
+  <!-- VERSION FILTER -->
+  <div class="version-filter">
+    <label for="version-select">🔍 Analytics Version:</label>
+    <select id="version-select" onchange="applyVersionFilter()">
+      <option value="all">All Versions</option>
+      <option value="4.3" selected>Version 4.3 (Current)</option>
+      <option value="4.2">Version 4.2 (Legacy)</option>
+    </select>
   </div>
 
   <!-- LOADING OVERLAY -->
@@ -1193,21 +1246,6 @@
 
     <div class="section-label">A/B Test 1 — Music Default (ON vs OFF)</div>
     <div class="ab-grid" id="ab-music-cards"></div>
-
-    <div class="chart-grid cols-2" style="margin-bottom:28px">
-      <div class="card">
-        <div class="card-title"><span class="dot"></span> Win Rate by Music Group</div>
-        <div class="chart-wrap short">
-          <canvas id="chart-ab-winrate"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="dot mag"></span> Avg Survival Time by Music Group</div>
-        <div class="chart-wrap short">
-          <canvas id="chart-ab-survival"></canvas>
-        </div>
-      </div>
-    </div>
 
     <div class="section-label">A/B Test 2 — Movement Scheme</div>
     <div class="ab-grid" id="ab-movement-cards"></div>
@@ -1563,7 +1601,7 @@ const API_CONFIG = {
   retryDelay: 2000, // 2 seconds between retries
 
   // Auto-refresh settings
-  refreshInterval: 5 * 60 * 1000, // 5 minutes in milliseconds
+  refreshInterval: 60 * 60 * 1000, // 1 hour in milliseconds
   autoRefreshEnabled: true
 };
 
@@ -1601,9 +1639,9 @@ const DATA = {
   abSplit: { musicOn: 51, musicOff: 49 },
   powerups: {
     labels: ['Health','Double Laser','Shield','Quad Shot'],
-    green: [420, 310, 280, 190],
-    red:   [510, 390, 340, 220],
-    purple:[280, 210, 430, 310],
+    green: [420, 310, 280, 0],    // Quad Shot not available in Green Phase
+    red:   [510, 390, 340, 0],    // Quad Shot not available in Red Phase
+    purple:[280, 210, 430, 310],  // Quad Shot only available in Purple Phase
   },
   funnel: [
     { name:'game_start',       n:2841, pct:100,  dropPct: null },
@@ -1754,7 +1792,7 @@ function mapGA4ResponseToDATA(response, reportType = 'standard') {
 
   const sessions = eventCounts['session_start'] || 0;
   const gameStarts = eventCounts['game_start'] || 0;
-  const playerWon = eventCounts['player_won'] || 0;
+  const playerWon = eventCounts['game_complete'] || 0;  // Fixed: GA4 sends 'game_complete', not 'player_won'
   const playerDeath = eventCounts['player_death'] || 0;
   const leaderboardSubmit = eventCounts['leaderboard_submit'] || 0;
 
@@ -1762,8 +1800,12 @@ function mapGA4ResponseToDATA(response, reportType = 'standard') {
     ? ((playerWon / gameStarts) * 100).toFixed(1) + '%'
     : '0%';
 
-  const deathRate = gameStarts > 0
-    ? ((playerDeath / gameStarts) * 100).toFixed(1) + '%'
+  // Calculate death rate only from games with recorded outcomes
+  // Previous formula used gameStarts (includes abandoned games), which gave misleading 15.8%
+  // Fixed: Only count completed games (won + death) to get accurate mortality rate
+  const completedGames = playerWon + playerDeath;
+  const deathRate = completedGames > 0
+    ? ((playerDeath / completedGames) * 100).toFixed(1) + '%'
     : '0%';
 
   const lbRate = playerWon > 0
@@ -1806,7 +1848,12 @@ function mapGA4ResponseToDATA(response, reportType = 'standard') {
  * @returns {Promise<Object>} GA4 response or error
  */
 async function fetchGA4Data(type = 'standard') {
-  const url = API_CONFIG.baseURL + API_CONFIG.endpoints.analytics;
+  // Get selected version from dropdown (default to 4.3 if not found)
+  const versionSelect = document.getElementById('version-select');
+  const version = versionSelect ? versionSelect.value : '4.3';
+
+  // Build URL with version parameter
+  const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?version=${version}`;
 
   try {
     const controller = new AbortController();
@@ -1909,6 +1956,19 @@ async function loadAndRenderGA4Data(type = 'standard') {
  */
 async function manualRefresh() {
   console.log('Manual refresh triggered by user');
+  await loadAndRenderGA4Data('standard');
+}
+
+/**
+ * Apply version filter when dropdown selection changes
+ * Triggers a refresh to fetch data for the selected analytics version
+ */
+async function applyVersionFilter() {
+  const versionSelect = document.getElementById('version-select');
+  const selectedVersion = versionSelect.value;
+  console.log(`Version filter changed to: ${selectedVersion}`);
+
+  // Trigger refresh with new version filter
   await loadAndRenderGA4Data('standard');
 }
 
@@ -2429,39 +2489,6 @@ function buildABCards() {
     </tr>`;
 }
 
-function chartABWinRate() {
-    const _ex_chart_ab_winrate = Chart.getChart('chart-ab-winrate'); if (_ex_chart_ab_winrate) _ex_chart_ab_winrate.destroy();
-  new Chart(document.getElementById('chart-ab-winrate'),{
-    type:'bar',
-    data:{
-      labels:['Music ON (A)','Music OFF (B)'],
-      datasets:[{ data:[9.6,7.2], backgroundColor:[CYAN+'55',MAG+'55'], borderColor:[CYAN,MAG], borderWidth:2 }]
-    },
-    options:{
-      responsive:true, plugins:{legend:{display:false}},
-      scales:{
-        ...gridOpts(),
-        y:{ ...gridOpts().y, ticks:{ ...gridOpts().y.ticks, callback:v=>v+'%' }, suggestedMax:12 }
-      }
-    }
-  });
-}
-
-function chartABSurvival() {
-    const _ex_chart_ab_survival = Chart.getChart('chart-ab-survival'); if (_ex_chart_ab_survival) _ex_chart_ab_survival.destroy();
-  new Chart(document.getElementById('chart-ab-survival'),{
-    type:'bar',
-    data:{
-      labels:['Music ON (A)','Music OFF (B)'],
-      datasets:[{ data:[152,131], backgroundColor:[CYAN+'55',MAG+'55'], borderColor:[CYAN,MAG], borderWidth:2 }]
-    },
-    options:{
-      responsive:true, plugins:{legend:{display:false}},
-      scales:{ ...gridOpts(), y:{ ...gridOpts().y, ticks:{ ...gridOpts().y.ticks, callback:v=>v+'s' } } }
-    }
-  });
-}
-
 // ── PLATFORM ───────────────────────────────────────────────────────
 function chartPlatformFunnel() {
   const d = DATA.platform;
@@ -2723,8 +2750,7 @@ function reinitAllCharts() {
 
   // A/B Tests tab
   buildABCards();
-  chartABWinRate();
-  chartABSurvival();
+  // chartABWinRate() and chartABSurvival() removed - redundant with comparison cards
 
   // Platform Comparison tab
   chartPlatformFunnel();
