@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "on-file-save": [
+      {
+        "name": "sync-priorities",
+        "description": "Auto-sync completed tasks from HANDOFF_SUMMARY.md to PRIORITIES.md",
+        "match": "docs/HANDOFF_SUMMARY.md",
+        "command": ".claude/hooks/sync-priorities.sh",
+        "enabled": true
+      }
+    ],
+    "on-commit": [
+      {
+        "name": "update-handoff-on-commit",
+        "description": "Reminder to update HANDOFF_SUMMARY.md before committing",
+        "command": "echo '📝 Reminder: Have you updated HANDOFF_SUMMARY.md with this commit's changes?'",
+        "enabled": true
+      }
+    ]
+  },
+  "version": "1.0"
+}
