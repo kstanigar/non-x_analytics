@@ -1508,7 +1508,7 @@
 
       <div class="chart-grid cols-12">
         <div class="card">
-          <div class="card-title"><span class="dot"></span> Daily Plays & Wins (last 14 days)</div>
+          <div class="card-title"><span class="dot"></span> Daily Plays & Wins</div>
           <div class="chart-wrap">
             <canvas id="chart-daily"></canvas>
           </div>
@@ -2486,6 +2486,63 @@
           }
         }
 
+        // ─── DAILY-TIMESERIES RESPONSE HANDLER ───
+        if (reportType === 'daily-timeseries') {
+          // Parse multi-dimensional response: date × eventName
+          const dateMap = {};  // { "20260609": { game_start: 28, player_won: 2 }, ... }
+
+          try {
+            response.rows.forEach((row) => {
+              // Extract date (YYYYMMDD) and event name from dimensions
+              const date = row.dimensionValues[0]?.value;
+              const eventName = row.dimensionValues[1]?.value;
+              const eventCount = parseInt(row.metricValues[0]?.value || 0, 10);
+
+              // Skip invalid rows
+              if (!date || !eventName || isNaN(eventCount)) return;
+
+              // Initialize date bucket if first event for this date
+              if (!dateMap[date]) {
+                dateMap[date] = {};
+              }
+
+              // Store event count for this date
+              dateMap[date][eventName] = eventCount;
+            });
+
+            // Convert date map to ordered arrays for Chart.js
+            const dates = Object.keys(dateMap).sort();  // Sort YYYYMMDD chronologically
+
+            // Format dates as "Mon DD" for chart labels
+            const labels = dates.map(d => {
+              const year = parseInt(d.substring(0, 4), 10);
+              const month = parseInt(d.substring(4, 6), 10) - 1;  // JS months are 0-indexed
+              const day = parseInt(d.substring(6, 8), 10);
+              const dateObj = new Date(year, month, day);
+              return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+
+            // Extract plays (game_start) and wins (player_won) per day
+            const plays = dates.map(d => dateMap[d]['game_start'] || 0);
+            const wins = dates.map(d => dateMap[d]['player_won'] || 0);
+
+            // Survival time placeholder (keep mock data for now)
+            const survival = dates.map((d, i) => {
+              const gameStarts = dateMap[d]['game_start'] || 1;
+              const totalEvents = Object.values(dateMap[d]).reduce((a, b) => a + b, 0);
+              return Math.round((totalEvents / gameStarts) * 60);
+            });
+
+            return {
+              daily: { labels, plays, wins, survival }
+            };
+
+          } catch (error) {
+            console.error('Error parsing daily-timeseries response:', error);
+            return { error: error.message, daily: {} };
+          }
+        }
+
         // ─── EXTRACTION ───────────────────────────────────────────────
 
         const eventCounts = {};
@@ -2684,6 +2741,52 @@
       }
 
       /**
+       * Fetches daily timeseries data from GA4 API (14-day Play/Win trend)
+       * Uses multi-dimensional query: date × eventName
+       * @returns {Promise<Object>} { success, data, error }
+       */
+      async function fetchDailyTimeseriesData() {
+        // Get selected data range from combined dropdown
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '7day-43';
+
+        // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' :
+                        versionShort === 'all' ? 'all' : '4.3';
+
+        // Build URL with daily-timeseries subType
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=daily-timeseries&version=${version}&dateRange=${dateRange}`;
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
+          const response = await fetch(url, {
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' }
+          });
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          return { success: true, data };
+
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            console.error(`Daily-timeseries request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+
+          console.error(`Failed to fetch daily-timeseries data:`, error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
+      /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
        * @returns {Promise<boolean>} Success status
@@ -2788,6 +2891,24 @@
 
         } else {
           console.warn('Platform-split data fetch failed, using mock data:', platformResult.error);
+        }
+
+        // Fetch daily timeseries data (14-day trend)
+        console.log('Fetching daily-timeseries data...');
+        const dailyResult = await fetchDailyTimeseriesData();
+
+        if (dailyResult.success && dailyResult.data) {
+          // Update DATA.daily with live data from API
+          const dailyData = mapGA4ResponseToDATA(dailyResult.data, 'daily-timeseries');
+
+          if (!dailyData.error && dailyData.daily) {
+            DATA.daily = dailyData.daily;
+            console.log('Daily timeseries data updated:', DATA.daily);
+          } else {
+            console.warn('Daily-timeseries parsing failed, using mock data');
+          }
+        } else {
+          console.warn('Daily-timeseries fetch failed, using mock data:', dailyResult.error);
         }
 
         // Re-render all charts

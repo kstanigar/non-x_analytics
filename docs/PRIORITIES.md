@@ -96,9 +96,10 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 **Documentation:** See `docs/Phase6A_Implementation_Plan.md` for complete details
 
-- [ ] **Phase 6A Task 5: Platform Splits Endpoint** 🔵 IN PROGRESS
+- [x] **Phase 6A Task 5: Platform Splits Endpoint** ✅ COMPLETE
   - **Estimate:** 6-8 hours (revised to 7-9 hours with responsive fixes)
-  - **Time Invested:** ~6 hours (Lambda ✅, Parser ✅, API fetch ✅, Funnel chart ✅, Table ✅, API Testing ✅, Responsive Part 1 ✅, Part 2 Planning ✅)
+  - **Time Invested:** ~7.5 hours (Lambda ✅, Parser ✅, API fetch ✅, Funnel chart ✅, Table ✅, API Testing ✅, Responsive fixes ✅, Integration testing ✅)
+  - **Completed:** June 9, 2026
   - **Files:** `api/index.js` (lines 13-15, 27-45), `live.html` (multiple sections)
   - **Changes:** Add platform dimension query (desktop vs mobile)
   - **Result:** 3 platform KPIs live + Platform funnel chart live + Platform table live + Responsive design optimized
@@ -150,8 +151,13 @@ Tasks organized by date added (newest first). Tasks include planning details, in
       - [x] Task 10.2.3: Retest chart responsiveness ✅
       - [x] Task 10.3: Platform table validation ✅ (data accuracy verified, Issue 8 resolved)
       - [x] Task 10.4: Survival Time Distribution chart validation ✅
-    - [ ] Subtask 11: Integration Testing (15 min)
-    - [ ] Subtask 12: Documentation (15 min)
+    - [x] Subtask 11: Integration Testing ✅ COMPLETE (15 min)
+      - [x] Test 11.1: Combined selector integration (API calls with version + dateRange) ✅
+      - [x] Test 11.2: Date range data validation (40 → 105 sessions when 7day → 30day) ✅
+      - [x] Test 11.3: Overview tab verification (win/death rates update correctly) ✅
+    - [x] Subtask 12: Documentation ✅ COMPLETE (15 min)
+      - [x] Updated HANDOFF_SUMMARY.md with test results
+      - [x] Updated PRIORITIES.md marking task complete
   - **Code Changes:**
     - ✅ api/index.js: New request handler for `/analytics?subType=platform-split`
     - ✅ live.html:1760-1832: Platform-split response parser (73 lines)
@@ -163,7 +169,7 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Endpoint:** `https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?type=standard&subType=platform-split&version=4.3`
   - **Testing:** Endpoint returns 18 rows, desktop/mobile split confirmed ✅
   - **Dependencies:** Phase 6A research complete ✅
-  - **Status:** Part A complete (Lambda), Part B pending (Dashboard)
+  - **Status:** COMPLETE ✅ - All subtasks finished, integration tested, production-ready
 
 - [x] **Phase 6A Task 5B: Combined Version + Date Range Selector** ✅ COMPLETE
   - **Estimate:** 2 hours
@@ -206,16 +212,23 @@ Tasks organized by date added (newest first). Tasks include planning details, in
     - ✅ Updated HANDOFF_SUMMARY.md (June 9, 2026 session)
     - ✅ Line numbers verified with Haiku agent
 
-- [ ] **Phase 6A Task 6: Daily Timeseries Endpoint**
+- [x] **Phase 6A Task 6: Daily Timeseries Endpoint** ✅ COMPLETE
   - **Estimate:** 4-6 hours
-  - **Files:** `api/index.js` (lines 46-62), `live.html` (lines 1801-1840, ~2700)
-  - **Changes:** Add date dimension query (14-day history)
-  - **Result:** Daily Plays & Wins chart live
+  - **Time Invested:** ~3 hours (June 9, 2026)
+  - **Completed:** June 9, 2026
+  - **Files:** `api/index.js` (line 63), `live.html` (lines 2488, 2742, 2895, 1511)
+  - **Changes:** Added date dimension query with dynamic date ranges
+  - **Result:** Daily Plays & Wins chart now shows live GA4 data
   - **Code Changes:**
-    - api/index.js: New request handler for `/analytics?subType=daily`
-    - live.html: Timeseries data parser + chartDaily() update
-  - **AWS Changes:** None (backward compatible)
-  - **Testing:** Date range validation + chart rendering tests
+    - ✅ api/index.js:63 - Daily-timeseries request handler (+19 lines)
+    - ✅ live.html:2488 - Parser in mapGA4ResponseToDATA() (+58 lines)
+    - ✅ live.html:2742 - fetchDailyTimeseriesData() function (+49 lines)
+    - ✅ live.html:2895 - Integration in loadAndRenderGA4Data() (+15 lines)
+    - ✅ live.html:1511 - Removed "(last 14 days)" from title
+  - **AWS Changes:** Lambda deployed successfully ✅
+  - **Testing:** All tests pass ✅ (endpoint, parsing, rendering, version filtering)
+  - **Endpoint:** `?type=standard&subType=daily-timeseries&version=4.3&dateRange=7day`
+  - **Status:** Production-ready, chart showing live data
   - **Dependencies:** Task 5 complete (recommended, not required)
   - **Status:** Ready for implementation
 

@@ -60,6 +60,26 @@ exports.handler = async (event) => {
             }
 
             [response] = await analyticsDataClient.runReport(platformSplitRequest);
+        } else if (requestType === 'standard' && subType === 'daily-timeseries') {
+            // ─── DAILY TIMESERIES REQUEST (14-day Play/Win trend) ───
+            const dailyTimeseriesRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange], // Dynamic date range from query parameter
+                // Multi-dimensional query: date × eventName
+                // Returns daily counts for game_start, player_won, etc.
+                dimensions: [
+                    { name: 'date' },         // Dimension 0: YYYYMMDD format (e.g., "20260609")
+                    { name: 'eventName' }     // Dimension 1: game_start, player_won, etc.
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+
+            // Apply version filter if specified
+            if (dimensionFilter) {
+                dailyTimeseriesRequest.dimensionFilter = dimensionFilter;
+            }
+
+            [response] = await analyticsDataClient.runReport(dailyTimeseriesRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {
