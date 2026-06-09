@@ -80,6 +80,27 @@ exports.handler = async (event) => {
             }
 
             [response] = await analyticsDataClient.runReport(dailyTimeseriesRequest);
+        } else if (requestType === 'standard' && subType === 'boss-analysis') {
+            // ─── BOSS ANALYSIS REQUEST (Boss defeat rates by platform) ───
+            const bossAnalysisRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange], // Dynamic date range from query parameter
+                // Multi-dimensional query: deviceCategory × boss_id × eventName
+                // Returns boss attempts/defeats split by desktop vs mobile
+                dimensions: [
+                    { name: 'deviceCategory' },        // Dimension 0: 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:boss_id' },   // Dimension 1: '1', '2', or '3'
+                    { name: 'eventName' }              // Dimension 2: 'boss_attempt', 'boss_defeated'
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+
+            // Apply version filter if specified
+            if (dimensionFilter) {
+                bossAnalysisRequest.dimensionFilter = dimensionFilter;
+            }
+
+            [response] = await analyticsDataClient.runReport(bossAnalysisRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {
