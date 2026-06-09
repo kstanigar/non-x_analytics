@@ -165,45 +165,46 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Dependencies:** Phase 6A research complete ✅
   - **Status:** Part A complete (Lambda), Part B pending (Dashboard)
 
-- [ ] **Phase 6A Task 5B: Date Range Filtering**
+- [x] **Phase 6A Task 5B: Combined Version + Date Range Selector** ✅ COMPLETE
   - **Estimate:** 2 hours
+  - **Time Invested:** 90 minutes (June 9, 2026)
   - **Priority:** HIGH - Enables visibility into historical data and version comparisons
-  - **Files:** `api/index.js`, `live.html` (CSS, HTML, JS for date dropdown)
-  - **Changes:** Add date range parameter to API queries and UI dropdown
-  - **Result:** Users can view data for 7/28/90 days or all time, with version-specific date context
-  - **Requirements:**
-    - **Date Range Dropdown:** Next to version dropdown
-      - Options: "Last 7 Days" (default), "Last 28 Days", "Last 90 Days", "All Time"
-      - Maps to GA4 `dateRanges`: `7daysAgo`, `28daysAgo`, `90daysAgo`, or since first event
-    - **Version-Aware Date Display:**
-      - Show deployment dates in version dropdown labels
-      - "Version 4.3 (Current) - March 1, 2026 → Today" ⭐ Latest, cleanest data
-      - "Version 4.2 (Legacy) - Jan 1, 2026 → Feb 28, 2026"
-      - "All Versions - Discover test data impact" (allows seeing how test/sample data may have skewed numbers)
-    - **Date Labels in Visualizations:**
-      - Display selected date range in dashboard header
-      - Example: "Last 28 Days (May 12 - June 9, 2026)"
-      - Show version deployment dates in tooltips/labels
-    - **Integration with Case Study Report:**
-      - Analytics version timeline will be shared in report (replacing Looker page)
-      - Users can explore test data vs production data
-      - Transparency: Show how metrics evolved across versions
-  - **Task Breakdown:**
-    1. Lambda: Add `dateRange` parameter to API (20 min)
-    2. Dashboard: Add date range dropdown UI (30 min)
-    3. Update all API calls to include dateRange (15 min)
-    4. Add version deployment dates to config (15 min)
-    5. Display date range in dashboard header (15 min)
-    6. Testing: Verify date ranges apply correctly (15 min)
-    7. Documentation: Update HANDOFF_SUMMARY.md (10 min)
+  - **Files:** `api/index.js`, `live.html` (CSS, HTML, JS for combined dropdown)
+  - **Changes:** Replaced separate version selector with combined version + date range dropdown
+  - **Result:** Users can view data for 7/30/90 days or all time, combined with version filtering (4.3 or all)
+  - **Implementation:**
+    - ✅ **Combined Selector Approach:** Single dropdown with version + date range combined
+      - Format: "Last 7 Days - Version 4.3 (Current)" instead of separate dropdowns
+      - Benefits: Cleaner UI, better mobile UX, easy to phase out old versions
+    - ✅ **Selector Options (7 total):**
+      - Last 7 Days - Version 4.3 (Current) [DEFAULT]
+      - Last 30 Days - Version 4.3 (Current)
+      - Last 90 Days - Version 4.3 (Current)
+      - All Time - Version 4.3 (Current) ⭐ NEW (since March 1, 2026)
+      - Last 7 Days - All Versions
+      - Last 30 Days - All Versions
+      - Last 90 Days - All Versions
+    - ✅ **Version 4.2 Removed:** No data exists for v4.2, removed from dropdown
+    - ✅ **CSS Styling Fixed:** Updated all `#version-select` → `#data-range-select`
   - **Code Changes:**
-    - `api/index.js`: Accept `dateRange` query parameter, map to GA4 `dateRanges`
-    - `live.html`: Add date range dropdown, update API calls, display date labels
-  - **AWS Changes:** None (backward compatible)
-  - **Testing:** Verify 7/28/90 day ranges, verify version + date combinations
-  - **Dependencies:** Task 5 complete (Subtasks 1-12)
-  - **Status:** Ready for implementation after Task 5 testing complete
-  - **Context:** Version 4.3 has cleanest production data. Earlier versions/dates may show test/sample data that skewed metrics. Date filtering allows discovery and transparency.
+    - ✅ `api/index.js:16` - Extract `dateRange` parameter from query string
+    - ✅ `api/index.js:18-23` - Map date range string to GA4 format (7day/30day/90day/alltime)
+    - ✅ `api/index.js:45` - Platform-split uses dynamic `dateRange`
+    - ✅ `api/index.js:77` - Standard request uses dynamic `dateRange`
+    - ✅ `live.html:1388-1403` - Combined selector HTML (7 options)
+    - ✅ `live.html:848,860,865,1150` - CSS updated for new selector ID
+    - ✅ `live.html:2809-2826` - Renamed `applyDataRangeFilter()` with parsing logic
+    - ✅ `live.html:2588-2599` - `fetchGA4Data()` parses combined value, adds dateRange param
+    - ✅ `live.html:2639-2651` - `fetchPlatformSplitData()` parses combined value, adds dateRange param
+  - **API Changes:**
+    - Before: `GET /analytics?version=4.3`
+    - After: `GET /analytics?version=4.3&dateRange=7day`
+  - **AWS Changes:** Lambda deployed 3x (backward compatible) ✅
+  - **Testing:** All selector options verified ✅
+  - **Documentation:**
+    - ✅ Created `docs/Version_Date_Range_Selector_Plan.md`
+    - ✅ Updated HANDOFF_SUMMARY.md (June 9, 2026 session)
+    - ✅ Line numbers verified with Haiku agent
 
 - [ ] **Phase 6A Task 6: Daily Timeseries Endpoint**
   - **Estimate:** 4-6 hours

@@ -13,6 +13,19 @@ exports.handler = async (event) => {
         const requestType = event.queryStringParameters?.type || 'standard';
         const version = event.queryStringParameters?.version || '4.3'; // Default to version 4.3
         const subType = event.queryStringParameters?.subType || null;  // NEW: Enables multi-dimensional queries (platform-split, daily-timeseries, boss-analysis)
+        const dateRangeParam = event.queryStringParameters?.dateRange || '7day'; // Extract date range parameter (default to 7 days)
+
+        // Map date range string to GA4 date range object
+        const dateRangeMap = {
+            '7day': { startDate: '7daysAgo', endDate: 'today' },
+            '30day': { startDate: '30daysAgo', endDate: 'today' },
+            '90day': { startDate: '90daysAgo', endDate: 'today' },
+            'alltime': { startDate: '2026-03-01', endDate: 'today' } // All data since v4.3 implementation (early-mid Apr 2026)
+        };
+
+        // Get date range object (fallback to 7 days if invalid value)
+        const dateRange = dateRangeMap[dateRangeParam] || dateRangeMap['7day'];
+
         let response;
 
         // Build dimension filter for analytics_version (unless "all" is specified)
@@ -30,7 +43,7 @@ exports.handler = async (event) => {
         if (requestType === 'standard' && subType === 'platform-split') {
             const platformSplitRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
+                dateRanges: [dateRange], // Dynamic date range from query parameter
                 // Multi-dimensional query: platform × deviceCategory × eventName
                 // Returns separate counts for desktop vs mobile gameplay
                 dimensions: [
@@ -62,7 +75,7 @@ exports.handler = async (event) => {
             // ─── 2. STANDARD API (Historical Data) ───
             const standardRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
+                dateRanges: [dateRange], // Dynamic date range from query parameter
                 dimensions: [{ name: 'eventName' }],
                 metrics: [{ name: 'eventCount' }],
             };

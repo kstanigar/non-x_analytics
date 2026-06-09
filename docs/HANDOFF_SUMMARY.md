@@ -2,9 +2,86 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 8, 2026
+**Last Updated:** June 9, 2026
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
+
+---
+
+## June 9, 2026 - Phase 6A Task 5B: Combined Version + Date Range Selector
+
+**Session Duration:** ~90 minutes
+**Status:** Complete ✅
+
+### Priorities Addressed:
+- [x] Phase 6A Task 5B - Combined version + date range selector
+- [x] Remove version 4.2 options (no data)
+- [x] Add "All Time - Version 4.3" option
+- [x] Deploy Lambda with date range parameter support
+
+### Actions Taken:
+
+**Frontend Changes (live.html):** ✅ COMPLETE
+- **Lines 1388-1403:** Replaced version selector with combined dropdown
+  - 7 options: 4 date ranges (7/30/90 days, all time) × 2 version filters (4.3, all)
+  - Removed version 4.2 options (no data)
+  - Default: "Last 7 Days - Version 4.3 (Current)"
+- **Lines 848, 860, 865:** Updated CSS `#version-select` → `#data-range-select`
+- **Lines 1150:** Updated mobile CSS for new selector ID
+- **Lines 2809-2826:** Renamed `applyVersionFilter()` → `applyDataRangeFilter()`
+  - Added parsing logic: `"7day-43"` → `dateRange="7day"`, `version="4.3"`
+- **Lines 2588-2599:** Updated `fetchGA4Data()` to parse combined value and add `dateRange` parameter
+- **Lines 2639-2651:** Updated `fetchPlatformSplitData()` to parse combined value and add `dateRange` parameter
+
+**Backend Changes (api/index.js):** ✅ COMPLETE
+- **Line 16:** Added `dateRangeParam` extraction from query string
+- **Lines 18-23:** Created `dateRangeMap` object:
+  - `'7day'`: 7 days ago to today
+  - `'30day'`: 30 days ago to today
+  - `'90day'`: 90 days ago to today
+  - `'alltime'`: March 1, 2026 to today (captures all v4.3 data)
+- **Line 45:** Platform-split request uses dynamic `dateRange`
+- **Line 77:** Standard request uses dynamic `dateRange`
+
+**Deployments:** ✅ COMPLETE
+- Lambda deployed 3x (initial, alltime addition, final confirmation)
+- All green banners confirmed in AWS console
+
+**Documentation:** ✅ COMPLETE
+- Created `docs/Version_Date_Range_Selector_Plan.md` (complete implementation plan)
+- Line numbers verified with Haiku agent
+- Plan updated with ✅ VERIFIED markers
+
+### Final Selector Options (7 total):
+
+**Version 4.3 (Current):**
+1. Last 7 Days - Version 4.3 (Current) [DEFAULT]
+2. Last 30 Days - Version 4.3 (Current)
+3. Last 90 Days - Version 4.3 (Current)
+4. All Time - Version 4.3 (Current)
+
+**All Versions:**
+5. Last 7 Days - All Versions
+6. Last 30 Days - All Versions
+7. Last 90 Days - All Versions
+
+### API Changes:
+
+**Before:** `GET /analytics?version=4.3`
+**After:** `GET /analytics?version=4.3&dateRange=7day`
+
+### Key Findings:
+- Auto-refresh already set to 1 hour (not 5 minutes as user initially thought)
+- Version 4.2 has zero events, removed from selector
+- CSS styling fixed by updating all `#version-select` → `#data-range-select`
+- "All Time" option uses fixed start date (2026-03-01) to capture all v4.3 data
+
+### Blockers:
+- None
+
+### Next Session Priorities:
+- Phase 6A Task 5, Subtasks 11-12 (Integration Testing & Documentation)
+- Or continue with Phase 6A remaining tasks
 
 ---
 

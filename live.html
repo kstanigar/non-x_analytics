@@ -845,7 +845,7 @@
       font-weight: 600;
     }
 
-    #version-select {
+    #data-range-select {
       background: rgba(0, 40, 60, 0.8);
       border: 1px solid var(--cyan);
       color: var(--cyan);
@@ -857,12 +857,12 @@
       transition: all 0.2s;
     }
 
-    #version-select:hover {
+    #data-range-select:hover {
       background: rgba(0, 255, 255, 0.1);
       border-color: var(--yellow);
     }
 
-    #version-select:focus {
+    #data-range-select:focus {
       outline: none;
       border-color: var(--yellow);
       box-shadow: 0 0 8px rgba(255, 255, 0, 0.3);
@@ -1147,7 +1147,7 @@
 
       select,
       .version-dropdown,
-      #version-select {
+      #data-range-select {
         width: 100%;
         /* Full-width dropdown */
         max-width: none;
@@ -1384,13 +1384,20 @@
       <button class="refresh-btn" onclick="manualRefresh()">🔄 Refresh</button>
     </div>
 
-    <!-- VERSION FILTER -->
+    <!-- VERSION + DATE RANGE FILTER (Combined Selector) -->
     <div class="version-filter">
-      <label for="version-select">🔍 Analytics Version:</label>
-      <select id="version-select" onchange="applyVersionFilter()">
-        <option value="all">All Versions</option>
-        <option value="4.3" selected>Version 4.3 (Current)</option>
-        <option value="4.2">Version 4.2 (Legacy)</option>
+      <label for="data-range-select">🔍 Data Range:</label>
+      <select id="data-range-select" onchange="applyDataRangeFilter()">
+        <!-- Version 4.3 (Current) - Primary Options -->
+        <option value="7day-43" selected>Last 7 Days - Version 4.3 (Current)</option>
+        <option value="30day-43">Last 30 Days - Version 4.3 (Current)</option>
+        <option value="90day-43">Last 90 Days - Version 4.3 (Current)</option>
+        <option value="alltime-43">All Time - Version 4.3 (Current)</option>
+
+        <!-- All Versions -->
+        <option value="7day-all">Last 7 Days - All Versions</option>
+        <option value="30day-all">Last 30 Days - All Versions</option>
+        <option value="90day-all">Last 90 Days - All Versions</option>
       </select>
     </div>
 
@@ -2576,12 +2583,18 @@
        * @returns {Promise<Object>} GA4 response or error
        */
       async function fetchGA4Data(type = 'standard') {
-        // Get selected version from dropdown (default to 4.3 if not found)
-        const versionSelect = document.getElementById('version-select');
-        const version = versionSelect ? versionSelect.value : '4.3';
+        // Get selected data range from combined dropdown (default to 7day-43 if not found)
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '7day-43';
 
-        // Build URL with version parameter
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?version=${version}`;
+        // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' :
+                        versionShort === '42' ? '4.2' :
+                        versionShort === 'all' ? 'all' : '4.3';
+
+        // Build URL with version and dateRange parameters
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?version=${version}&dateRange=${dateRange}`;
 
         try {
           const controller = new AbortController();
@@ -2621,12 +2634,18 @@
        * @returns {Promise<Object>} { success, data, error }
        */
       async function fetchPlatformSplitData() {
-        // Get selected version from dropdown (default to 4.3 if not found)
-        const versionSelect = document.getElementById('version-select');
-        const version = versionSelect ? versionSelect.value : '4.3';
+        // Get selected data range from combined dropdown (default to 7day-43 if not found)
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '7day-43';
 
-        // Build URL with type=standard, subType=platform-split, and version parameters
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=platform-split&version=${version}`;
+        // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' :
+                        versionShort === '42' ? '4.2' :
+                        versionShort === 'all' ? 'all' : '4.3';
+
+        // Build URL with type=standard, subType=platform-split, version, and dateRange parameters
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=platform-split&version=${version}&dateRange=${dateRange}`;
 
         try {
           const controller = new AbortController();
@@ -2793,15 +2812,23 @@
       }
 
       /**
-       * Apply version filter when dropdown selection changes
-       * Triggers a refresh to fetch data for the selected analytics version
+       * Apply data range filter when dropdown selection changes
+       * Parses combined value (e.g., "7day-43") into dateRange and version
+       * Triggers a refresh to fetch data for the selected date range and analytics version
        */
-      async function applyVersionFilter() {
-        const versionSelect = document.getElementById('version-select');
-        const selectedVersion = versionSelect.value;
-        console.log(`Version filter changed to: ${selectedVersion}`);
+      async function applyDataRangeFilter() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect.value;
 
-        // Trigger refresh with new version filter
+        // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' :
+                        versionShort === '42' ? '4.2' :
+                        versionShort === 'all' ? 'all' : '4.3';
+
+        console.log(`Data range changed to: ${dateRange} days, version ${version}`);
+
+        // Trigger refresh with new version and date range filters
         await loadAndRenderGA4Data('standard');
       }
 
