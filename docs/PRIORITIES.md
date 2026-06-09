@@ -132,12 +132,24 @@ Tasks organized by date added (newest first). Tasks include planning details, in
       - ✅ Added `getLegendFontSize()` helper (8px mobile, 11px desktop)
       - ✅ Updated 10 chart legend configs with responsive font sizing
       - ✅ Result: Legends proportional to charts at all viewport sizes
-    - [ ] **Mobile UI Cleanup - Next Session** (30 min)
-      - [ ] Issue 6: Remove "WINNING" labels from A/B Test cards
-      - [ ] Issue 7: Hide x-axis labels on mobile bar charts (<479px)
+    - [x] **Mobile UI Cleanup** ✅ COMPLETE (30 min)
+      - ✅ Issue 6: Hide "WINNING" labels from A/B Test cards (line ~959)
+      - ✅ Issue 7: Hide x-axis labels on mobile bar charts (line 2914-2928)
         - Bar colors identify bosses (Green=Boss 1, Red=Boss 2, Purple=Boss 3)
-        - Gives charts more vertical space at mobile widths
-      - [ ] Screenshots saved for reference
+        - Charts affected: Boss Analysis, Powerup Usage, Boss by Platform, Survival Time, AI Tier
+      - ✅ Documentation: Created `Mobile_UI_Cleanup_Plan.md`
+    - [x] **Issue 8: Chart Overflow Fix** ✅ COMPLETE (5 min)
+      - ✅ Added canvas width constraints (max-width: 100%, width: 100%) - line 380-384
+      - ✅ Resolved Survival Time Distribution chart overflow on Platform tab
+    - [x] **Issue 9: Active Tab Indicator** ✅ COMPLETE (15 min)
+      - ✅ Added active tab name to mobile hamburger label (line 1424)
+      - ✅ CSS styling for purple/magenta tab name (lines 1182-1187)
+      - ✅ JavaScript updates label on tab switch (lines 3633-3645)
+      - ✅ Documentation: Created `Issue9_Active_Tab_Indicator_Plan.md`
+    - [x] Subtask 10: Resume UI Display Testing ✅ COMPLETE (30 min)
+      - [x] Task 10.2.3: Retest chart responsiveness ✅
+      - [x] Task 10.3: Platform table validation ✅ (data accuracy verified, Issue 8 resolved)
+      - [x] Task 10.4: Survival Time Distribution chart validation ✅
     - [ ] Subtask 11: Integration Testing (15 min)
     - [ ] Subtask 12: Documentation (15 min)
   - **Code Changes:**

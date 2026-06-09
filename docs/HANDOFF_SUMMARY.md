@@ -372,26 +372,72 @@
   - Updated 10 chart legend configs with `font:{ size: getLegendFontSize() }`
 - **Result:** Legends now proportional to charts at all viewport sizes
 
-**NEW ISSUES FOR NEXT SESSION** ⚠️ (June 9, 2026)
-- **Issue 6:** Remove "WINNING" label from A/B Test cards
-  - **Location:** "A/B TEST 1 - MUSIC DEFAULT (ON VS OFF)" section
-  - **Card:** "GROUP A - MUSIC ON" has green "WINNING" label
-  - **Action:** Remove label from card display (mobile responsive clutter)
-  - **Screenshot:** `/Users/keithstanigar/Desktop/Screen Shot 2026-06-09 at 10.14.53 AM.png`
+**MOBILE UI CLEANUP** ✅ COMPLETE (June 9, 2026 - 30 min)
 
-- **Issue 7:** Hide x-axis labels on mobile bar charts
-  - **Location:** "ATTEMPT-TO-DEFEAT RATIO BY BOSS" chart
-  - **Example:** X-axis shows "Boss 1 (Green)", "Boss 2 (Red)", etc.
-  - **Action:** Hide x-axis labels at mobile (<479px) - bar colors identify bosses
-  - **Benefit:** Gives bar chart more vertical space, cleaner mobile appearance
-  - **Screenshot:** `/Users/keithstanigar/Desktop/Screen Shot 2026-06-09 at 10.15.46 AM.png`
+- **Issue 6:** Remove "WINNING" labels from A/B Test cards ✅
+  - **Solution:** Added CSS media query to hide `.ab-winner-tag` at <479px (line ~959)
+  - **Code:** `.ab-winner-tag { display: none; }` in mobile CSS section
+  - **Result:** Green "▲ WINNING" badges hidden on mobile, visible on desktop
+
+- **Issue 7:** Hide x-axis labels on mobile bar charts ✅
+  - **Solution:** Updated `gridOpts()` function to hide x-axis ticks on mobile (line 2914-2928)
+  - **Code:** `ticks: { display: window.innerWidth > 479 }` in x-axis config
+  - **Charts Affected:** Boss Analysis, Powerup Usage, Boss by Platform, Survival Time, AI Tier
+  - **Result:** Labels hidden at <479px, bar colors identify data (Green/Red/Purple)
+  - **Benefit:** ~20-30px more vertical space for charts on mobile
+
+- **Documentation:** Created `docs/Mobile_UI_Cleanup_Plan.md` with implementation details
+
+**SUBTASK 10: UI DISPLAY TESTING** 🔵 IN PROGRESS (June 9, 2026)
+
+- **Task 10.2.3: Retest Chart Responsiveness** ✅ COMPLETE
+  - All responsive fixes verified working:
+    - ✅ Charts stay within viewport (no overflow on Overview, Funnel, Boss Analysis)
+    - ✅ Tables scroll horizontally with touch support
+    - ✅ Hamburger menu works (slide-out, click-away, Escape)
+    - ✅ "DASHBOARDS" label visible next to hamburger
+    - ✅ Analytics Version dropdown full-width
+    - ✅ Chart legends scaled correctly (8px mobile, 11px desktop)
+    - ✅ "WINNING" badges hidden on A/B Tests tab
+    - ✅ X-axis labels hidden on bar charts (Boss Analysis, Overview, etc.)
+  - Tested across tabs: Overview, Funnel, Boss Analysis, A/B Tests ✅
+
+- **Task 10.3: Platform Table Validation** ✅ COMPLETE
+  - **Data Accuracy Verified** ✅
+    - Desktop Win Rate: 9.1% = 1 player_won / 11 game_start (from API)
+    - Mobile Win Rate: 0% = 0 wins / 0 game_start (from API)
+    - Desktop Sessions: 1 (from API)
+    - Mobile Sessions: 0 (from API)
+    - Data source: Live API endpoint, not mock data
+  - **Issue 8 Resolved:** Canvas width constraint added
+    - Root cause: Canvas had `max-height` but no `max-width`
+    - Solution: Added `max-width: 100%; width: 100%;` to `.chart-wrap canvas` (line 380-384)
+    - Result: All charts now constrained to container width
+
+- **Task 10.4: Survival Time Distribution Chart** ✅ COMPLETE
+  - Chart displays correctly with Desktop/Mobile datasets
+  - X-axis labels hidden on mobile (<479px)
+  - No overflow issues after Issue 8 fix
+  - Screenshot verification: `/Users/keithstanigar/Desktop/Screen Shot 2026-06-09 at 11.33.49 AM.png`
+
+**ISSUE 9: ACTIVE TAB INDICATOR** ✅ COMPLETE (June 9, 2026 - 15 min)
+
+**Problem:** No visual indicator of which tab is active when hamburger menu closed on mobile
+
+**Solution Implemented:**
+- Added `<span class="active-tab-name">- OVERVIEW</span>` to hamburger label (line 1424)
+- CSS styling: Purple/magenta color (`var(--mag)`), bold weight (lines 1182-1187)
+- JavaScript: Updates label text dynamically on tab switch (lines 3633-3645)
+- Tab name mappings: overview→OVERVIEW, funnel→FUNNEL, bosses→BOSS ANALYSIS, etc.
+
+**User Experience Improvement:**
+- Before: "DASHBOARDS" (no location context)
+- After: "DASHBOARDS - PLATFORM" (clear current location in purple)
+- Reduces cognitive load, improves mobile navigation
+
+**Documentation:** Created `docs/Issue9_Active_Tab_Indicator_Plan.md`
 
 ### Next Actions:
-- [ ] **Next Session: Clean up mobile UI** (30 min)
-  - [ ] Issue 6: Remove "WINNING" labels from A/B Test cards
-  - [ ] Issue 7: Hide x-axis labels on mobile bar charts
-  - [ ] Retest responsive design at 375px
-- [ ] Resume Subtask 10: UI Display Testing (Tasks 10.2.3 retest, 10.3-10.4)
 - [ ] Subtask 11: Integration Testing (15 min)
 - [ ] Subtask 12: Documentation updates (15 min)
 

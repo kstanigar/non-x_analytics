@@ -379,6 +379,8 @@
 
     .chart-wrap canvas {
       max-height: 280px;
+      max-width: 100%;   /* Prevent canvas from exceeding container width */
+      width: 100%;       /* Force canvas to fill container */
     }
 
     .chart-wrap.tall canvas {
@@ -957,6 +959,11 @@
       transition: all 0.15s;
     }
 
+    /* ── ISSUE 6: Hide "WINNING" badges on mobile ─────────────── */
+    .ab-winner-tag {
+      display: none;
+    }
+
     .dop-btn:hover {
       border-color: rgba(200, 232, 255, 0.5);
       color: rgba(200, 232, 255, 0.8);
@@ -1170,6 +1177,13 @@
         text-transform: uppercase;
         color: var(--cyan);
         font-weight: 600;
+      }
+
+      /* ISSUE 9: Active tab name indicator (shows which tab is currently selected) */
+      .active-tab-name {
+        color: var(--mag);        /* Purple/magenta for visual distinction */
+        font-weight: 600;         /* Bold to emphasize current location */
+        letter-spacing: 0.1em;    /* Match hamburger-label letter-spacing */
       }
 
       /* Hamburger button styling */
@@ -1414,7 +1428,7 @@
         <span></span>
         <span></span>
       </button>
-      <span class="hamburger-label">DASHBOARDS</span>
+      <span class="hamburger-label">DASHBOARDS <span class="active-tab-name">- OVERVIEW</span></span>
 
       <nav class="mobile-menu" id="mobile-menu">
         <div class="mobile-menu-header">
@@ -2913,7 +2927,15 @@
 
       function gridOpts(axis = 'both') {
         return {
-          x: { grid: { color: 'rgba(0,255,255,0.07)', drawBorder: false }, ticks: { color: 'rgba(200,232,255,0.4)' }, display: axis !== 'y-only' },
+          // ISSUE 7: Hide x-axis labels on mobile (<479px) - bar colors identify data
+          x: {
+            grid: { color: 'rgba(0,255,255,0.07)', drawBorder: false },
+            ticks: {
+              color: 'rgba(200,232,255,0.4)',
+              display: window.innerWidth > 479  // Hide labels on mobile to save vertical space
+            },
+            display: axis !== 'y-only'
+          },
           y: { grid: { color: 'rgba(0,255,255,0.07)', drawBorder: false }, ticks: { color: 'rgba(200,232,255,0.4)' } },
         };
       }
@@ -3614,6 +3636,22 @@
         }
 
         document.getElementById('page-' + name).classList.add('active');
+
+        // ISSUE 9: Update mobile hamburger label with active tab name
+        const tabNames = {
+          'overview': 'OVERVIEW',
+          'funnel': 'FUNNEL',
+          'bosses': 'BOSS ANALYSIS',
+          'ai': 'AI AGENT',
+          'ab': 'A/B TESTS',
+          'platform': 'PLATFORM',
+          'looker': 'LOOKER GUIDE'
+        };
+
+        const activeTabLabel = document.querySelector('.active-tab-name');
+        if (activeTabLabel && tabNames[name]) {
+          activeTabLabel.textContent = `- ${tabNames[name]}`;
+        }
       }
 
       // ─── MOBILE MENU FUNCTIONS ────────────────────────────────────────
