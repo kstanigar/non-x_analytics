@@ -12,6 +12,7 @@ exports.handler = async (event) => {
         // Simple routing based on a query parameter (e.g., ?type=realtime)
         const requestType = event.queryStringParameters?.type || 'standard';
         const version = event.queryStringParameters?.version || '4.3'; // Default to version 4.3
+        const subType = event.queryStringParameters?.subType || null;  // NEW: Enables multi-dimensional queries (platform-split, daily-timeseries, boss-analysis)
         let response;
 
         // Build dimension filter for analytics_version (unless "all" is specified)
@@ -25,7 +26,28 @@ exports.handler = async (event) => {
             }
         };
 
-        if (requestType === 'realtime') {
+        // ─── PLATFORM SPLIT REQUEST (Desktop vs Mobile breakdown) ───
+        if (requestType === 'standard' && subType === 'platform-split') {
+            const platformSplitRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
+                // Multi-dimensional query: platform × deviceCategory × eventName
+                // Returns separate counts for desktop vs mobile gameplay
+                dimensions: [
+                    { name: 'platform' },      // Dimension 0: 'WEB' or 'APP'
+                    { name: 'deviceCategory' }, // Dimension 1: 'desktop', 'mobile', 'tablet'
+                    { name: 'eventName' }      // Dimension 2: event identifier
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+
+            // Apply version filter if specified
+            if (dimensionFilter) {
+                platformSplitRequest.dimensionFilter = dimensionFilter;
+            }
+
+            [response] = await analyticsDataClient.runReport(platformSplitRequest);
+        } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {
                 property: `properties/${propertyId}`,
