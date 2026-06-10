@@ -76,22 +76,34 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Dashboard Progress After:** ~51% live (23-25 of 44 metrics, +4 from Task 2)
   - **Dependencies:** Phase 6B Task 1 complete ✅
 
-- [ ] **Phase 6C Task 3: Phase/Level Progression Endpoint**
+- [x] **Phase 6C Task 3: Phase/Level Progression Endpoint** ✅ COMPLETE
   - **Estimate:** 4-6 hours
-  - **Impact:** MEDIUM - Makes progression metrics live
+  - **Time Invested:** ~3 hours (June 10, 2026)
+  - **Completed:** June 10, 2026
+  - **Impact:** MEDIUM - Wave Drop-off chart 100% live
   - **Complexity:** MEDIUM-HIGH
   - **What:** Add phase and level_reached dimension queries
-  - **Makes Live:**
-    - Wave drop-off analysis
-    - Phase funnel (Green → Red → Purple progression)
-    - Level completion rates
+  - **Made Live:**
+    - Wave Drop-off chart (ALL / DESKTOP / MOBILE toggle) ✅
+    - Per-level death distribution (levels 1–12) from real GA4 data ✅
+    - Platform split toggle now unlocked (was previously locked on mock data) ✅
   - **Custom Dimensions:** `customEvent:phase`, `customEvent:level_reached`
-  - **Query Structure:** phase × level_reached × eventName
-  - **Files to Modify:**
-    - `api/index.js` - Add progression-analysis request handler (~30 lines)
-    - `live.html` - Parser, fetch function, integration, chart updates (~250 lines)
-  - **Expected Result:** Progression metrics based on live data
-  - **Dependencies:** Phase 6B Tasks 1-2 complete (recommended)
+  - **Query Structure:** phase × level_reached × eventName × deviceCategory
+  - **Files Modified:**
+    - `api/index.js` - progression-analysis handler (lines 147-168, already written, deployed) ✅
+    - `live.html` - Parser, fetch function, integration, DATA comment (~95 lines) ✅
+      - Lines 2330-2332: DATA.deathsByLevel comment update
+      - Lines 2816-2850: progression-analysis parser in mapGA4ResponseToDATA()
+      - Lines 3229-3265: fetchProgressionAnalysisData() function (AbortSignal.timeout())
+      - Lines 3455-3472: Integration in loadAndRenderGA4Data()
+      - Lines 3787-3791: chartDropoff() boss bar fix (DATA.bossAnalysis → DATA.bosses)
+  - **Bug Fixed:** chartDropoff() was reading DATA.bosses (mock) instead of DATA.bossAnalysis (live) for boss death bars
+  - **Bug Fixed:** Wave Drop-off toggle showed stale "Load the Deaths CSV" toast — replaced with "No data for this version and date range, select another version and date." and removed blocking return so toggle always works
+  - **Endpoint:** `?type=standard&subType=progression-analysis&version=4.3&dateRange=90day`
+  - **Testing:** ✅ Complete - chart displays correct live data, platform toggle unlocked
+  - **Key Finding:** Death data is sparse but accurate — most deaths occur at early green levels (L1-L4) and Boss 2 (L8)
+  - **Dashboard Progress After:** ~55% live (up from ~51%)
+  - **Dependencies:** Phase 6B Tasks 1-2 complete ✅
 
 - [ ] **Phase 6D Task 4: AI Agent Deep Dive Endpoint**
   - **Estimate:** 6-8 hours

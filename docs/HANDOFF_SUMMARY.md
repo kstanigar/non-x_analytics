@@ -2,9 +2,123 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 9, 2026
+**Last Updated:** June 10, 2026
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
+
+---
+
+## June 10, 2026 - Phase 6C Task 3: Phase/Level Progression Endpoint
+
+**Session Duration:** ~3 hours
+**Status:** Complete ✅
+
+### Priorities Addressed:
+- [x] Research exact insertion points in live.html (Haiku/Explore agent)
+- [x] Create implementation plan with exact line numbers (`docs/Phase6C_Task3_Progression_Analysis_Plan.md`)
+- [x] Research 2026 best practices (web search agent — GA4 API, fetch pattern, Chart.js, Lambda)
+- [x] Update plan with AbortSignal.timeout() (2026 best practice fetch pattern)
+- [x] Verify codebase-wide scope of AbortController pattern (6 existing functions, api/index.js unaffected)
+- [x] Add comment to DATA.deathsByLevel initialization block
+- [x] Add progression-analysis parser to mapGA4ResponseToDATA()
+- [x] Create fetchProgressionAnalysisData() function
+- [x] Integrate into loadAndRenderGA4Data()
+- [x] Deploy Lambda to AWS (progression-analysis handler already in api/index.js)
+- [x] Test endpoint (94 rows returned, player_death events confirmed present)
+- [x] Fix chartDropoff() boss bar bug (DATA.bosses mock → DATA.bossAnalysis live)
+- [x] Verify dashboard — Wave Drop-off chart live ✅
+
+### Actions Taken:
+
+**Planning (45 min):** ✅ COMPLETE
+- Launched Explore agent to find exact insertion points in live.html
+- Created `docs/Phase6C_Task3_Progression_Analysis_Plan.md` (full plan with task list, code, error table, testing protocol)
+- Launched web search agent to verify 2026 best practices — confirmed GA4 syntax correct, upgraded fetch to `AbortSignal.timeout()`
+- Launched Explore agent to audit all 6 existing fetch functions in live.html for codebase-wide impact
+
+**Backend (api/index.js):** ✅ ALREADY COMPLETE
+- `progression-analysis` handler was already written at lines 147-168
+- Query: `customEvent:phase × customEvent:level_reached × eventName × deviceCategory`
+- Deployed to AWS Lambda by user
+
+**Frontend Changes (live.html):** ✅ COMPLETE
+
+- **Lines 2330-2332:** DATA.deathsByLevel initialization comment updated
+  - Documents live vs mock data paths
+  - Notes that fetchProgressionAnalysisData() sets hasRealData=true
+
+- **Lines 2816-2850:** progression-analysis parser in mapGA4ResponseToDATA() (+35 lines)
+  - Parses phase × level_reached × eventName × deviceCategory response
+  - Filters for `player_death` events only
+  - Builds `levelDeaths`, `levelDesktop`, `levelMobile` objects (keyed by level string '1'–'12')
+  - Sets `hasRealData: true` when death rows present
+  - Returns `{ progressionData: { levelDeaths, levelDesktop, levelMobile, hasRealData } }`
+
+- **Lines 3229-3265:** fetchProgressionAnalysisData() function (+37 lines)
+  - Follows same pattern as other fetch functions
+  - Uses `AbortSignal.timeout(API_CONFIG.timeout)` — 2026 best practice (Baseline 2024)
+  - Catches `TimeoutError` (not `AbortError`) per new API
+  - URL: `?type=standard&subType=progression-analysis&version=${version}&dateRange=${dateRange}`
+
+- **Lines 3455-3472:** Integration in loadAndRenderGA4Data() (+18 lines)
+  - Fetches after powerup-analysis, before reinitAllCharts()
+  - Populates DATA.deathsByLevel.levelDeaths / levelDesktop / levelMobile / hasRealData
+  - Console log: `Progression data updated: {1: N, 2: N, ...}`
+
+- **Lines 3787-3791:** chartDropoff() boss bar fix
+  - Bug: was reading `DATA.bosses` (mock data — 1034/690/389 attempts) for boss death bars
+  - Fix: reads `DATA.bossAnalysis?.[bKey]?.overall?.attempts` (live) with fallback to `DATA.bosses` (mock)
+  - This was a pre-existing mismatch from Phase 6A — exposed when hasRealData=true activated the real data path
+
+**Endpoint Test Results:**
+- URL: `?type=standard&subType=progression-analysis&version=4.3&dateRange=90day`
+- 94 rows returned
+- `player_death` events confirmed present with `level_reached` values
+- `level_reached` populated for death events (levels 1–12), `(not set)` for non-death events (expected)
+
+**Live Death Distribution (90-day, version 4.3):**
+- L1: 5 (green, desktop)
+- L2: 3 (green: 2 desktop, 1 mobile)
+- L3: 1 (green, desktop)
+- L4: 3 (green: 2 mobile, 1 desktop)
+- L5: 2 (red, mobile)
+- L8: 6 (red, mobile) ⭐ peak
+- L9: 2 (purple, mobile)
+- L10: 1 (purple, desktop)
+- L12: 1 (purple, mobile)
+
+**Key Findings:**
+- Most deaths occur in green phase (L1-L4) and at L8 boss fight
+- Data is sparse — small real-world player base vs large mock numbers
+- Mobile players die more at mid/late levels; desktop dies more at early levels
+- Platform toggle (MOBILE/DESKTOP) now fully unlocked
+
+**Dashboard Progress:**
+- Phase 6A: ~40% live ✅
+- Phase 6B Task 1 (Survival Time): ~47% live ✅
+- Phase 6B Task 2 (Powerup Analysis): ~51% live ✅
+- **Phase 6C Task 3 (Progression): ~55% live** ✅
+
+### Bug Fixed:
+**chartDropoff() boss source mismatch**
+- Symptom: Boss bars showed ~347, ~308, ~118 deaths (mock values) while level bars showed correct live data
+- Root cause: `chartDropoff()` real-data path read `DATA.bosses` (mock array, never updated by live fetch) instead of `DATA.bossAnalysis` (live object updated by fetchBossAnalysisData())
+- Fix: `DATA.bossAnalysis?.[bKey]?.overall` with fallback to `DATA.bosses` (live.html:3787-3791)
+
+### Files Created:
+- `docs/Phase6C_Task3_Progression_Analysis_Plan.md` — Full implementation plan (updated June 10 with AbortSignal.timeout())
+
+### Post-Completion Fix: Wave Drop-off Toggle Toast Message
+
+**Issue:** After Phase 6C shipped, clicking MOBILE or DESKTOP toggle on a 7-day range (with sparse death data) showed the old message: *"Load the Deaths CSV to enable platform split"* — a leftover from the CSV import era.
+
+**Fix (`live.html:3621-3627`):**
+- Removed blocking `return` — toggle now switches even when no split data exists (empty chart is clearer than a blocked button)
+- Updated message to: *"No data for this version and date range, select another version and date."*
+
+### Next Steps:
+- Phase 6D Task 4: AI Agent Deep Dive Endpoint (6-8 hours)
+- Low priority cleanup: upgrade 6 existing fetch functions from AbortController → AbortSignal.timeout()
 
 ---
 

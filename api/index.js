@@ -144,6 +144,28 @@ exports.handler = async (event) => {
             }
 
             [response] = await analyticsDataClient.runReport(powerupAnalysisRequest);
+        } else if (requestType === 'standard' && subType === 'progression-analysis') {
+            // ─── PROGRESSION ANALYSIS REQUEST (Phase/level drop-off by event) ───
+            const progressionAnalysisRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange], // Dynamic date range from query parameter
+                // Multi-dimensional query: phase × level_reached × eventName × deviceCategory
+                // Returns progression counts split by phase (Green/Red/Purple) and level reached
+                dimensions: [
+                    { name: 'customEvent:phase' },         // Dimension 0: 'green', 'red', 'purple'
+                    { name: 'customEvent:level_reached' }, // Dimension 1: integer level values
+                    { name: 'eventName' },                 // Dimension 2: 'wave_reached', 'player_won', 'player_death'
+                    { name: 'deviceCategory' }             // Dimension 3: 'desktop', 'mobile', 'tablet'
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+
+            // Apply version filter if specified
+            if (dimensionFilter) {
+                progressionAnalysisRequest.dimensionFilter = dimensionFilter;
+            }
+
+            [response] = await analyticsDataClient.runReport(progressionAnalysisRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {
