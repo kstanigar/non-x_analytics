@@ -181,6 +181,43 @@ Tasks organized by date added (newest first). Tasks include planning details, in
     - Verify CORS on new domain
   - **Dependencies:** Final Security Audit complete ✅
 
+- [ ] **BigQuery Integration** — Avg Starting Tier + Avg Final Tier KPIs
+  - **Estimate:** 3–5 hours (setup + Lambda + dashboard wiring)
+  - **Priority:** MEDIUM — unlocks 2 KPIs that GA4 API cannot provide
+  - **Why BigQuery:** GA4 Data API aggregates across all events — it cannot find the first or last event within a session. BigQuery exports raw event-level data with timestamps, enabling session-level SQL queries.
+  - **Data lag:** 24–48 hours (daily export, not real-time)
+  - **Cost:** ~$0/month at indie game data volumes (~$5/TB scanned)
+  - **Setup steps (one-time):**
+    1. Enable GA4 BigQuery Export — GA4 Admin → BigQuery Linking → connect Standing Tiger GCP project (~5 min)
+    2. Create GCP service account with BigQuery Data Viewer + Job User roles
+    3. Add service account credentials to Lambda as env variable (same pattern as `GOOGLE_CREDENTIALS`)
+  - **Lambda:** New `subType=avg-tier` handler using `@google-cloud/bigquery` npm package
+  - **SQL queries:**
+    ```sql
+    -- Avg Starting Tier: old_tier from first ai_difficulty_adjusted per session
+    SELECT AVG(CAST(first_old_tier AS INT64)) FROM (
+      SELECT session_id,
+        FIRST_VALUE(params.value.string_value) OVER (
+          PARTITION BY session_id ORDER BY event_timestamp
+        ) AS first_old_tier
+      FROM events, UNNEST(event_params) AS params
+      WHERE event_name = 'ai_difficulty_adjusted' AND params.key = 'old_tier'
+    )
+
+    -- Avg Final Tier: new_tier from last ai_difficulty_adjusted per session
+    SELECT AVG(CAST(last_new_tier AS INT64)) FROM (
+      SELECT session_id,
+        LAST_VALUE(params.value.string_value) OVER (
+          PARTITION BY session_id ORDER BY event_timestamp
+          ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+        ) AS last_new_tier
+      FROM events, UNNEST(event_params) AS params
+      WHERE event_name = 'ai_difficulty_adjusted' AND params.key = 'new_tier'
+    )
+    ```
+  - **Dashboard wiring:** `DATA.kpis.avgStartTier`, `DATA.kpis.avgFinalTier` → `#kpi-avg-start-tier`, `#kpi-avg-final-tier`
+  - **Dependencies:** Standing Tiger AWS deploy complete, GA4 BigQuery Export enabled
+
 - [ ] **New Metrics Discussion** 💬 NEEDS USER INPUT
   - **Estimate:** 30 min discussion → implementation TBD
   - **Purpose:** Identify any high-value metrics missing from the dashboard before launch
@@ -315,6 +352,8 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   **⚫ BigQuery required (session-level joins):**
   14. **Avg Starting Tier KPI** — first `ai_difficulty_adjusted` per session
   15. **Avg Final Tier KPI** — last `ai_difficulty_adjusted` per session
+
+  See BigQuery Integration task below for setup details.
 
 ---
 
