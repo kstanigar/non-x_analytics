@@ -8,6 +8,26 @@
 
 ---
 
+## June 10, 2026 - Phase 7 Medium Tier (MT-1, MT-2) + UI Polish
+
+**Session Duration:** ~2 hours
+**Status:** Complete ✅
+**Commit:** ee8c790
+
+### Changes:
+- [x] MT-1: Avg Survival KPI — wired `avgSurvival.desktop/mobile` from parser to `DATA.kpis.survival` and platform table; changed format from MM:SS to minutes (`3.6m`); updated all mock values to match
+- [x] MT-2: New User % KPI — new `subType=new-user-pct` Lambda handler (`newVsReturning` × `eventName`); parser filters to `game_start`, counts new vs total; `DATA.kpis.newPct` live (`25%`); colored sub-label shows `28 new / 83 returning`
+- [x] UI: colored count breakdowns (green count / yellow total) added to: Win Rate, Death Rate, Replay Rate, Leaderboard Rate, Desktop Win Rate, Mobile Win Rate, Speed Lock Rate, New vs Returning
+- [x] Fix: Total Sessions KPI now counts `game_start` events (was `session_start` — page sessions, not game sessions)
+- [x] Fix: Daily Plays & Wins chart — Wins line changed from green to magenta
+
+### Key Findings:
+- `newVsReturning` is a GA4 built-in dimension — no custom registration needed, values are `'new'` / `'returning'`
+- 75% of players are returning users (83 returning vs 28 new on 90-day/v4.3)
+- `session_start` overcounts vs `game_start` — players who land and leave without playing inflated sessions metric
+
+---
+
 ## June 10, 2026 - Phase 7 Quick Wins (QW1–5)
 
 **Session Duration:** ~3 hours

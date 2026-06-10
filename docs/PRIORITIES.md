@@ -244,8 +244,8 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
   **🟡 Medium (2–4 hrs each, existing dims) — see `docs/Phase7_Medium_Tier_Plan.md`:**
   6. ✅ **MT-1: Avg Survival KPI** — COMPLETE June 10, 2026 (format changed to minutes, mock values updated, `DATA.kpis.survival` wired)
-  7. **MT-2: New User % KPI** — new `subType=new-user-pct` using GA4 built-in `newVsReturning` dim (1–2 hrs) ⭐ NEXT
-  8. **MT-3: Avg Level KPI + platform cols** — extend progression-analysis parser with manual avg aggregation (2–3 hrs)
+  7. ✅ **MT-2: New User % KPI** — COMPLETE June 10, 2026 (25% live, colored counts `28 new / 83 returning`, Lambda deployed)
+  8. **MT-3: Avg Level KPI + platform cols** — extend progression-analysis parser with manual avg aggregation (2–3 hrs) ⭐ NEXT
   9. **MT-4: Replay Rate KPI** — new `subType=replay-rate` using `is_replay` dim on `game_start` (2–3 hrs)
   10. **MT-5: Tier vs Final Score chart** — DEFERRED: needs `final_score` dim added to game source first
 
@@ -652,11 +652,11 @@ Tasks organized by completion date (newest first). Includes completion details a
 
 ## 📊 STATISTICS
 
-**Pending Tasks:** 5 (Phase 7 medium/large tasks + 4 lower priority)
-**Completed Tasks:** 32
-**Completion Rate (June 2026):** 28 tasks completed
+**Pending Tasks:** 4 (Phase 7 medium/large tasks + 4 lower priority)
+**Completed Tasks:** 34
+**Completion Rate (June 2026):** 30 tasks completed
 
-**Phase 7 Progress:** ~70% live data (QW1–5 complete ✅, medium tier tasks next)
+**Phase 7 Progress:** ~73% live data (QW1–5 ✅, MT-1 ✅, MT-2 ✅, MT-3 next)
 
 **Average Task Completion Time:**
 - Quick fixes (< 30 min): 7 tasks
