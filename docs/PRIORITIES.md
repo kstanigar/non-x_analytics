@@ -344,10 +344,10 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   9. ✅ **MT-4: Replay Rate KPI** — COMPLETE June 10, 2026 (7% live; 8 replay / 112 total starts; desktop 4%, mobile 10%)
   10. **MT-5: Tier vs Final Score chart** — DEFERRED: needs `final_score` dim added to game source first
 
-  **🔴 Large (4–8 hrs each):**
-  11. **Game Funnel endpoint** — `game_start` → `wave_reached` → `boss_attempt` → `boss_defeated` → `player_won` (3–4 hrs)
-  12. **Music A/B Test endpoint** — filter by `ab_music_group` dim (4–6 hrs)
-  13. **Movement A/B Test endpoint** — filter by `movement_group` dim (3–4 hrs)
+  **🔴 Large (4–8 hrs each) — see `docs/Phase7_Large_Tier_Plan.md` for full implementation plan:**
+  11. **LT-1: Game Funnel** — no new Lambda; extend progression-analysis parser for `wave_reached` L4; wire `DATA.funnel` + `buildFunnelTable()` (1–2 hrs)
+  12. **LT-2: Music A/B Test** — new `subType=music-ab`; `ab_music_group` × `eventName`; wire `DATA.abMusic` + `DATA.abSplit` donut (3–4 hrs)
+  13. **LT-3: Movement A/B Test** — new `subType=movement-ab`; `movement_group` values TBC via endpoint test; wire `DATA.abMovement` (2–3 hrs)
 
   **⚫ BigQuery required (session-level joins):**
   14. **Avg Starting Tier KPI** — first `ai_difficulty_adjusted` per session

@@ -8,6 +8,41 @@
 
 ---
 
+## June 10, 2026 - Phase 7 Large Tier Planning (LT-1, LT-2, LT-3)
+
+**Session Duration:** ~1 hour
+**Status:** Complete ✅ — plan documented, ready to implement
+
+### Changes:
+- [x] Haiku agent searched all relevant lines in `live.html` + `api/index.js` for 23 insertion points across 3 large tier tasks
+- [x] Created `docs/Phase7_Large_Tier_Plan.md` — full implementation plan with exact line numbers, code snippets, insertion points, and testing checklists
+- [x] Updated `docs/PRIORITIES.md` large tier section with LT-1/LT-2/LT-3 references
+- [x] Investigated `leaderboard_submit` vs `scorecard_viewed` — `leaderboard_submit` is correct event; already live; ISSUE-010 resolved
+- [x] Added priorities: Security Audit, Standing Tiger Deploy, BigQuery Integration, New Metrics Discussion, KPI Tooltips, Data Dictionary expansion
+
+### Key Decisions:
+- **LT-1 (Game Funnel):** No new Lambda — extend progression-analysis parser to count `wave_reached` at L4; wire `DATA.funnel`; update `buildFunnelTable()` with dynamic calculations
+- **LT-2 (Music A/B):** New `subType=music-ab`; `ab_music_group × eventName`; 4 metrics live (sessions, winRate, lbRate, musicToggle); survival/replay/avgLevel deferred (require multi-query)
+- **LT-3 (Movement A/B):** New `subType=movement-ab`; `movement_group` dim values UNKNOWN — must test endpoint first before implementing parser
+- **BigQuery:** Needed for Avg Starting/Final Tier KPIs only (session-level aggregation); daily export auto; ~$0/month; 24–48hr lag
+
+### Key Insertion Points Verified:
+- New Lambda handlers: `api/index.js` after line 244 (after replay-rate, before realtime)
+- New parsers: `live.html` before line 3025 (`// ─── EXTRACTION ───`)
+- New fetch functions: `live.html` after `fetchReplayRateData()` ends (~line 3515)
+- New integration blocks: `live.html` after line 3831 (before `reinitAllCharts()`)
+- Progression parser extension: `live.html` line 2843 (add sibling `wave_reached` block after `player_death` block)
+
+### Files Created:
+- `docs/Phase7_Large_Tier_Plan.md` — 23 insertion points, 4 changes per task, testing checklists
+
+### Recommended Next Session Order:
+1. LT-1 (Game Funnel — no Lambda, 1–2 hrs, lowest risk)
+2. LT-2 (Music A/B — new Lambda, 3–4 hrs)
+3. LT-3 (Movement A/B — verify dim values first, then implement)
+
+---
+
 ## June 10, 2026 - Phase 7 Medium Tier (MT-4: Replay Rate KPI)
 
 **Session Duration:** ~30 min
