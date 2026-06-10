@@ -230,37 +230,33 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 - [ ] **Phase 7: Build Remaining Live Endpoints** ⭐ NEXT PRIORITY
   - **Added:** June 10, 2026
-  - **Estimate:** 1-2 hours (investigation) + TBD (implementation)
-  - **Priority:** HIGH - Dashboard shows ~60% live; AI Agent tab has 5 empty charts
-  - **Context:** Phase 6D made 3 AI metrics live but 5 charts remain empty/zero:
-    - Score Multiplier Distribution (needs `customEvent:score_multiplier`?)
-    - Tier vs Final Score (needs score data)
-    - Death Triggers by Phase (needs phase data on `ai_difficulty_adjusted`?)
-    - AVG STARTING TIER / AVG FINAL TIER KPIs (needs session-level tier tracking)
-    - SPEED LOCK RATE KPI (unknown — needs investigation)
-    - Tier Performance Metrics table (was CSV-only — needs GA4 equivalent?)
-  - **Investigation Questions:**
-    1. Are these custom dimensions already being sent by the game but not registered in GA4?
-    2. Do we need to add new custom dimensions to the game's GA4 event calls?
-    3. Can any of these be derived from existing events (e.g., player_death + phase + tier)?
-    4. Is session-level stitching (first/last tier per session) feasible with GA4 Data API?
-  - **Steps:**
-    1. Check GA4 Admin → Custom Definitions for any unregistered dims
-    2. Review game source (Xenon_3 repo) to see what data is sent on `ai_difficulty_adjusted`
-    3. Check DebugView for full parameter list on AI events
-    4. Determine which charts are feasible vs require game-side changes
-    5. Document findings and create implementation plan
-  - **Possible Outcomes:**
-    - Dims already tracked → register in GA4 and add new endpoint
-    - Dims not tracked → add to game events (game-side change required)
-    - Session-level data → may require GA4 BigQuery export for complex queries
+  - **Estimate:** 20–30 hours total across all tiers
+  - **Priority:** HIGH - Dashboard shows ~60% live; path to ~90% is new Lambda endpoints only
+  - **Key Finding (June 10, 2026):** All 31 GA4 custom dimensions already registered — no game-side changes needed. Every hardcoded chart has a buildable GA4 query. See `docs/Master_Data_Points_Map.md` for full mapping.
   - **Dependencies:** Phase 6D complete ✅
-  - **Tasks:**
-    1. Create new Lambda proxy function (30 min)
-    2. Deploy and test proxy Lambda (15 min)
-    3. Update API Gateway with proxy endpoint (15 min)
-    4. Update live.html to use proxy endpoint (10 min)
-    5. Test end-to-end (15 min)
+
+  **🟢 Quick Wins (< 2 hrs each, no new dims):**
+  1. **Device Mix chart** — calculate from existing `DATA.platform` session counts (< 1 hr)
+  2. **Boss rates by platform** — wire existing `DATA.bossAnalysis` to `chartPlatformFunnel()` (1–2 hrs)
+  3. **Death Triggers by Phase chart** — new query: `death_phase` on `player_death` (1–2 hrs)
+  4. **Speed Lock Rate KPI** — new query: `speed_locked` on `ai_difficulty_adjusted` (1–2 hrs)
+  5. **Score Multiplier Distribution chart** — extend ai-analysis with `effective_multiplier` dim (1–2 hrs)
+
+  **🟡 Medium (2–4 hrs each, existing dims):**
+  6. **Avg Level KPI + platform cols** — average `level_reached` per platform (2–3 hrs)
+  7. **Avg Survival KPI** — session-level average of `session_duration_seconds` (2–3 hrs)
+  8. **Replay Rate KPI** — `is_replay` dim on `game_start` (2–3 hrs)
+  9. **New User % KPI** — GA4 built-in `newVsReturning` dimension (2–3 hrs)
+  10. **Tier vs Final Score chart** — `effective_multiplier` × `new_tier` cross-query (2–4 hrs)
+
+  **🔴 Large (4–8 hrs each):**
+  11. **Game Funnel endpoint** — `game_start` → `wave_reached` → `boss_attempt` → `boss_defeated` → `player_won` (3–4 hrs)
+  12. **Music A/B Test endpoint** — filter by `ab_music_group` dim (4–6 hrs)
+  13. **Movement A/B Test endpoint** — filter by `movement_group` dim (3–4 hrs)
+
+  **⚫ BigQuery required (session-level joins):**
+  14. **Avg Starting Tier KPI** — first `ai_difficulty_adjusted` per session
+  15. **Avg Final Tier KPI** — last `ai_difficulty_adjusted` per session
 
 ---
 
