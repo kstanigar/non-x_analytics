@@ -236,11 +236,11 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Dependencies:** Phase 6D complete ✅
 
   **🟢 Quick Wins (< 2 hrs each, no new dims):**
-  1. **Device Mix chart** — calculate from existing `DATA.platform` session counts (< 1 hr)
-  2. **Boss rates by platform** — wire existing `DATA.bossAnalysis` to `chartPlatformFunnel()` (1–2 hrs)
-  3. **Death Triggers by Phase chart** — new query: `death_phase` on `player_death` (1–2 hrs)
-  4. **Speed Lock Rate KPI** — new query: `speed_locked` on `ai_difficulty_adjusted` (1–2 hrs)
-  5. **Score Multiplier Distribution chart** — extend ai-analysis with `effective_multiplier` dim (1–2 hrs)
+  1. ✅ **Device Mix chart** — calculate from existing `DATA.platform` session counts (< 1 hr) — COMPLETE June 10, 2026
+  2. ✅ **Boss rates by platform** — wire existing `DATA.bossAnalysis` to `chartPlatformFunnel()` (1–2 hrs) — COMPLETE June 10, 2026
+  3. ✅ **Death Triggers by Phase chart** — new query: `death_phase` on `play_again` (1–2 hrs) — COMPLETE June 10, 2026
+  4. ✅ **Speed Lock Rate KPI** — new query: `speed_locked` on `ai_difficulty_adjusted` (1–2 hrs) — COMPLETE June 10, 2026
+  5. ✅ **Score Multiplier Distribution chart** — extend ai-analysis with `effective_multiplier` dim (1–2 hrs) — COMPLETE June 10, 2026
 
   **🟡 Medium (2–4 hrs each, existing dims):**
   6. **Avg Level KPI + platform cols** — average `level_reached` per platform (2–3 hrs)

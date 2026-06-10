@@ -174,11 +174,13 @@ exports.handler = async (event) => {
                 // Multi-dimensional query: old_tier × new_tier × direction × eventName × deviceCategory
                 // Returns AI adjustment counts split by tier transition and direction (up/down)
                 dimensions: [
-                    { name: 'customEvent:old_tier' },   // Dimension 0: tier before adjustment ('-3' to '3')
-                    { name: 'customEvent:new_tier' },   // Dimension 1: tier after adjustment ('-3' to '3')
-                    { name: 'customEvent:direction' },  // Dimension 2: 'up' or 'down'
-                    { name: 'eventName' },              // Dimension 3: 'ai_difficulty_adjusted'
-                    { name: 'deviceCategory' }          // Dimension 4: 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:old_tier' },     // Dimension 0: tier before adjustment ('-3' to '3')
+                    { name: 'customEvent:new_tier' },     // Dimension 1: tier after adjustment ('-3' to '3')
+                    { name: 'customEvent:direction' },    // Dimension 2: 'increase' or 'decrease'
+                    { name: 'eventName' },                // Dimension 3: 'ai_difficulty_adjusted'
+                    { name: 'deviceCategory' },           // Dimension 4: 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:speed_locked' },          // Dimension 5: 'true' or 'false'
+                    { name: 'customEvent:effective_multiplier' }  // Dimension 6: '0.5', '1.2', '1.75' etc.
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
@@ -189,6 +191,24 @@ exports.handler = async (event) => {
             }
 
             [response] = await analyticsDataClient.runReport(aiAnalysisRequest);
+        } else if (requestType === 'standard' && subType === 'death-triggers') {
+            // ─── DEATH TRIGGERS REQUEST (Death counts by phase) ───
+            const deathTriggersRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange],
+                // Multi-dimensional query: death_phase × eventName × deviceCategory
+                // Returns player_death counts split by game phase (green/red/purple)
+                dimensions: [
+                    { name: 'customEvent:death_phase' }, // Dimension 0: 'green', 'red', 'purple'
+                    { name: 'eventName' },               // Dimension 1: 'player_death'
+                    { name: 'deviceCategory' }           // Dimension 2: 'desktop', 'mobile', 'tablet'
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+            if (dimensionFilter) {
+                deathTriggersRequest.dimensionFilter = dimensionFilter;
+            }
+            [response] = await analyticsDataClient.runReport(deathTriggersRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {
