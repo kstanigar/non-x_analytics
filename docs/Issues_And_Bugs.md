@@ -2,7 +2,7 @@
 
 **Purpose:** Centralized tracking for bugs, data accuracy issues, and technical problems across the NON-X Analytics platform.
 
-**Last Updated:** June 10, 2026, 2:30 AM
+**Last Updated:** June 10, 2026, 3:55 AM
 
 ---
 
@@ -13,7 +13,7 @@
 | 🔴 CRITICAL (Blocking) | 1 |
 | 🟡 MEDIUM (Should Fix) | 1 |
 | 🟢 LOW (Nice to Have) | 0 |
-| ✅ RESOLVED | 6 |
+| ✅ RESOLVED | 7 |
 
 ---
 
@@ -485,6 +485,37 @@ _(No items currently)_
 ---
 
 ## ✅ RESOLVED ISSUES
+
+### ISSUE-009: API Key Re-Enabled on API Gateway Then Reverted (Phase 2 Security Planning Error)
+
+**Status:** ✅ RESOLVED - June 10, 2026
+**Severity:** MEDIUM (Would have broken dashboard if Step 7 had been implemented)
+**Found:** June 10, 2026 (API Security Phase 2 session)
+**Resolved:** June 10, 2026 (Same session — reverted before dashboard was affected)
+**Affected Component:** API Gateway — GET /analytics method
+
+#### Description
+During API Security Phase 2, "API key required" was re-enabled on the GET /analytics method and deployed to prod. A Haiku agent security research check revealed this was a mistake — adding an API key back to browser-based `live.html` code is a security anti-pattern (key is visible to anyone via DevTools). The setting was reverted and redeployed before `live.html` was modified, so the dashboard was never broken.
+
+#### Root Cause
+Phase 2 was originally scoped as "Create Lambda proxy to hide API key server-side." During planning, the Haiku agent recommended API Gateway Usage Plans + API Keys as simpler. This led to briefly re-enabling "API key required" before a second Haiku research pass confirmed the correct approach.
+
+#### Resolution
+- Reverted "API key required" → **False** on GET /analytics
+- Redeployed to prod stage
+- Confirmed correct security stack for a public browser-based dashboard:
+  - ✅ Usage Plan rate limiting (10 req/s, 1000 req/day) — prevents abuse
+  - ✅ TLS 1.3 — encrypts transit
+  - ✅ CORS `"*"` — appropriate for public API
+  - ❌ API key in browser code — NOT appropriate (visible in DevTools)
+
+#### Lesson Learned
+For public browser-based APIs with no user authentication: Usage Plan rate limiting is the correct security boundary. API keys belong in server-to-server communication, not client-side JavaScript.
+
+#### AWS WAF Note
+AWS WAF is the recommended upgrade if dashboard traffic grows (~$10/month for IP rate limiting + bot detection). Not required at current traffic levels.
+
+---
 
 ### ISSUE-007: Inconsistent Fetch Pattern in fetchPowerupAnalysisData()
 

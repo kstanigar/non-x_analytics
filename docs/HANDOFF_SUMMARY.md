@@ -8,6 +8,41 @@
 
 ---
 
+## June 10, 2026 - API Security Phase 2
+
+**Session Duration:** ~45 min
+**Status:** Complete ✅
+
+### Priorities Addressed:
+- [x] Research 2026 AWS API security best practices (Haiku agent x2)
+- [x] Audit docs folder for archivable files (Explore agent)
+- [x] Archive 14 completed docs to appropriate subdirectories
+- [x] Verify existing API key + usage plan already configured correctly
+- [x] Confirm correct security stack for public browser-based dashboard
+- [x] Revert accidental "API key required" change (ISSUE-009)
+- [x] Redeploy API to prod (API key required = False)
+
+### Research Findings (Haiku Agent):
+- API keys in browser code = security anti-pattern (visible in DevTools)
+- Lambda proxy = unnecessary for this use case
+- Correct stack for public read-only dashboard: Usage Plan + TLS + CORS
+- AWS WAF is the recommended upgrade if traffic grows (~$10/month)
+- No changes to `live.html` required
+
+### Security Stack (Final):
+- ✅ Usage Plan: 10 req/s, 1000 req/day (rate limiting + abuse prevention)
+- ✅ TLS 1.3 (encrypted transit)
+- ✅ CORS `"*"` (appropriate for public browser API)
+- ✅ No API key in browser code
+
+### Bug Logged:
+- ISSUE-009: API key required briefly re-enabled then reverted — documented in Issues_And_Bugs.md
+
+### Docs Archived (14 files):
+Moved completed phase plans, resolved investigation docs, and legacy files to `docs/archive/` subdirectories. `docs/` now contains 8 active living documents only.
+
+---
+
 ## June 10, 2026 - Phase 6D Task 4: AI Agent Deep Dive Endpoint
 
 **Session Duration:** ~2 hours

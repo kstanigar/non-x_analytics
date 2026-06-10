@@ -210,12 +210,18 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Code Changes:** Update event mapping if different name found
   - **Note:** DebugView showed `leaderboard_submit` IS firing - likely just needs documentation
 
-- [ ] **API Security Issue - Phase 2 (Server-Side Proxy)**
-  - **Estimate:** 1-2 hours
-  - **Priority:** MEDIUM (Production deployment requirement) ⭐ NEXT
-  - **Action:** Create Lambda proxy to hide API key server-side
-  - **Why:** Required for S3/CloudFront static site deployment
-  - **Dependencies:** Phase 1 complete (API key removed)
+- [x] **API Security Issue - Phase 2** ✅ COMPLETE
+  - **Completed:** June 10, 2026
+  - **Time Invested:** ~45 min
+  - **Original Scope:** Create Lambda proxy to hide API key server-side
+  - **Actual Resolution:** Haiku agent research confirmed Lambda proxy is unnecessary — correct security stack for a public browser-based dashboard is Usage Plan + TLS + CORS (no API key in browser code)
+  - **Actions Taken:**
+    - Verified existing API key (`NON-X-Analytics-Key-2026-04`) and usage plan (`NON-X-Analytics-Rate-Limit`) already correctly configured
+    - Briefly re-enabled "API key required" on GET /analytics (ISSUE-009) — reverted after research confirmed wrong pattern
+    - Redeployed API to prod with API key required = False
+  - **Security Stack Confirmed:** Usage Plan (10 req/s, 1000/day) + TLS 1.3 + CORS ✅
+  - **Future Upgrade:** AWS WAF (~$10/month) if traffic grows
+  - **Documented:** ISSUE-009 in Issues_And_Bugs.md
 
 - [ ] **Investigate Unpopulated AI Agent Charts** ⭐ PRIORITY 2
   - **Added:** June 10, 2026
