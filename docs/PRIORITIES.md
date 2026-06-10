@@ -153,19 +153,78 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ---
 
+### Added: June 10, 2026 (Pre-Launch Checklist)
+
+- [ ] **Final Security Audit** ⛔ REQUIRED BEFORE DEPLOY
+  - **Estimate:** 1–2 hours
+  - **Priority:** CRITICAL — must complete before any public deployment
+  - **Scope:**
+    - Audit all API endpoints for exposed credentials, keys, or internal infra details
+    - Verify CORS policy is appropriate for new hosting domain
+    - Review Lambda IAM permissions (least privilege)
+    - Check all console.log statements — remove any that expose internal data
+    - Verify no sensitive info in HTML source (comments, data attributes, config objects)
+    - Confirm Usage Plan limits are appropriate for expected traffic
+    - Review error messages — ensure they don't leak stack traces or infra details
+  - **Dependencies:** Must complete before AWS Standing Tiger deploy
+
+- [ ] **Deploy to AWS Standing Tiger Account**
+  - **Estimate:** 2–4 hours
+  - **Priority:** HIGH — production deployment
+  - **Scope:**
+    - Create new Lambda function in Standing Tiger AWS account
+    - Configure API Gateway with prod stage
+    - Set up environment variables (GOOGLE_CREDENTIALS, GA4_PROPERTY_ID)
+    - Configure Usage Plan + rate limiting (10 req/s, 1000 req/day)
+    - Update `API_CONFIG.baseURL` in `live.html` to new endpoint
+    - Deploy and smoke-test all endpoints (platform-split, timeseries, boss, survival, powerup, progression, ai-analysis, death-triggers, new-user-pct, replay-rate)
+    - Verify CORS on new domain
+  - **Dependencies:** Final Security Audit complete ✅
+
+- [ ] **New Metrics Discussion** 💬 NEEDS USER INPUT
+  - **Estimate:** 30 min discussion → implementation TBD
+  - **Purpose:** Identify any high-value metrics missing from the dashboard before launch
+  - **Candidates to discuss:**
+    - **Scorecard View Rate** — `scorecard_viewed / game_start` (% of players who reach end screen)
+    - **Music Toggle Rate** — `music_toggled / game_start` (engagement with music feature)
+    - **Leave Game Rate** — `leave_game / game_start` (rage quit / drop-off signal)
+    - **Session Return Rate** — `returning_user / total sessions` (loyalty signal)
+    - **Boss Reach Rate** — `boss_attempt / game_start` (how far players get)
+    - **Survey Response Rate** — `survey_submitted / game_start` (feedback engagement)
+  - **Note:** All of these events are already firing in GA4 — no game-side changes needed
+  - **Action:** Review list and decide which to add
+
+- [ ] **KPI Tooltips** 💬 NEEDS USER INPUT
+  - **Estimate:** 2–3 hours
+  - **Purpose:** Add hover tooltips to KPI cards explaining what each metric means and how it's calculated
+  - **Approach options:**
+    - CSS-only tooltips (`:hover` + `::after` pseudo-element) — lightweight, no JS
+    - JS tooltip on click (better for mobile)
+    - Info icon (ℹ) next to each KPI label that reveals formula on hover/tap
+  - **Content per KPI:** label, formula, data source, what "good" looks like
+  - **Dependencies:** Metrics discussion complete (so tooltip content is final)
+
+---
+
 ### Added: June 8, 2026 (Phase 5 Completion)
 
 - [ ] **Complete Phase 5 Task #5: Case Study Page**
-  - **Estimate:** 60 minutes
+  - **Estimate:** 2–3 hours (expanded scope)
   - **Location:** `live.html` - Replace Looker tab content (lines ~1347-1575)
   - **Requirements:**
     - Two-column layout (casual left, technical right)
     - Left: Game overview, data insights, design decisions, A/B test impact
     - Right: Analytics methodology, statistical significance, chart interpretation
+    - **Data Dictionary section** — define every metric, event, and custom dimension used in the dashboard (what it is, how it's calculated, when it fires, what values it takes)
     - No sensitive info (API keys, Lambda details, AWS infrastructure)
+  - **Data Dictionary should cover:**
+    - All KPIs (formula + data source)
+    - All GA4 custom dimensions used (31 registered)
+    - All event names and their triggers
+    - Version filtering explanation
   - **Inline Comments:** Add section headers for each content card
-  - **Code Changes:** Replace Looker page HTML with case study structure
-  - **Dependencies:** None
+  - **Code Changes:** Replace Looker page HTML with case study + data dictionary structure
+  - **Dependencies:** Metrics discussion complete (so dictionary covers final metric set)
   - **Blocker:** None
 
 - [ ] **Investigate ISSUE-002: Missing Outcome Events** ⚠️ LIKELY RESOLVED
