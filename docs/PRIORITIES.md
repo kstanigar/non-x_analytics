@@ -223,7 +223,12 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Future Upgrade:** AWS WAF (~$10/month) if traffic grows
   - **Documented:** ISSUE-009 in Issues_And_Bugs.md
 
-- [ ] **Investigate Unpopulated AI Agent Charts** ⭐ PRIORITY 2
+- [x] **Investigate Unpopulated AI Agent Charts + Full Dashboard Audit** ✅ COMPLETE
+  - **Completed:** June 10, 2026
+  - **Output:** `docs/Master_Data_Points_Map.md`, `docs/Dashboard_Data_Audit_June2026.md`
+  - **Finding:** All 31 GA4 custom dimensions already registered — no game-side changes needed, only new Lambda endpoints. Every hardcoded chart has a buildable GA4 query. Path to ~90% live is 20–30 hours across quick wins → medium → A/B/funnel endpoints. Only Avg Start/Final Tier KPIs require BigQuery (session-level joins).
+
+- [ ] **Phase 7: Build Remaining Live Endpoints** ⭐ NEXT PRIORITY
   - **Added:** June 10, 2026
   - **Estimate:** 1-2 hours (investigation) + TBD (implementation)
   - **Priority:** HIGH - Dashboard shows ~60% live; AI Agent tab has 5 empty charts

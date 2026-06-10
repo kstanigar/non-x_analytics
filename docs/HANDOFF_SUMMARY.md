@@ -8,6 +8,15 @@
 
 ---
 
+## June 10, 2026 - Master Data Points Map + Dashboard Audit
+
+**Session Duration:** ~45 min
+**Status:** Complete ✅
+
+Audited all 39 dashboard components against the 31 registered GA4 custom dimensions to produce a complete live vs hardcoded inventory (`docs/Master_Data_Points_Map.md`). Key finding: every "missing" chart already has a registered GA4 dimension — no game-side changes are needed, only new Lambda endpoints. Path to ~90% live dashboard is 20–30 hours of endpoint work across quick wins (device mix, death triggers, score multiplier), medium tasks (avg level, avg survival, replay rate, speed lock), and larger A/B test + funnel endpoints.
+
+---
+
 ## June 10, 2026 - API Security Phase 2
 
 **Session Duration:** ~45 min
