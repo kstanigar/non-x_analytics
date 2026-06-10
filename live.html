@@ -2345,6 +2345,13 @@
           desktop: { sessions: 1534, winRate: '11.2%', survival: '2:38', replay: '2.5×', avgLevel: '6.1', lbRate: '36%', boss1: '28.4%', boss2: '17.1%', boss3: '12.8%' },
           mobile: { sessions: 1307, winRate: '5.7%', survival: '2:04', replay: '2.1×', avgLevel: '4.3', lbRate: '24%', boss1: '19.6%', boss2: '10.1%', boss3: '6.7%' },
         },
+        // Survival time distribution (buckets: 0-0.5m, 0.5-1m, 1-2m, 2-3m, 3-4m, 4-6m, 6-8m, 8+m)
+        // Updated by fetchSurvivalTimeData() with live GA4 data
+        survivalDist: {
+          labels: ['0-0.5m', '0.5-1m', '1-2m', '2-3m', '3-4m', '4-6m', '6-8m', '8+m'],
+          desktop: [8, 15, 28, 24, 16, 5, 3, 1],  // Percentages (mock data, replaced by live)
+          mobile: [14, 22, 31, 19, 10, 2, 1, 1]   // Percentages (mock data, replaced by live)
+        },
         aiAgent: {
           kpis: {
             avgStartTier: '—',
@@ -2628,6 +2635,95 @@
           } catch (error) {
             console.error('Error parsing boss-analysis response:', error);
             return { error: error.message, bossAnalysis: {} };
+          }
+        }
+
+        // ─── SURVIVAL-TIME RESPONSE HANDLER ───
+        if (reportType === 'survival-time') {
+          // Bucket structure: 0-0.5m, 0.5-1m, 1-2m, 2-3m, 3-4m, 4-6m, 6-8m, 8+m
+          const buckets = [
+            { label: '0-0.5m', min: 0, max: 30, desktop: 0, mobile: 0 },
+            { label: '0.5-1m', min: 30, max: 60, desktop: 0, mobile: 0 },
+            { label: '1-2m', min: 60, max: 120, desktop: 0, mobile: 0 },
+            { label: '2-3m', min: 120, max: 180, desktop: 0, mobile: 0 },
+            { label: '3-4m', min: 180, max: 240, desktop: 0, mobile: 0 },
+            { label: '4-6m', min: 240, max: 360, desktop: 0, mobile: 0 },
+            { label: '6-8m', min: 360, max: 480, desktop: 0, mobile: 0 },
+            { label: '8+m', min: 480, max: Infinity, desktop: 0, mobile: 0 }
+          ];
+
+          // Track total duration and count for average calculation
+          const platformTotals = {
+            desktop: { totalDuration: 0, count: 0 },
+            mobile: { totalDuration: 0, count: 0 }
+          };
+
+          try {
+            response.rows.forEach((row) => {
+              const deviceCategory = row.dimensionValues[0]?.value;        // Dimension 0: 'desktop' or 'mobile'
+              const sessionDuration = parseInt(row.dimensionValues[1]?.value || 0, 10); // Dimension 1: duration in seconds
+              const eventName = row.dimensionValues[2]?.value;             // Dimension 2: event type
+              const eventCount = parseInt(row.metricValues[0]?.value || 0, 10); // Metric: count
+
+              // Filter: only process desktop/mobile, only game outcome events (won/death)
+              if (deviceCategory !== 'desktop' && deviceCategory !== 'mobile') return;
+              if (eventName !== 'player_won' && eventName !== 'player_death') return;
+              if (isNaN(sessionDuration) || isNaN(eventCount)) return;
+
+              // Add to bucket distribution
+              for (let bucket of buckets) {
+                if (sessionDuration >= bucket.min && sessionDuration < bucket.max) {
+                  bucket[deviceCategory] += eventCount;
+                  break;
+                }
+              }
+
+              // Add to totals for average calculation
+              platformTotals[deviceCategory].totalDuration += sessionDuration * eventCount;
+              platformTotals[deviceCategory].count += eventCount;
+            });
+
+            // Convert bucket counts to percentages
+            const desktopTotal = platformTotals.desktop.count;
+            const mobileTotal = platformTotals.mobile.count;
+
+            const survivalDist = {
+              labels: buckets.map(b => b.label),
+              desktop: buckets.map(b => desktopTotal > 0 ? (b.desktop / desktopTotal * 100).toFixed(1) : '0.0'),
+              mobile: buckets.map(b => mobileTotal > 0 ? (b.mobile / mobileTotal * 100).toFixed(1) : '0.0')
+            };
+
+            // Calculate average survival time (formatted as MM:SS)
+            const desktopAvg = desktopTotal > 0
+              ? platformTotals.desktop.totalDuration / desktopTotal
+              : 0;
+            const mobileAvg = mobileTotal > 0
+              ? platformTotals.mobile.totalDuration / mobileTotal
+              : 0;
+
+            const formatMMSS = (seconds) => {
+              const mins = Math.floor(seconds / 60);
+              const secs = Math.floor(seconds % 60);
+              return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const avgSurvival = {
+              desktop: formatMMSS(desktopAvg),
+              mobile: formatMMSS(mobileAvg)
+            };
+
+            return {
+              survivalDist: survivalDist,
+              avgSurvival: avgSurvival
+            };
+
+          } catch (error) {
+            console.error('Error parsing survival-time response:', error);
+            return {
+              error: error.message,
+              survivalDist: { labels: [], desktop: [], mobile: [] },
+              avgSurvival: { desktop: '0:00', mobile: '0:00' }
+            };
           }
         }
 
@@ -2921,6 +3017,50 @@
       }
 
       /**
+       * Fetch survival time distribution data from GA4 API
+       * Multi-dimensional query: deviceCategory × session_duration_seconds × eventName
+       * Returns survival time buckets and average survival time by platform
+       */
+      async function fetchSurvivalTimeData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        // DEFAULT: 90day-43 (changed from 7day-43 on June 9, 2026)
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+
+        // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
+
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=survival-time&version=${version}&dateRange=${dateRange}`;
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
+          const response = await fetch(url, {
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          return { success: true, data };
+
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            console.error(`Survival-time request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error(`Failed to fetch survival-time data:`, error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
+      /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
        * @returns {Promise<boolean>} Success status
@@ -3061,6 +3201,31 @@
           }
         } else {
           console.warn('Boss-analysis fetch failed, using mock data:', bossResult.error);
+        }
+
+        // Fetch survival time distribution (session duration by platform)
+        console.log('Fetching survival-time data...');
+        const survivalResult = await fetchSurvivalTimeData();
+
+        if (survivalResult.success && survivalResult.data) {
+          const survivalData = mapGA4ResponseToDATA(survivalResult.data, 'survival-time');
+
+          if (!survivalData.error && survivalData.survivalDist) {
+            // Update survival distribution chart data
+            DATA.survivalDist = survivalData.survivalDist;
+            console.log('Survival distribution updated:', DATA.survivalDist);
+
+            // Update average survival time for platform comparison
+            if (survivalData.avgSurvival) {
+              DATA.platform.desktop.survival = survivalData.avgSurvival.desktop;
+              DATA.platform.mobile.survival = survivalData.avgSurvival.mobile;
+              console.log('Avg survival times updated:', survivalData.avgSurvival);
+            }
+          } else {
+            console.warn('Survival-time parsing failed, using mock data');
+          }
+        } else {
+          console.warn('Survival-time fetch failed, using mock data:', survivalResult.error);
         }
 
         // Re-render all charts
@@ -3771,10 +3936,10 @@
         new Chart(document.getElementById('chart-survival-dist'), {
           type: 'bar',
           data: {
-            labels: ['0-30s', '30-60s', '60-120s', '120-180s', '180-240s', '240+s'],
+            labels: DATA.survivalDist?.labels || ['0-0.5m', '0.5-1m', '1-2m', '2-3m', '3-4m', '4-6m', '6-8m', '8+m'],
             datasets: [
-              { label: 'Desktop', data: [8, 15, 28, 24, 16, 9], backgroundColor: CYAN + '55', borderColor: CYAN, borderWidth: 1 },
-              { label: 'Mobile', data: [14, 22, 31, 19, 10, 4], backgroundColor: MAG + '55', borderColor: MAG, borderWidth: 1 },
+              { label: 'Desktop', data: DATA.survivalDist?.desktop || [8, 15, 28, 24, 16, 9], backgroundColor: CYAN + '55', borderColor: CYAN, borderWidth: 1 }, // Live data with fallback
+              { label: 'Mobile', data: DATA.survivalDist?.mobile || [14, 22, 31, 19, 10, 4], backgroundColor: MAG + '55', borderColor: MAG, borderWidth: 1 }, // Live data with fallback
             ]
           },
           options: {

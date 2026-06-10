@@ -101,6 +101,27 @@ exports.handler = async (event) => {
             }
 
             [response] = await analyticsDataClient.runReport(bossAnalysisRequest);
+        } else if (requestType === 'standard' && subType === 'survival-time') {
+            // ─── SURVIVAL TIME REQUEST (Session duration distribution by platform) ───
+            const survivalTimeRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange], // Dynamic date range from query parameter
+                // Multi-dimensional query: deviceCategory × session_duration_seconds × eventName
+                // Returns session duration distribution split by desktop vs mobile
+                dimensions: [
+                    { name: 'deviceCategory' },                    // Dimension 0: 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:session_duration_seconds' }, // Dimension 1: duration in seconds (e.g., "45", "120", "180")
+                    { name: 'eventName' }                          // Dimension 2: 'player_won', 'player_death', etc.
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+
+            // Apply version filter if specified
+            if (dimensionFilter) {
+                survivalTimeRequest.dimensionFilter = dimensionFilter;
+            }
+
+            [response] = await analyticsDataClient.runReport(survivalTimeRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {

@@ -14,6 +14,95 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ---
 
+### Added: June 9, 2026 (Phase 6B/6C/6D: Continue Live Data Migration)
+
+**Goal:** Continue getting dashboard to 100% live data using GA4 custom dimensions
+
+**Priority Order (User-Specified):**
+1. Phase 6B Task 1: Survival Time Fix (2-3 hours) ⚡ NEXT
+2. Phase 6B Task 2: Powerup Analysis Endpoint (4-6 hours)
+3. Phase 6C Task 3: Phase/Level Progression Endpoint (4-6 hours)
+4. Phase 6D Task 4: AI Agent Deep Dive Endpoint (6-8 hours)
+
+- [x] **Phase 6B Task 1: Survival Time Endpoint** ✅ COMPLETE
+  - **Estimate:** 2-3 hours
+  - **Time Invested:** ~2.5 hours (June 9, 2026)
+  - **Completed:** June 9, 2026
+  - **Impact:** HIGH - Fixed chart, added live survival metrics
+  - **Complexity:** MEDIUM
+  - **What:** Added session_duration_seconds dimension query with 8-bucket distribution
+  - **Made Live:**
+    - Survival Time Distribution chart (8 buckets: 0-0.5m, 0.5-1m, 1-2m, 2-3m, 3-4m, 4-6m, 6-8m, 8+m) ✅
+    - Avg Survival Time by platform (Desktop: 3:34, Mobile: 6:35) ✅
+    - Platform comparison table survival times ✅
+  - **Custom Dimension:** `customEvent:session_duration_seconds`
+  - **Query Structure:** deviceCategory × session_duration_seconds × eventName
+  - **Files Modified:**
+    - `api/index.js` - Survival-time handler (lines 104-124, +21 lines)
+    - `live.html` - Parser, fetch, integration, chart (lines 2633-2719, 2348-2355, 3016-3061, 3204-3229, +188 lines)
+  - **Result:** Chart shows live GA4 data with 8-bucket granular distribution
+  - **Key Finding:** Mobile players survive 2x longer than desktop (6:35 vs 3:34 avg)
+  - **Endpoint:** `?type=standard&subType=survival-time&version=4.3&dateRange=90day`
+  - **Testing:** All tests pass ✅ (endpoint, chart, table, selector integration)
+  - **Dashboard Progress:** +3 metrics live (47% total, up from 40%)
+
+- [ ] **Phase 6B Task 2: Powerup Analysis Endpoint**
+  - **Estimate:** 4-6 hours
+  - **Impact:** MEDIUM - Makes powerup metrics live
+  - **Complexity:** MEDIUM
+  - **What:** Add powerup_type dimension query
+  - **Makes Live:**
+    - Powerup Collection chart (currently mock)
+    - Powerup effectiveness by type
+    - Powerup usage by platform
+  - **Custom Dimension:** `customEvent:powerup_type`
+  - **Query Structure:** powerup_type × eventName × deviceCategory
+  - **Files to Modify:**
+    - `api/index.js` - Add powerup-analysis request handler (~25 lines)
+    - `live.html` - Parser, fetch function, integration, chart updates (~200 lines)
+  - **Expected Result:** Powerup chart shows live GA4 data
+  - **Dependencies:** Phase 6B Task 1 complete (recommended)
+
+- [ ] **Phase 6C Task 3: Phase/Level Progression Endpoint**
+  - **Estimate:** 4-6 hours
+  - **Impact:** MEDIUM - Makes progression metrics live
+  - **Complexity:** MEDIUM-HIGH
+  - **What:** Add phase and level_reached dimension queries
+  - **Makes Live:**
+    - Wave drop-off analysis
+    - Phase funnel (Green → Red → Purple progression)
+    - Level completion rates
+  - **Custom Dimensions:** `customEvent:phase`, `customEvent:level_reached`
+  - **Query Structure:** phase × level_reached × eventName
+  - **Files to Modify:**
+    - `api/index.js` - Add progression-analysis request handler (~30 lines)
+    - `live.html` - Parser, fetch function, integration, chart updates (~250 lines)
+  - **Expected Result:** Progression metrics based on live data
+  - **Dependencies:** Phase 6B Tasks 1-2 complete (recommended)
+
+- [ ] **Phase 6D Task 4: AI Agent Deep Dive Endpoint**
+  - **Estimate:** 6-8 hours
+  - **Impact:** HIGH - Makes all AI Agent metrics live (currently 0/empty)
+  - **Complexity:** HIGH
+  - **What:** Add tier, old_tier, new_tier, direction dimension queries
+  - **Makes Live:**
+    - AI Tier Distribution chart (currently empty)
+    - Tier flow diagram (tier transitions)
+    - AI adjustment triggers by direction
+    - Difficulty multiplier impact
+  - **Custom Dimensions:** `customEvent:tier`, `customEvent:old_tier`, `customEvent:new_tier`, `customEvent:direction`
+  - **Query Structure:** tier × old_tier × new_tier × direction × eventName
+  - **Files to Modify:**
+    - `api/index.js` - Add ai-analysis request handler (~40 lines)
+    - `live.html` - Parser, fetch function, integration, multiple chart updates (~300 lines)
+  - **Expected Result:** AI Agent tab shows 100% live data (currently all empty)
+  - **Dependencies:** Phase 6C Task 3 complete (recommended)
+
+**Phase 6 Total Estimate:** 16-23 hours additional (Phase 6A: 16 hours complete ✅)
+**Phase 6 End Goal:** Dashboard 90-100% live data (currently ~40% live)
+
+---
+
 ### Added: June 8, 2026 (Dashboard Audit - Immediate Actions)
 
 - [x] ~~**Add Live/Mock Data Labels**~~ ❌ SKIPPED
@@ -38,16 +127,21 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Dependencies:** None
   - **Blocker:** None
 
-- [ ] **Investigate ISSUE-002: Missing Outcome Events**
-  - **Estimate:** 2-3 hours
+- [ ] **Investigate ISSUE-002: Missing Outcome Events** ⚠️ LIKELY RESOLVED
+  - **Estimate:** 30 minutes (reduced from 2-3 hours)
   - **Issue:** 52.6% of games have no outcome (neither win nor death)
-  - **Investigation Steps:**
-    1. GA4 DebugView: Play game and observe event firing
-    2. Review game code: Find where outcome events triggered
-    3. Check network logs: Verify events sent before page unload
-    4. Determine root cause: Abandonment vs bug
-  - **Code Changes:** TBD based on findings
-  - **Dependencies:** Requires playing game with DebugView open
+  - **Root Cause (User Explanation - June 9, 2026):**
+    - Incomplete games from AWS security vulnerability fixes testing
+    - Dev environment setup for Xenon_3 (game repo) caused test sessions
+    - Version 4.3 data includes these incomplete test sessions
+  - **Resolution:** Likely not a bug, just test data pollution
+  - **Validation Steps:**
+    1. Check recent GA4 data (last 7 days) for completeness rate
+    2. Filter out test sessions if needed (by session_id or timestamp)
+    3. Document findings in Issues_And_Bugs.md
+  - **Code Changes:** None needed (data quality issue, not code bug)
+  - **Dependencies:** None
+  - **Priority:** LOW (explanation provided, not urgent)
 
 - [ ] **Add Data Completeness Warning to Dashboard**
   - **Estimate:** 10 minutes

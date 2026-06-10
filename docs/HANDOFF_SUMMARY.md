@@ -8,6 +8,203 @@
 
 ---
 
+## June 9, 2026 (Continued) - Phase 6B Task 1: Survival Time Endpoint
+
+**Session Duration:** ~2.5 hours
+**Status:** Complete ✅
+
+### Priorities Addressed:
+- [x] Add survival-time handler to Lambda backend
+- [x] Add survival-time parser to frontend
+- [x] Create fetchSurvivalTimeData() function
+- [x] Integrate survival-time data into dashboard
+- [x] Update Survival Time Distribution chart to use live data
+- [x] Update platform table with live avg survival times
+- [x] Deploy Lambda to AWS
+- [x] Test endpoint and dashboard
+- [x] Refine bucket structure (6 → 7 → 8 buckets for better granularity)
+
+### Actions Taken:
+
+**Backend Changes (api/index.js):** ✅ COMPLETE
+- **Line 104-124:** Added survival-time request handler (+21 lines)
+- Multi-dimensional query: deviceCategory × session_duration_seconds × eventName
+- Returns session duration distribution split by desktop vs mobile
+- Version filtering enabled
+- Events: `player_won`, `player_death`
+
+**Frontend Changes (live.html):** ✅ COMPLETE
+- **Line 2633-2719:** Survival-time parser in mapGA4ResponseToDATA() (+87 lines)
+  - Parses deviceCategory × session_duration_seconds × eventName response
+  - Builds 8-bucket distribution (0-0.5m, 0.5-1m, 1-2m, 2-3m, 3-4m, 4-6m, 6-8m, 8+m)
+  - Calculates average survival time per platform (MM:SS format)
+  - Converts counts to percentages for chart display
+
+- **Line 2348-2355:** DATA.survivalDist initialization (+8 lines)
+  - 8 bucket labels in minutes (user-friendly)
+  - Mock data arrays for desktop/mobile (replaced by live)
+
+- **Line 3016-3061:** fetchSurvivalTimeData() function (+46 lines)
+  - Fetches with version + dateRange parameters
+  - Timeout handling (15 seconds)
+  - Error handling with fallback to mock data
+
+- **Line 3204-3229:** Integration in loadAndRenderGA4Data() (+26 lines)
+  - Fetches after boss analysis data
+  - Updates DATA.survivalDist for chart
+  - Updates DATA.platform.desktop.survival and mobile.survival for table
+  - Console logs confirm data updates
+
+- **Line 3955:** Chart labels updated to use live DATA.survivalDist.labels
+
+**Deployments:** ✅ COMPLETE
+- Lambda deployed successfully (green banner confirmed)
+- Endpoint tested: 354 rows returned for 90-day query
+- Response time: <1 second
+
+**Testing Results:** ✅ ALL PASS
+- Endpoint returns correct structure (deviceCategory + session_duration_seconds + eventName)
+- Survival distribution data present for desktop/mobile
+- Chart displays 8 buckets with live percentages
+- Platform table shows live avg survival times (Desktop: 3:34, Mobile: 6:35)
+- No console errors
+- Version/date selector integration working
+
+### API Changes:
+
+**New Endpoint:** `GET /analytics?type=standard&subType=survival-time&version=4.3&dateRange=90day`
+
+**Response Structure:**
+```json
+{
+  "dimensionHeaders": [
+    {"name": "deviceCategory"},
+    {"name": "customEvent:session_duration_seconds"},
+    {"name": "eventName"}
+  ],
+  "rows": [
+    {
+      "dimensionValues": [
+        {"value": "desktop"},
+        {"value": "73"},
+        {"value": "player_won"}
+      ],
+      "metricValues": [{"value": "1"}]
+    }
+    // ... 354 rows total
+  ]
+}
+```
+
+### Survival Time Distribution (Live Data):
+
+**Desktop Distribution:**
+- 0-0.5m: 0%
+- 0.5-1m: 15.8%
+- 1-2m: 47.4% ⭐ Peak
+- 2-3m: 5.3%
+- 3-4m: 0%
+- 4-6m: 5.3%
+- 6-8m: 26.3%
+- 8+m: 0%
+- **Avg:** 3:34
+
+**Mobile Distribution:**
+- 0-0.5m: 0%
+- 0.5-1m: 2.6%
+- 1-2m: 7.9%
+- 2-3m: 2.6%
+- 3-4m: 0%
+- 4-6m: 13.2%
+- 6-8m: 39.5% ⭐ Peak
+- 8+m: 31.6%
+- **Avg:** 6:35
+
+### Key Findings:
+
+**Survival Time Chart:** 100% live ✅
+- 8-bucket distribution showing granular survival patterns
+- Desktop players: Peak at 1-2 minutes (47.4%)
+- Mobile players: Split between 6-8 minutes (39.5%) and 8+ minutes (31.6%)
+- **Insight:** Mobile players survive ~2x longer than desktop players on average
+
+**Platform Table:** Avg survival times 100% live ✅
+- Desktop: 3:34 (live from GA4)
+- Mobile: 6:35 (live from GA4)
+- Format: MM:SS (user-friendly)
+
+**Dashboard Progress:**
+- Phase 6A: ~40% live (18-20 of 44 metrics) ✅
+- **Phase 6B Task 1: +3 metrics live** (survival distribution + 2 avg survival times)
+- **New Total: ~47% live (21-23 of 44 metrics)**
+
+### Bucket Evolution:
+
+**Initial:** 6 buckets (0-30s, 30-60s, 60-120s, 120-180s, 180-240s, 240+s)
+- User feedback: "Measurements should be in minutes"
+
+**Iteration 1:** 6 buckets in minutes (0-0.5m, 0.5-1m, 1-2m, 2-3m, 3-4m, 4+m)
+- User feedback: "Include 6+m for more granularity"
+
+**Iteration 2:** 7 buckets (added 6+m split from 4+m)
+- User feedback: "Need 8+m for even more detail"
+
+**Final:** 8 buckets (0-0.5m, 0.5-1m, 1-2m, 2-3m, 3-4m, 4-6m, 6-8m, 8+m) ✅
+- User-friendly minute labels
+- Granular breakdown for long survival times
+- Clear separation of skilled player behavior (6-8m vs 8+m)
+
+### Blockers:
+None
+
+### Files Modified:
+- `api/index.js` - Survival-time handler (+21 lines)
+- `live.html` - Parser, fetch, integration, chart updates (+167 lines)
+
+### Next Steps:
+- Phase 6B Task 2: Powerup Analysis Endpoint (4-6 hours)
+- Or commit and document current progress
+
+---
+
+## June 9, 2026 (Continued) - Phase 6B/6C/6D Planning
+
+**Session Duration:** 5 minutes
+**Status:** Planning Complete ✅
+
+### Priorities Addressed:
+- [x] Document Phase 6B/6C/6D roadmap (user-specified priority order)
+- [x] Update ISSUE-002 with root cause explanation
+- [x] Prepare for Phase 6B Task 1: Survival Time Endpoint
+
+### Actions Taken:
+
+**Phase 6 Continuation Plan:** ✅ DOCUMENTED
+- User specified priority order for remaining live data work:
+  1. Phase 6B Task 1: Survival Time Fix (2-3 hours) ⚡ NEXT
+  2. Phase 6B Task 2: Powerup Analysis (4-6 hours)
+  3. Phase 6C Task 3: Phase/Level Progression (4-6 hours)
+  4. Phase 6D Task 4: AI Agent Deep Dive (6-8 hours)
+
+**ISSUE-002 Root Cause Identified:** ✅ EXPLAINED
+- **Finding:** 52.6% incomplete games NOT a bug
+- **Cause:** AWS security fixes testing + Xenon_3 dev environment setup
+- **Result:** Version 4.3 data includes incomplete test sessions
+- **Action:** Downgraded from 2-3 hours investigation to 30 min validation
+- **Priority:** Reduced to LOW (explanation sufficient)
+
+**Updated Documentation:**
+- `docs/PRIORITIES.md` - Added Phase 6B/6C/6D tasks at top of pending section
+- `docs/PRIORITIES.md` - Updated ISSUE-002 with root cause explanation
+
+### Next Steps:
+- Phase 6B Task 1: Survival Time Endpoint (2-3 hours)
+- Custom dimension: `customEvent:session_duration_seconds`
+- Fix broken Survival Time Distribution chart
+- Add live survival metrics by platform
+
+---
+
 ## June 9, 2026 (Continued) - Phase 6A Task 7: Boss Analysis Endpoint
 
 **Session Duration:** ~4 hours
