@@ -2,7 +2,7 @@
 
 **Purpose:** Centralized tracking for bugs, data accuracy issues, and technical problems across the NON-X Analytics platform.
 
-**Last Updated:** June 9, 2026, 8:42 PM
+**Last Updated:** June 10, 2026, 2:30 AM
 
 ---
 
@@ -13,7 +13,7 @@
 | 🔴 CRITICAL (Blocking) | 1 |
 | 🟡 MEDIUM (Should Fix) | 1 |
 | 🟢 LOW (Nice to Have) | 0 |
-| ✅ RESOLVED | 5 |
+| ✅ RESOLVED | 6 |
 
 ---
 
@@ -374,6 +374,51 @@ const playerDeath = eventCounts['player_death'] || 0;
 ---
 
 ## 🟡 MEDIUM PRIORITY ISSUES
+
+### ISSUE-008: AI Tier Flow Chart Shows Zero — Wrong Direction String in Parser
+
+**Status:** ✅ RESOLVED - June 10, 2026
+**Severity:** MEDIUM (Tier Distribution chart correct, Flow chart broken)
+**Found:** June 10, 2026 (Endpoint test during Phase 6D Task 4)
+**Affected Component:** AI Agent tab — Tier Progression/Flow chart
+**Location:** `live.html:2877-2878`
+
+#### Description
+The `chartAITierFlow()` chart shows 0 for both increases and decreases, even though 28 AI adjustments were returned by the endpoint (25 increases, 3 decreases).
+
+#### Root Cause
+The parser assumes GA4 sends `"up"` and `"down"` for the `customEvent:direction` dimension, but the actual values sent by the game are `"increase"` and `"decrease"`. The filter never matches, so both counters stay at 0.
+
+#### Incorrect Code (live.html:2877-2878)
+```javascript
+if (direction === 'up')   increases += count;  // never matches
+if (direction === 'down') decreases += count;  // never matches
+```
+
+#### Fix
+```javascript
+if (direction === 'increase') increases += count;
+if (direction === 'decrease') decreases += count;
+```
+
+#### Verified From Endpoint Response
+GA4 90-day response confirms direction values are `"increase"` and `"decrease"`:
+- `{"value":"0"},{"value":"1"},{"value":"increase"}` — 8 events (mobile), 5 events (desktop), 1 event (tablet)
+- `{"value":"1"},{"value":"2"},{"value":"increase"}` — 4 events (desktop), 4 events (mobile)
+- `{"value":"2"},{"value":"3"},{"value":"increase"}` — 2 events (mobile), 1 event (desktop)
+- `{"value":"1"},{"value":"0"},{"value":"decrease"}` — 1 event (desktop), 1 event (mobile)
+- `{"value":"2"},{"value":"1"},{"value":"decrease"}` — 1 event (desktop)
+- `{"value":"2"},{"value":"3"},{"value":"increase"}` — 1 event (desktop)
+
+**Expected after fix:** increases=25, decreases=3
+
+#### Impact
+- `DATA.aiAgent.tierDist.counts` — **unaffected** (maps by new_tier, not direction) ✅
+- `DATA.aiAgent.tierFlow.increases` — **broken**, shows 0 instead of 25 ❌
+- `DATA.aiAgent.tierFlow.decreases` — **broken**, shows 0 instead of 3 ❌
+- `DATA.aiAgent.kpis.avgAdjustments` — **unaffected** (uses totalAdjustments, not direction) ✅
+
+---
 
 ### ISSUE-003: Leaderboard Rate Could Exceed 100% in Edge Cases
 

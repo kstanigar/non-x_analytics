@@ -8,6 +8,59 @@
 
 ---
 
+## June 10, 2026 - Phase 6D Task 4: AI Agent Deep Dive Endpoint
+
+**Session Duration:** ~2 hours
+**Status:** Complete ✅
+
+### Priorities Addressed:
+- [x] Launch Explore agent to find exact AI Agent line numbers in live.html
+- [x] Launch Haiku agent to research GA4 API limits and 2026 best practices
+- [x] Create implementation plan (`docs/Phase6D_Task4_AI_Agent_Plan.md`)
+- [x] Add ai-analysis handler to `api/index.js`
+- [x] Deploy Lambda to AWS
+- [x] Add ai-analysis parser to `mapGA4ResponseToDATA()` in live.html
+- [x] Add `fetchAIAnalysisData()` function to live.html
+- [x] Integrate into `loadAndRenderGA4Data()` sequential fetch chain
+- [x] Test endpoint (28 adjustments returned over 90 days)
+- [x] Fix ISSUE-008: direction strings 'up'/'down' → 'increase'/'decrease'
+- [x] Verify Tier Distribution chart and Tier Flow chart live ✅
+
+### Research Findings (Haiku Agent):
+- GA4 API: 8 dimension max per query — 5 dims used (within limit) ✓
+- AbortSignal.timeout(): Still correct 2026 pattern ✓
+- Chart.js Sankey: No native support — existing bar chart approach is correct ✓
+- Query pattern: old_tier × new_tier × direction × eventName × deviceCategory in one call ✓
+
+### Code Changes:
+
+| File | Change | Lines |
+|---|---|---|
+| `api/index.js` | ai-analysis handler | 169–191 (+24 lines) |
+| `live.html` | Parser in mapGA4ResponseToDATA() | 2854–2896 (+42 lines) |
+| `live.html` | fetchAIAnalysisData() function | 3290–3325 (+33 lines) |
+| `live.html` | Integration in loadAndRenderGA4Data() | 3532–3554 (+25 lines) |
+
+### Bug Found and Fixed (ISSUE-008):
+- **Bug:** Parser checked `direction === 'up'` / `'down'` but GA4 sends `'increase'` / `'decrease'`
+- **Impact:** Tier Flow chart showed 0/0 instead of 25 increases / 3 decreases
+- **Fix:** `live.html:2877-2878` — updated string comparison to match actual GA4 values
+- **Discovered:** Endpoint test revealed correct values in raw JSON response
+
+### Live Data After Phase 6D:
+- AI Tier Distribution chart ✅ (counts by new_tier across 7 tiers)
+- Tier Progression/Flow chart ✅ (25 increases, 3 decreases)
+- avgAdjustments KPI ✅ (28 total over 90 days)
+- Endpoint: `?type=standard&subType=ai-analysis&version=4.3&dateRange=90day`
+
+### Key Finding:
+AI mostly increases difficulty (25 increases vs 3 decreases) — players are trending harder over time.
+
+### Phase 6 Status:
+All Phase 6 tasks complete ✅ — dashboard now ~60% live data.
+
+---
+
 ## June 10, 2026 - AbortSignal.timeout() Cleanup (All 6 Fetch Functions)
 
 **Session Duration:** ~20 min

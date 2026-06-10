@@ -166,6 +166,29 @@ exports.handler = async (event) => {
             }
 
             [response] = await analyticsDataClient.runReport(progressionAnalysisRequest);
+        } else if (requestType === 'standard' && subType === 'ai-analysis') {
+            // ─── AI ANALYSIS REQUEST (Tier distribution and flow by direction) ───
+            const aiAnalysisRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange], // Dynamic date range from query parameter
+                // Multi-dimensional query: old_tier × new_tier × direction × eventName × deviceCategory
+                // Returns AI adjustment counts split by tier transition and direction (up/down)
+                dimensions: [
+                    { name: 'customEvent:old_tier' },   // Dimension 0: tier before adjustment ('-3' to '3')
+                    { name: 'customEvent:new_tier' },   // Dimension 1: tier after adjustment ('-3' to '3')
+                    { name: 'customEvent:direction' },  // Dimension 2: 'up' or 'down'
+                    { name: 'eventName' },              // Dimension 3: 'ai_difficulty_adjusted'
+                    { name: 'deviceCategory' }          // Dimension 4: 'desktop', 'mobile', 'tablet'
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+
+            // Apply version filter if specified
+            if (dimensionFilter) {
+                aiAnalysisRequest.dimensionFilter = dimensionFilter;
+            }
+
+            [response] = await analyticsDataClient.runReport(aiAnalysisRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {

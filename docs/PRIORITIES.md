@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 8, 2026
+**Last Updated:** June 10, 2026
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced. Use hook to auto-move completed tasks from Pending to Completed section.
 
@@ -113,23 +113,31 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Changes:** Removed AbortController + setTimeout + clearTimeout boilerplate; replaced with AbortSignal.timeout(); changed AbortError → TimeoutError in all catch blocks
   - **Result:** All 7 fetch functions (including fetchProgressionAnalysisData) now use consistent Baseline 2024 pattern
 
-- [ ] **Phase 6D Task 4: AI Agent Deep Dive Endpoint**
+- [x] **Phase 6D Task 4: AI Agent Deep Dive Endpoint** ✅ COMPLETE
   - **Estimate:** 6-8 hours
-  - **Impact:** HIGH - Makes all AI Agent metrics live (currently 0/empty)
+  - **Time Invested:** ~2 hours (June 10, 2026)
+  - **Completed:** June 10, 2026
+  - **Impact:** HIGH - AI Agent tab now shows live GA4 data
   - **Complexity:** HIGH
-  - **What:** Add tier, old_tier, new_tier, direction dimension queries
-  - **Makes Live:**
-    - AI Tier Distribution chart (currently empty)
-    - Tier flow diagram (tier transitions)
-    - AI adjustment triggers by direction
-    - Difficulty multiplier impact
-  - **Custom Dimensions:** `customEvent:tier`, `customEvent:old_tier`, `customEvent:new_tier`, `customEvent:direction`
-  - **Query Structure:** tier × old_tier × new_tier × direction × eventName
-  - **Files to Modify:**
-    - `api/index.js` - Add ai-analysis request handler (~40 lines)
-    - `live.html` - Parser, fetch function, integration, multiple chart updates (~300 lines)
-  - **Expected Result:** AI Agent tab shows 100% live data (currently all empty)
-  - **Dependencies:** Phase 6C Task 3 complete (recommended)
+  - **What:** Add old_tier × new_tier × direction × eventName × deviceCategory dimension query
+  - **Made Live:**
+    - AI Tier Distribution chart ✅ (counts by new_tier)
+    - Tier Progression/Flow chart ✅ (increases: 25, decreases: 3)
+    - avgAdjustments KPI ✅ (28 total adjustments)
+  - **Custom Dimensions:** `customEvent:old_tier`, `customEvent:new_tier`, `customEvent:direction`
+  - **Query Structure:** old_tier × new_tier × direction × eventName × deviceCategory
+  - **Files Modified:**
+    - `api/index.js` - ai-analysis handler (lines 169-191, +24 lines) ✅
+    - `live.html` - Parser, fetch function, integration (+130 lines) ✅
+      - Lines 2854-2896: ai-analysis parser in mapGA4ResponseToDATA()
+      - Lines 3290-3325: fetchAIAnalysisData() function
+      - Lines 3532-3554: Integration in loadAndRenderGA4Data()
+  - **Bug Fixed:** ISSUE-008 — direction strings were 'up'/'down' in parser but GA4 sends 'increase'/'decrease' (live.html:2877-2878)
+  - **Endpoint:** `?type=standard&subType=ai-analysis&version=4.3&dateRange=90day`
+  - **Testing:** ✅ Complete — 28 adjustments returned, Tier Distribution bars visible, Flow chart shows 25/3 split
+  - **Key Finding:** AI mostly increases difficulty (25 increases vs 3 decreases) — players trending harder over time
+  - **Dashboard Progress After:** ~60% live (up from ~55%)
+  - **Dependencies:** Phase 6C Task 3 complete ✅
 
 **Phase 6 Total Estimate:** 16-23 hours additional (Phase 6A: 16 hours complete ✅)
 **Phase 6 End Goal:** Dashboard 90-100% live data (currently ~40% live)
@@ -609,20 +617,22 @@ Tasks organized by completion date (newest first). Includes completion details a
 
 ## 📊 STATISTICS
 
-**Pending Tasks:** 10 (3 new Phase 6A tasks + 7 existing)
-**Completed Tasks:** 18
-**Completion Rate (June 2026):** 14 tasks completed
+**Pending Tasks:** 5 (lower priority tasks remain)
+**Completed Tasks:** 27
+**Completion Rate (June 2026):** 23 tasks completed
+
+**Phase 6 Progress:** ~60% live data (Phase 6 complete ✅)
 
 **Average Task Completion Time:**
-- Quick fixes (< 30 min): 6 tasks
-- Medium tasks (30-90 min): 3 tasks
-- Large tasks (1-4 hours): 2 tasks
+- Quick fixes (< 30 min): 7 tasks
+- Medium tasks (30-90 min): 5 tasks
+- Large tasks (1-4 hours): 7 tasks
 - Research tasks: 1 task (29 min)
 
 ---
 
 ## 🔄 SYNC NOTES
 
-**Last Sync with HANDOFF_SUMMARY.md:** June 8, 2026, 7:30 PM
+**Last Sync with HANDOFF_SUMMARY.md:** June 10, 2026 (Phase 6D complete)
 **Sync Status:** ✅ In sync
 **Pending Hook Execution:** None

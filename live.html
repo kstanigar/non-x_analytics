@@ -2851,6 +2851,51 @@
           };
         }
 
+        if (reportType === 'ai-analysis') {
+          // Parse old_tier × new_tier × direction × eventName × deviceCategory response
+          // Populates tier distribution counts and flow (up/down) for AI Agent charts
+          const tierDistCounts = {};   // keyed by new_tier string e.g. '-3', '0', '3'
+          let increases = 0;
+          let decreases = 0;
+          let totalAdjustments = 0;
+
+          if (response.rows && response.rows.length > 0) {
+            response.rows.forEach(row => {
+              const newTier   = row.dimensionValues[1]?.value || '';  // tier after adjustment
+              const direction = row.dimensionValues[2]?.value || '';  // 'up' or 'down'
+              const eventName = row.dimensionValues[3]?.value || '';
+              const count     = parseInt(row.metricValues[0]?.value || '0', 10);
+
+              if (eventName !== 'ai_difficulty_adjusted') return;
+
+              // Tier distribution: count adjustments landing on each tier
+              if (newTier) {
+                tierDistCounts[newTier] = (tierDistCounts[newTier] || 0) + count;
+              }
+
+              // Tier flow: direction breakdown
+              if (direction === 'increase') increases += count;
+              if (direction === 'decrease') decreases += count;
+
+              totalAdjustments += count;
+            });
+          }
+
+          // Map tier string keys to 7-position array matching tierDist.labels order (-3 to 3)
+          const tierLabels = ['-3', '-2', '-1', '0', '1', '2', '3'];
+          const tierDistArray = tierLabels.map(t => tierDistCounts[t] || 0);
+
+          return {
+            aiData: {
+              tierDistCounts: tierDistArray,
+              increases,
+              decreases,
+              totalAdjustments,
+              hasRealData: totalAdjustments > 0,
+            }
+          };
+        }
+
         // ─── EXTRACTION ───────────────────────────────────────────────
 
         const eventCounts = {};
@@ -3242,6 +3287,40 @@
         }
       }
 
+      async function fetchAIAnalysisData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' :
+                        versionShort === 'all' ? 'all' : '4.3';
+
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=ai-analysis&version=${version}&dateRange=${dateRange}`;
+
+        try {
+          // AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          return { success: true, data };
+
+        } catch (error) {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
+            console.error(`AI-analysis request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error(`Failed to fetch AI analysis data:`, error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -3447,6 +3526,29 @@
           }
         } else {
           console.warn('Progression-analysis fetch failed, using mock data:', progressionResult.error);
+        }
+
+        // Fetch AI analysis data (tier distribution and flow by direction)
+        console.log('Fetching AI-analysis data...');
+        const aiResult = await fetchAIAnalysisData();
+
+        if (aiResult.success && aiResult.data) {
+          const aiData = mapGA4ResponseToDATA(aiResult.data, 'ai-analysis');
+
+          if (!aiData.error && aiData.aiData?.hasRealData) {
+            // Populate tierDist counts — chartAITierDist() reads DATA.aiAgent.tierDist.counts
+            DATA.aiAgent.tierDist.counts = aiData.aiData.tierDistCounts;
+            // Populate tierFlow — chartAITierFlow() reads DATA.aiAgent.tierFlow
+            DATA.aiAgent.tierFlow.increases = aiData.aiData.increases;
+            DATA.aiAgent.tierFlow.decreases = aiData.aiData.decreases;
+            // Populate KPI — populateAIKPIs() reads DATA.aiAgent.kpis.avgAdjustments
+            DATA.aiAgent.kpis.avgAdjustments = aiData.aiData.totalAdjustments.toString();
+            console.log('AI analysis data updated:', aiData.aiData.totalAdjustments, 'adjustments');
+          } else {
+            console.warn('AI-analysis parsing failed or no data, charts remain empty');
+          }
+        } else {
+          console.warn('AI-analysis fetch failed:', aiResult.error);
         }
 
         // Re-render all charts
