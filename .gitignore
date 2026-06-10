@@ -14,3 +14,11 @@
 # Editor files
 .vscode/
 .idea/
+
+# Dependencies
+node_modules/
+api/node_modules/
+
+# Environment variables
+.env
+.env.local
