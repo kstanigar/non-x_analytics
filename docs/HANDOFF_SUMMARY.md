@@ -11,7 +11,7 @@
 ## June 10, 2026 - Phase 7 Medium Tier (MT-4: Replay Rate KPI)
 
 **Session Duration:** ~30 min
-**Status:** Complete ✅ — awaiting Lambda deploy
+**Status:** Complete ✅ — Lambda deployed, live data confirmed
 
 ### Changes:
 - [x] MT-4: Replay Rate KPI — new `subType=replay-rate` Lambda handler (`is_replay` × `eventName` × `deviceCategory`); parser counts `game_start` where `is_replay='true'` vs total; `DATA.kpis.replay` as `%`; colored sub-label shows `N replay starts / N total starts`; platform desktop/mobile split also wired
@@ -22,7 +22,9 @@
 - 3-dim query: `is_replay × eventName × deviceCategory` — gives platform split for free
 - Filter to `game_start` events only in parser
 - `DATA.platform.desktop.replay` + `DATA.platform.mobile.replay` also wired — platform comparison table updates live
-- Requires Lambda deploy before live data shows
+- Lambda deployed and verified ✅
+- Live data: 7% overall (8 replay / 112 total starts); desktop 4%, mobile 10%
+- Bonus finding: `scorecard_viewed` event confirmed firing (27 mobile, 9 desktop) — likely the leaderboard event under investigation. `leaderboard_submit` also present (13 mobile, 2 desktop)
 
 ### Files Modified:
 - `api/index.js` — replay-rate handler after new-user-pct block (~line 229)
