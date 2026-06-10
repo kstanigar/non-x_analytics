@@ -212,10 +212,38 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 - [ ] **API Security Issue - Phase 2 (Server-Side Proxy)**
   - **Estimate:** 1-2 hours
-  - **Priority:** MEDIUM (Production deployment requirement)
+  - **Priority:** MEDIUM (Production deployment requirement) ⭐ NEXT
   - **Action:** Create Lambda proxy to hide API key server-side
   - **Why:** Required for S3/CloudFront static site deployment
   - **Dependencies:** Phase 1 complete (API key removed)
+
+- [ ] **Investigate Unpopulated AI Agent Charts** ⭐ PRIORITY 2
+  - **Added:** June 10, 2026
+  - **Estimate:** 1-2 hours (investigation) + TBD (implementation)
+  - **Priority:** HIGH - Dashboard shows ~60% live; AI Agent tab has 5 empty charts
+  - **Context:** Phase 6D made 3 AI metrics live but 5 charts remain empty/zero:
+    - Score Multiplier Distribution (needs `customEvent:score_multiplier`?)
+    - Tier vs Final Score (needs score data)
+    - Death Triggers by Phase (needs phase data on `ai_difficulty_adjusted`?)
+    - AVG STARTING TIER / AVG FINAL TIER KPIs (needs session-level tier tracking)
+    - SPEED LOCK RATE KPI (unknown — needs investigation)
+    - Tier Performance Metrics table (was CSV-only — needs GA4 equivalent?)
+  - **Investigation Questions:**
+    1. Are these custom dimensions already being sent by the game but not registered in GA4?
+    2. Do we need to add new custom dimensions to the game's GA4 event calls?
+    3. Can any of these be derived from existing events (e.g., player_death + phase + tier)?
+    4. Is session-level stitching (first/last tier per session) feasible with GA4 Data API?
+  - **Steps:**
+    1. Check GA4 Admin → Custom Definitions for any unregistered dims
+    2. Review game source (Xenon_3 repo) to see what data is sent on `ai_difficulty_adjusted`
+    3. Check DebugView for full parameter list on AI events
+    4. Determine which charts are feasible vs require game-side changes
+    5. Document findings and create implementation plan
+  - **Possible Outcomes:**
+    - Dims already tracked → register in GA4 and add new endpoint
+    - Dims not tracked → add to game events (game-side change required)
+    - Session-level data → may require GA4 BigQuery export for complex queries
+  - **Dependencies:** Phase 6D complete ✅
   - **Tasks:**
     1. Create new Lambda proxy function (30 min)
     2. Deploy and test proxy Lambda (15 min)
@@ -617,11 +645,11 @@ Tasks organized by completion date (newest first). Includes completion details a
 
 ## 📊 STATISTICS
 
-**Pending Tasks:** 5 (lower priority tasks remain)
+**Pending Tasks:** 6 (API Security + AI chart investigation + 4 lower priority)
 **Completed Tasks:** 27
 **Completion Rate (June 2026):** 23 tasks completed
 
-**Phase 6 Progress:** ~60% live data (Phase 6 complete ✅)
+**Phase 6 Progress:** ~60% live data (Phase 6 endpoints complete ✅, AI chart investigation pending)
 
 **Average Task Completion Time:**
 - Quick fixes (< 30 min): 7 tasks
