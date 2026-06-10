@@ -122,6 +122,28 @@ exports.handler = async (event) => {
             }
 
             [response] = await analyticsDataClient.runReport(survivalTimeRequest);
+        } else if (requestType === 'standard' && subType === 'powerup-analysis') {
+            // ─── POWERUP ANALYSIS REQUEST (Powerup collection by phase and platform) ───
+            const powerupAnalysisRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange], // Dynamic date range from query parameter
+                // Multi-dimensional query: powerup_type × phase × eventName × deviceCategory
+                // Returns powerup collection counts split by phase (Green/Red/Purple) and platform (desktop/mobile)
+                dimensions: [
+                    { name: 'customEvent:powerup_type' },  // Dimension 0: 'health', 'double_laser', 'shield', 'quad_shot'
+                    { name: 'customEvent:phase' },         // Dimension 1: 'green', 'red', 'purple'
+                    { name: 'eventName' },                 // Dimension 2: 'powerup_collected'
+                    { name: 'deviceCategory' }             // Dimension 3: 'desktop', 'mobile', 'tablet'
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+
+            // Apply version filter if specified
+            if (dimensionFilter) {
+                powerupAnalysisRequest.dimensionFilter = dimensionFilter;
+            }
+
+            [response] = await analyticsDataClient.runReport(powerupAnalysisRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {

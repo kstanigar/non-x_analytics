@@ -2,7 +2,7 @@
 
 **Purpose:** Centralized tracking for bugs, data accuracy issues, and technical problems across the NON-X Analytics platform.
 
-**Last Updated:** June 8, 2026, 4:30 PM
+**Last Updated:** June 9, 2026, 8:42 PM
 
 ---
 
@@ -13,7 +13,7 @@
 | 🔴 CRITICAL (Blocking) | 1 |
 | 🟡 MEDIUM (Should Fix) | 1 |
 | 🟢 LOW (Nice to Have) | 0 |
-| ✅ RESOLVED | 3 |
+| ✅ RESOLVED | 5 |
 
 ---
 
@@ -441,7 +441,252 @@ _(No items currently)_
 
 ## ✅ RESOLVED ISSUES
 
-_(No items currently - issues will be moved here after resolution with fix details)_
+### ISSUE-007: Inconsistent Fetch Pattern in fetchPowerupAnalysisData()
+
+**Status:** ✅ RESOLVED - June 9, 2026
+**Severity:** CRITICAL (Blocking Phase 6B Task 2)
+**Found:** June 9, 2026 (Dashboard Testing after ISSUE-006 fix)
+**Resolved:** June 9, 2026 (Same session)
+**Affected Component:** Powerup Analysis Data Fetching
+**Location:** `live.html:3147-3181` (fetchPowerupAnalysisData function), `live.html:3357-3366` (integration)
+
+#### Description
+The `fetchPowerupAnalysisData()` function didn't follow the established pattern used by other fetch functions (`fetchSurvivalTimeData`, `fetchBossAnalysisData`, `fetchDailyTimeseriesData`). It was calling `mapGA4ResponseToDATA()` internally and updating `DATA.powerups` directly, instead of returning a wrapped `{ success, data, error }` response.
+
+#### Error Message
+```
+❌ Error fetching powerup analysis data: gaResponse is not defined
+ReferenceError: gaResponse is not defined
+    at fetchPowerupAnalysisData (live.html:3195)
+    at loadAndRenderGA4Data (live.html:3372)
+```
+
+#### Root Cause
+**Inconsistent Pattern:**
+
+The function was trying to parse inside the fetch function:
+```javascript
+// WRONG: Parsing inside fetch function
+const rawData = await response.json();
+const parsedData = mapGA4ResponseToDATA(rawData, 'powerup-analysis');
+if (parsedData?.powerupCollection) {
+  DATA.powerups = parsedData.powerupCollection;
+}
+```
+
+But `mapGA4ResponseToDATA()` expects parameter named `response`, and the function signature is:
+```javascript
+function mapGA4ResponseToDATA(response, reportType = 'standard')
+```
+
+The parser code references `gaResponse` internally, but the parameter is actually named `response`.
+
+**Correct Pattern (used by other fetch functions):**
+```javascript
+// In fetch function - return wrapped response
+return { success: true, data: rawData };
+
+// In loadAndRenderGA4Data - unwrap and parse
+const result = await fetchFunction();
+if (result.success && result.data) {
+  const parsedData = mapGA4ResponseToDATA(result.data, 'report-type');
+  DATA.something = parsedData.something;
+}
+```
+
+#### Solution Applied
+
+**1. Refactored fetchPowerupAnalysisData() to match pattern (lines 3147-3185):**
+```javascript
+async function fetchPowerupAnalysisData() {
+  // ... setup code ...
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };  // ✅ Return wrapped response
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error(`Powerup-analysis request timeout after ${API_CONFIG.timeout}ms`);
+      return { success: false, error: 'Request timeout', data: null };
+    }
+    console.error(`Failed to fetch powerup-analysis data:`, error);
+    return { success: false, error: error.message, data: null };
+  }
+}
+```
+
+**2. Updated integration in loadAndRenderGA4Data() (lines 3357-3373):**
+```javascript
+// Fetch powerup analysis data (powerup collection by phase and platform)
+console.log('Fetching powerup-analysis data...');
+const powerupResult = await fetchPowerupAnalysisData();
+
+if (powerupResult.success && powerupResult.data) {
+  const powerupData = mapGA4ResponseToDATA(powerupResult.data, 'powerup-analysis');
+
+  if (!powerupData.error && powerupData.powerupCollection) {
+    // Update powerup collection chart data
+    DATA.powerups = powerupData.powerupCollection;
+    console.log('Powerup collection updated:', DATA.powerups);
+  } else {
+    console.warn('Powerup-analysis parsing failed, using mock data');
+  }
+} else {
+  console.warn('Powerup-analysis fetch failed, using mock data:', powerupResult.error);
+}
+```
+
+**3. Fixed variable name typo in parser (lines 2753-2754):**
+
+After refactoring, a third error appeared:
+```
+Uncaught (in promise) ReferenceError: gaResponse is not defined
+    at mapGA4ResponseToDATA (live.html:2753:11)
+```
+
+**Mistake:** In the powerup parser code, I used `gaResponse` instead of `response`:
+```javascript
+// WRONG (line 2753)
+if (gaResponse.rows && gaResponse.rows.length > 0) {
+  gaResponse.rows.forEach(row => {
+```
+
+**Fixed:**
+```javascript
+// CORRECT
+if (response.rows && response.rows.length > 0) {
+  response.rows.forEach(row => {
+```
+
+**Root Cause of Mistake:** Failed to verify the function signature parameter name (`response`) before writing parser code. Used assumed variable name (`gaResponse`) without checking.
+
+#### Pattern Consistency Verification
+
+All fetch functions now follow the same pattern:
+
+| Function | Returns | Parsing Location | DATA Update Location |
+|----------|---------|------------------|---------------------|
+| fetchSurvivalTimeData | `{ success, data, error }` | loadAndRenderGA4Data | loadAndRenderGA4Data |
+| fetchBossAnalysisData | `{ success, data, error }` | loadAndRenderGA4Data | loadAndRenderGA4Data |
+| fetchDailyTimeseriesData | `{ success, data, error }` | loadAndRenderGA4Data | loadAndRenderGA4Data |
+| fetchPowerupAnalysisData | `{ success, data, error }` ✅ | loadAndRenderGA4Data ✅ | loadAndRenderGA4Data ✅ |
+
+#### Lessons Learned (Agent Self-Critique)
+
+**Mistakes Made:**
+1. ❌ Used wrong config object name (`CONFIG` instead of `API_CONFIG`) - didn't research first
+2. ❌ Didn't follow established fetch pattern - tried to be "creative" with implementation
+3. ❌ Used wrong variable name in parser (`gaResponse` instead of `response`) - didn't check function signature
+4. ❌ Didn't test code immediately after writing - all 3 errors discovered in browser testing
+
+**Should Have Done:**
+1. ✅ Read function signature BEFORE writing code that calls/uses it
+2. ✅ Research ALL similar functions with Haiku agent BEFORE implementing
+3. ✅ Copy exact patterns from existing code (no variations)
+4. ✅ Test in browser immediately after each section of code
+
+**Prevention Rules:**
+- ✅ Research existing code patterns with Haiku agent BEFORE implementing
+- ✅ Follow established conventions exactly (no creative variations)
+- ✅ All fetch functions must return `{ success, data, error }` wrapper
+- ✅ All parsing must happen in `loadAndRenderGA4Data()`, not in fetch functions
+- ✅ Verify function signatures before using variables/parameters
+- ✅ Test immediately after implementation to catch errors early (Rule: test after EACH code block, not after ALL code)
+
+#### Time to Resolution
+- Found: 8:33 PM, June 9, 2026
+- Researched with Haiku agent: 8 minutes
+- Fixed fetch pattern: 8:42 PM, June 9, 2026
+- Fixed variable name: 8:48 PM, June 9, 2026
+- **Total:** ~15 minutes (3 errors, 3 fixes)
+
+---
+
+### ISSUE-006: CONFIG Object Reference Error in fetchPowerupAnalysisData()
+
+**Status:** ✅ RESOLVED - June 9, 2026
+**Severity:** CRITICAL (Blocking Phase 6B Task 2)
+**Found:** June 9, 2026 (Dashboard Testing)
+**Resolved:** June 9, 2026 (Same session)
+**Affected Component:** Powerup Analysis Data Fetching
+**Location:** `live.html:3157, 3163`
+
+#### Description
+The `fetchPowerupAnalysisData()` function referenced `CONFIG.apiEndpoint` instead of the correct `API_CONFIG.baseURL` + `API_CONFIG.endpoints.analytics` pattern, causing a "CONFIG is not defined" error when attempting to fetch powerup analysis data.
+
+#### Error Message
+```
+Error fetching powerup analysis data: CONFIG is not defined
+ReferenceError: CONFIG is not defined
+    at fetchPowerupAnalysisData (live.html:3195)
+    at loadAndRenderGA4Data (live.html:3372)
+```
+
+#### Root Cause
+**Incorrect Code (live.html:3157):**
+```javascript
+const url = `${CONFIG.apiEndpoint}?type=standard&subType=powerup-analysis&version=${version}&dateRange=${dateRange}`;
+```
+
+**Issue:** Used wrong object name (`CONFIG` instead of `API_CONFIG`) and wrong property pattern.
+
+#### Solution Applied
+**Fixed Code (live.html:3157):**
+```javascript
+const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=powerup-analysis&version=${version}&dateRange=${dateRange}`;
+```
+
+**Also Fixed (live.html:3163):**
+```javascript
+// Changed from: setTimeout(() => controller.abort(), 15000)
+// To:
+setTimeout(() => controller.abort(), API_CONFIG.timeout)
+```
+
+#### Correct Pattern
+All fetch functions should follow this pattern:
+```javascript
+const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?[parameters]`;
+const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+```
+
+**Where:**
+- `API_CONFIG.baseURL` = `'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod'`
+- `API_CONFIG.endpoints.analytics` = `'/analytics'`
+- `API_CONFIG.timeout` = `15000` (15 seconds)
+
+#### Prevention
+- ✅ Research existing code patterns before implementing new functions (use Haiku agent)
+- ✅ Match naming conventions exactly as used in codebase
+- ✅ Test in browser immediately after implementation
+
+#### Verification
+- ✅ Error resolved
+- ✅ API URL constructs correctly: `https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?type=standard&subType=powerup-analysis&version=4.3&dateRange=90day`
+- ✅ Fetch function follows same pattern as `fetchSurvivalTimeData()` and `fetchBossAnalysisData()`
+
+#### Time to Resolution
+- Found: 8:31 PM, June 9, 2026
+- Researched with Haiku agent: 5 minutes
+- Fixed: 8:35 PM, June 9, 2026
+- **Total:** ~5 minutes
+
+---
 
 ---
 

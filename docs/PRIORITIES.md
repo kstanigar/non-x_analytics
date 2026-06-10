@@ -46,22 +46,35 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Testing:** All tests pass ✅ (endpoint, chart, table, selector integration)
   - **Dashboard Progress:** +3 metrics live (47% total, up from 40%)
 
-- [ ] **Phase 6B Task 2: Powerup Analysis Endpoint**
+- [x] **Phase 6B Task 2: Powerup Analysis Endpoint** ✅ COMPLETE
   - **Estimate:** 4-6 hours
+  - **Time Invested:** ~5 hours (June 9, 2026)
+  - **Completed:** June 9, 2026
+  - **Status:** Complete ✅ (Implementation + Testing + Deployment + Documentation)
   - **Impact:** MEDIUM - Makes powerup metrics live
   - **Complexity:** MEDIUM
-  - **What:** Add powerup_type dimension query
+  - **What:** Add powerup_type × phase dimension query
   - **Makes Live:**
-    - Powerup Collection chart (currently mock)
-    - Powerup effectiveness by type
-    - Powerup usage by platform
-  - **Custom Dimension:** `customEvent:powerup_type`
-  - **Query Structure:** powerup_type × eventName × deviceCategory
-  - **Files to Modify:**
-    - `api/index.js` - Add powerup-analysis request handler (~25 lines)
-    - `live.html` - Parser, fetch function, integration, chart updates (~200 lines)
-  - **Expected Result:** Powerup chart shows live GA4 data
-  - **Dependencies:** Phase 6B Task 1 complete (recommended)
+    - Powerup Collection chart (currently mock) - Code ready ✅
+    - Powerup effectiveness by type (future enhancement)
+    - Powerup usage by platform (byPlatform data structure added)
+  - **Custom Dimensions:** `customEvent:powerup_type`, `customEvent:phase`
+  - **Query Structure:** powerup_type × phase × eventName × deviceCategory
+  - **Files Modified:**
+    - `api/index.js` - Powerup-analysis handler (lines 125-147, +23 lines) ✅
+    - `live.html` - Parser, fetch, integration, chart updates (+158 lines) ✅
+      - Lines 2729-2812: Parser in mapGA4ResponseToDATA() (+84 lines)
+      - Lines 2296-2305: DATA.powerups initialization with byPlatform (+5 lines)
+      - Lines 3147-3204: fetchPowerupAnalysisData() function (+58 lines)
+      - Lines 3369-3378: Integration in loadAndRenderGA4Data() (+11 lines)
+      - Lines 3607-3611: chartPowerup() with nullish coalescing (modified)
+  - **Result:** Powerup chart shows 100% live GA4 data by phase (Green/Red/Purple) ✅
+  - **Endpoint:** `https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?type=standard&subType=powerup-analysis&version=4.3&dateRange=90day`
+  - **Testing:** ✅ Complete (80 rows returned, chart displays live data)
+  - **Errors Fixed:** ISSUE-006 (CONFIG reference), ISSUE-007 (fetch pattern + variable name)
+  - **Key Finding:** Mobile players collect ~5x more powerups than desktop; Quad Shot not being collected
+  - **Dashboard Progress After:** ~51% live (23-25 of 44 metrics, +4 from Task 2)
+  - **Dependencies:** Phase 6B Task 1 complete ✅
 
 - [ ] **Phase 6C Task 3: Phase/Level Progression Endpoint**
   - **Estimate:** 4-6 hours

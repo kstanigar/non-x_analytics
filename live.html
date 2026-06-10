@@ -2293,11 +2293,17 @@
         },
         deviceMix: { desktop: 54, mobile: 46 },
         abSplit: { musicOn: 51, musicOff: 49 },
+        // Powerup collection by phase (Green/Red/Purple)
+        // Updated by fetchPowerupAnalysisData() with live GA4 data
         powerups: {
           labels: ['Health', 'Double Laser', 'Shield', 'Quad Shot'],
-          green: [420, 310, 280, 0],    // Quad Shot not available in Green Phase
-          red: [510, 390, 340, 0],    // Quad Shot not available in Red Phase
-          purple: [280, 210, 430, 310],  // Quad Shot only available in Purple Phase
+          green: [420, 310, 280, 0],    // Mock data (replaced by live when API called)
+          red: [510, 390, 340, 0],      // Mock data (replaced by live when API called)
+          purple: [280, 210, 430, 310], // Mock data (replaced by live when API called)
+          byPlatform: {                 // Platform breakdown (future enhancement)
+            desktop: [0, 0, 0, 0],
+            mobile: [0, 0, 0, 0]
+          }
         },
         funnel: [
           { name: 'game_start', n: 2841, pct: 100, dropPct: null },
@@ -2727,6 +2733,84 @@
           }
         }
 
+        // ─── POWERUP-ANALYSIS RESPONSE HANDLER ───
+        if (reportType === 'powerup-analysis') {
+          // Initialize phase-based powerup data structure
+          // Structure: { green: {health: 0, double_laser: 0, shield: 0, quad_shot: 0}, red: {...}, purple: {...} }
+          const powerupData = {
+            green: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 },
+            red: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 },
+            purple: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 }
+          };
+
+          // Platform-specific powerup data (for future enhancements)
+          const powerupByPlatform = {
+            desktop: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 },
+            mobile: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 }
+          };
+
+          // Parse response rows: powerup_type × phase × eventName × deviceCategory
+          if (response.rows && response.rows.length > 0) {
+            response.rows.forEach(row => {
+              const powerupType = row.dimensionValues[0]?.value?.toLowerCase() || '';  // 'health', 'double_laser', 'shield', 'quad_shot'
+              const phase = row.dimensionValues[1]?.value?.toLowerCase() || '';        // 'green', 'red', 'purple'
+              const eventName = row.dimensionValues[2]?.value || '';                    // 'powerup_collected'
+              const deviceCategory = row.dimensionValues[3]?.value?.toLowerCase() || ''; // 'desktop', 'mobile', 'tablet'
+              const count = parseInt(row.metricValues[0]?.value || '0', 10);
+
+              // Only process powerup_collected events
+              if (eventName === 'powerup_collected') {
+                // Validate phase exists in data structure
+                if (powerupData[phase] && powerupData[phase].hasOwnProperty(powerupType)) {
+                  powerupData[phase][powerupType] += count;
+                }
+
+                // Aggregate by platform (desktop vs mobile)
+                if (deviceCategory === 'desktop' || deviceCategory === 'mobile') {
+                  if (powerupByPlatform[deviceCategory].hasOwnProperty(powerupType)) {
+                    powerupByPlatform[deviceCategory][powerupType] += count;
+                  }
+                }
+              }
+            });
+
+            // Convert to array format for chart
+            // Chart expects: { labels: [...], green: [...], red: [...], purple: [...] }
+            const powerupLabels = ['Health', 'Double Laser', 'Shield', 'Quad Shot'];
+            const powerupKeys = ['health', 'double_laser', 'shield', 'quad_shot'];
+
+            const chartData = {
+              labels: powerupLabels,
+              green: powerupKeys.map(key => powerupData.green[key] || 0),
+              red: powerupKeys.map(key => powerupData.red[key] || 0),
+              purple: powerupKeys.map(key => powerupData.purple[key] || 0),
+              // Platform breakdown (for future use)
+              byPlatform: {
+                desktop: powerupKeys.map(key => powerupByPlatform.desktop[key] || 0),
+                mobile: powerupKeys.map(key => powerupByPlatform.mobile[key] || 0)
+              }
+            };
+
+            console.log('✅ Powerup analysis data parsed:', chartData);
+            return { powerupCollection: chartData };
+
+          } else {
+            console.warn('⚠️ No powerup data in GA4 response, using fallback');
+            return {
+              powerupCollection: {
+                labels: ['Health', 'Double Laser', 'Shield', 'Quad Shot'],
+                green: [0, 0, 0, 0],
+                red: [0, 0, 0, 0],
+                purple: [0, 0, 0, 0],
+                byPlatform: {
+                  desktop: [0, 0, 0, 0],
+                  mobile: [0, 0, 0, 0]
+                }
+              }
+            };
+          }
+        }
+
         // ─── EXTRACTION ───────────────────────────────────────────────
 
         const eventCounts = {};
@@ -3060,6 +3144,48 @@
         }
       }
 
+      // ─── FETCH POWERUP ANALYSIS DATA (Powerup collection by phase and platform) ───
+      async function fetchPowerupAnalysisData() {
+        // Get selected data range from combined dropdown (default: 90day-43)
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+
+        // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' :
+                        versionShort === 'all' ? 'all' : '4.3';
+
+        // Build URL with powerup-analysis subType
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=powerup-analysis&version=${version}&dateRange=${dateRange}`;
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
+          const response = await fetch(url, {
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          return { success: true, data };
+
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            console.error(`Powerup-analysis request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error(`Failed to fetch powerup-analysis data:`, error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -3226,6 +3352,24 @@
           }
         } else {
           console.warn('Survival-time fetch failed, using mock data:', survivalResult.error);
+        }
+
+        // Fetch powerup analysis data (powerup collection by phase and platform)
+        console.log('Fetching powerup-analysis data...');
+        const powerupResult = await fetchPowerupAnalysisData();
+
+        if (powerupResult.success && powerupResult.data) {
+          const powerupData = mapGA4ResponseToDATA(powerupResult.data, 'powerup-analysis');
+
+          if (!powerupData.error && powerupData.powerupCollection) {
+            // Update powerup collection chart data
+            DATA.powerups = powerupData.powerupCollection;
+            console.log('Powerup collection updated:', DATA.powerups);
+          } else {
+            console.warn('Powerup-analysis parsing failed, using mock data');
+          }
+        } else {
+          console.warn('Powerup-analysis fetch failed, using mock data:', powerupResult.error);
         }
 
         // Re-render all charts
@@ -3455,11 +3599,11 @@
         new Chart(document.getElementById('chart-powerup'), {
           type: 'bar',
           data: {
-            labels: d.labels,
+            labels: d?.labels || ['Health', 'Double Laser', 'Shield', 'Quad Shot'],  // Fallback to default labels
             datasets: [
-              { label: 'Green Phase', data: d.green, backgroundColor: GRN + '55', borderColor: GRN, borderWidth: 1 },
-              { label: 'Red Phase', data: d.red, backgroundColor: RED + '55', borderColor: RED, borderWidth: 1 },
-              { label: 'Purple Phase', data: d.purple, backgroundColor: PUR + '55', borderColor: PUR, borderWidth: 1 },
+              { label: 'Green Phase', data: d?.green || [0, 0, 0, 0], backgroundColor: GRN + '55', borderColor: GRN, borderWidth: 1 },
+              { label: 'Red Phase', data: d?.red || [0, 0, 0, 0], backgroundColor: RED + '55', borderColor: RED, borderWidth: 1 },
+              { label: 'Purple Phase', data: d?.purple || [0, 0, 0, 0], backgroundColor: PUR + '55', borderColor: PUR, borderWidth: 1 },
             ]
           },
           options: { responsive: true, maintainAspectRatio: false, scales: gridOpts(), plugins: { legend: { labels: { font: { size: getLegendFontSize() }, color: 'rgba(200,232,255,0.5)', boxWidth: 12 } } } }
