@@ -2826,6 +2826,11 @@
           const levelDesktop = {};  // desktop only
           const levelMobile = {};   // mobile only
 
+          // Accumulators for avg level calculation: sum(level × count) / total_count per platform
+          let sumAll = 0, countAll = 0;
+          let sumDesk = 0, countDesk = 0;
+          let sumMob = 0, countMob = 0;
+
           if (response.rows && response.rows.length > 0) {
             response.rows.forEach(row => {
               const phase = row.dimensionValues[0]?.value?.toLowerCase() || '';           // 'green', 'red', 'purple'
@@ -2837,6 +2842,14 @@
               // Only count player_death events — these are what the Wave Drop-off chart displays
               if (eventName === 'player_death' && levelReached) {
                 levelDeaths[levelReached] = (levelDeaths[levelReached] || 0) + count;
+
+                // Accumulate weighted level sum for avg level KPI (GA4 has no native AVG metric)
+                const levelNum = parseInt(levelReached, 10);
+                if (!isNaN(levelNum)) {
+                  sumAll += levelNum * count; countAll += count;
+                  if (deviceCategory === 'desktop') { sumDesk += levelNum * count; countDesk += count; }
+                  else if (deviceCategory === 'mobile') { sumMob += levelNum * count; countMob += count; }
+                }
 
                 if (deviceCategory === 'desktop') {
                   levelDesktop[levelReached] = (levelDesktop[levelReached] || 0) + count;
@@ -2853,6 +2866,11 @@
               levelDesktop,
               levelMobile,
               hasRealData: Object.keys(levelDeaths).length > 0, // true only if death rows returned
+              avgLevel: {
+                overall: countAll  > 0 ? (sumAll  / countAll).toFixed(1)  : '—',
+                desktop: countDesk > 0 ? (sumDesk / countDesk).toFixed(1) : '—',
+                mobile:  countMob  > 0 ? (sumMob  / countMob).toFixed(1)  : '—',
+              },
             }
           };
         }
@@ -3666,6 +3684,16 @@
             DATA.deathsByLevel.levelMobile = progressionData.progressionData.levelMobile;
             DATA.deathsByLevel.hasRealData = progressionData.progressionData.hasRealData;
             console.log('Progression data updated:', DATA.deathsByLevel.levelDeaths);
+
+            // Wire avg level KPI — manual weighted average (GA4 has no native AVG metric)
+            if (progressionData.progressionData.avgLevel) {
+              DATA.kpis.avgLevel             = progressionData.progressionData.avgLevel.overall;
+              DATA.kpis.deskLevel            = progressionData.progressionData.avgLevel.desktop;
+              DATA.kpis.mobLevel             = progressionData.progressionData.avgLevel.mobile;
+              DATA.platform.desktop.avgLevel = progressionData.progressionData.avgLevel.desktop;
+              DATA.platform.mobile.avgLevel  = progressionData.progressionData.avgLevel.mobile;
+              console.log('Avg level updated:', progressionData.progressionData.avgLevel);
+            }
           } else {
             console.warn('Progression-analysis parsing failed, using mock data');
           }

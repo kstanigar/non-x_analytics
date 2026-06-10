@@ -8,6 +8,26 @@
 
 ---
 
+## June 10, 2026 - Phase 7 Medium Tier (MT-3: Avg Level KPI)
+
+**Session Duration:** ~30 min
+**Status:** Complete ✅
+
+### Changes:
+- [x] MT-3: Avg Level KPI — extended progression-analysis parser with manual weighted average (`sum(level × count) / total_count`); wired `DATA.kpis.avgLevel`, `DATA.kpis.deskLevel`, `DATA.kpis.mobLevel`, `DATA.platform.desktop.avgLevel`, `DATA.platform.mobile.avgLevel`
+
+### Key Implementation Details:
+- No new Lambda needed — `level_reached` already in `progression-analysis` query (dim 1)
+- GA4 has no native AVG metric — manual `sumAll / countAll` using `player_death` events only
+- `'—'` fallback when no death data present (sparse data ranges)
+- Added 6 accumulators to existing loop (`sumAll`, `countAll`, `sumDesk`, `countDesk`, `sumMob`, `countMob`)
+- Integration wires both `DATA.kpis` and `DATA.platform` so Overview KPI + Platform tab both update
+
+### Files Modified:
+- `live.html` — parser extension (~lines 2826-2870), integration (~lines 3664-3675)
+
+---
+
 ## June 10, 2026 - Phase 7 Medium Tier (MT-1, MT-2) + UI Polish
 
 **Session Duration:** ~2 hours
