@@ -8,6 +8,52 @@
 
 ---
 
+## June 10, 2026 - AbortSignal.timeout() Cleanup (All 6 Fetch Functions)
+
+**Session Duration:** ~20 min
+**Status:** Complete ✅
+
+### Priorities Addressed:
+- [x] Replace AbortController + setTimeout with AbortSignal.timeout() in all 6 legacy fetch functions
+- [x] Update AbortError → TimeoutError in all 6 catch blocks
+- [x] Remove stale fallback comment from fetchProgressionAnalysisData
+- [x] Document changes
+
+### Functions Updated (live.html):
+
+| Function | try block | catch block | Lines |
+|---|---|---|---|
+| `fetchGA4Data` | ✅ | ✅ | ~2965, ~2982 |
+| `fetchPlatformSplitData` | ✅ | ✅ | ~3012, ~3033 |
+| `fetchDailyTimeseriesData` | ✅ | ✅ | ~3062, ~3076 |
+| `fetchBossAnalysisData` | ✅ | ✅ | ~3105, ~3119 |
+| `fetchSurvivalTimeData` | ✅ | ✅ | ~3146, ~3160 |
+| `fetchPowerupAnalysisData` | ✅ | ✅ | ~3184, ~3198 |
+
+### Changes Per Function (identical pattern):
+1. Removed `const controller = new AbortController();`
+2. Removed `const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);`
+3. Replaced `signal: controller.signal` with `signal: AbortSignal.timeout(API_CONFIG.timeout)`
+4. Removed `clearTimeout(timeoutId);`
+5. Changed `error.name === 'AbortError'` → `error.name === 'TimeoutError'`
+6. Added inline comment: `// AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)`
+7. Added inline comment on catch: `// AbortSignal.timeout() throws TimeoutError, not AbortError`
+
+### Additional Fix:
+- Removed stale fallback comment from `fetchProgressionAnalysisData` (line ~3222) that referenced "AbortController pattern used in the other fetch functions" — all functions now use AbortSignal.timeout()
+
+### Research Verified (Haiku agent):
+- AbortSignal.timeout() is Baseline 2024 — Chrome 124+, Firefox 100+, Safari 16+ (~93% coverage)
+- TimeoutError is the correct error name (Chromium bug in 103-123 is long fixed)
+- clearTimeout not needed — AbortSignal.timeout() self-manages cleanup
+- Timer pauses in bfcache (correct browser behavior, old setTimeout did not)
+
+### Next Steps:
+- User testing: load dashboard, verify all 7 fetch functions fire correctly
+- Phase 6D Task 4: AI Agent Deep Dive Endpoint
+
+---
+
 ## June 10, 2026 - Phase 6C Task 3: Phase/Level Progression Endpoint
 
 **Session Duration:** ~3 hours

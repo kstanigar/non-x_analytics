@@ -105,6 +105,14 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Dashboard Progress After:** ~55% live (up from ~51%)
   - **Dependencies:** Phase 6B Tasks 1-2 complete ✅
 
+- [x] **AbortSignal.timeout() Cleanup** ✅ COMPLETE
+  - **Completed:** June 10, 2026
+  - **Time Invested:** ~20 min
+  - **Files Modified:** `live.html` (12 edits across 6 functions + 1 stale comment removal)
+  - **Functions Updated:** fetchGA4Data, fetchPlatformSplitData, fetchDailyTimeseriesData, fetchBossAnalysisData, fetchSurvivalTimeData, fetchPowerupAnalysisData
+  - **Changes:** Removed AbortController + setTimeout + clearTimeout boilerplate; replaced with AbortSignal.timeout(); changed AbortError → TimeoutError in all catch blocks
+  - **Result:** All 7 fetch functions (including fetchProgressionAnalysisData) now use consistent Baseline 2024 pattern
+
 - [ ] **Phase 6D Task 4: AI Agent Deep Dive Endpoint**
   - **Estimate:** 6-8 hours
   - **Impact:** HIGH - Makes all AI Agent metrics live (currently 0/empty)

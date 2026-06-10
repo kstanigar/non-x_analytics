@@ -2962,18 +2962,14 @@
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?version=${version}&dateRange=${dateRange}`;
 
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
+          // AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)
           const response = await fetch(url, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
             },
-            signal: controller.signal
+            signal: AbortSignal.timeout(API_CONFIG.timeout)
           });
-
-          clearTimeout(timeoutId);
 
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -2983,7 +2979,7 @@
           return { success: true, data };
 
         } catch (error) {
-          if (error.name === 'AbortError') {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
             console.error(`Request timeout after ${API_CONFIG.timeout}ms`);
             return { success: false, error: 'Request timeout', data: null };
           }
@@ -3013,18 +3009,14 @@
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=platform-split&version=${version}&dateRange=${dateRange}`;
 
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
+          // AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)
           const response = await fetch(url, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
             },
-            signal: controller.signal
+            signal: AbortSignal.timeout(API_CONFIG.timeout)
           });
-
-          clearTimeout(timeoutId);
 
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -3038,7 +3030,7 @@
           return { success: true, data: platformData };
 
         } catch (error) {
-          if (error.name === 'AbortError') {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
             console.error(`Platform-split request timeout after ${API_CONFIG.timeout}ms`);
             return { success: false, error: 'Request timeout', data: null };
           }
@@ -3067,14 +3059,11 @@
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=daily-timeseries&version=${version}&dateRange=${dateRange}`;
 
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
+          // AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)
           const response = await fetch(url, {
-            signal: controller.signal,
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
             headers: { 'Content-Type': 'application/json' }
           });
-          clearTimeout(timeoutId);
 
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -3084,7 +3073,7 @@
           return { success: true, data };
 
         } catch (error) {
-          if (error.name === 'AbortError') {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
             console.error(`Daily-timeseries request timeout after ${API_CONFIG.timeout}ms`);
             return { success: false, error: 'Request timeout', data: null };
           }
@@ -3113,14 +3102,11 @@
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=boss-analysis&version=${version}&dateRange=${dateRange}`;
 
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
+          // AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)
           const response = await fetch(url, {
-            signal: controller.signal,
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
             headers: { 'Content-Type': 'application/json' }
           });
-          clearTimeout(timeoutId);
 
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -3130,7 +3116,7 @@
           return { success: true, data };
 
         } catch (error) {
-          if (error.name === 'AbortError') {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
             console.error(`Boss-analysis request timeout after ${API_CONFIG.timeout}ms`);
             return { success: false, error: 'Request timeout', data: null };
           }
@@ -3157,15 +3143,11 @@
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=survival-time&version=${version}&dateRange=${dateRange}`;
 
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
+          // AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)
           const response = await fetch(url, {
-            signal: controller.signal,
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
             headers: { 'Content-Type': 'application/json' }
           });
-
-          clearTimeout(timeoutId);
 
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -3175,7 +3157,7 @@
           return { success: true, data };
 
         } catch (error) {
-          if (error.name === 'AbortError') {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
             console.error(`Survival-time request timeout after ${API_CONFIG.timeout}ms`);
             return { success: false, error: 'Request timeout', data: null };
           }
@@ -3199,15 +3181,11 @@
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=powerup-analysis&version=${version}&dateRange=${dateRange}`;
 
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
-
+          // AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)
           const response = await fetch(url, {
-            signal: controller.signal,
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
             headers: { 'Content-Type': 'application/json' }
           });
-
-          clearTimeout(timeoutId);
 
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -3217,7 +3195,7 @@
           return { success: true, data };
 
         } catch (error) {
-          if (error.name === 'AbortError') {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
             console.error(`Powerup-analysis request timeout after ${API_CONFIG.timeout}ms`);
             return { success: false, error: 'Request timeout', data: null };
           }
@@ -3241,7 +3219,6 @@
 
         try {
           // AbortSignal.timeout() — Baseline 2024 (replaces AbortController + setTimeout boilerplate)
-          // Fallback: if this causes issues, replace with the AbortController pattern used in the other fetch functions
           const response = await fetch(url, {
             signal: AbortSignal.timeout(API_CONFIG.timeout),
             headers: { 'Content-Type': 'application/json' }
