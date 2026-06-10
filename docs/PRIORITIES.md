@@ -345,7 +345,7 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   10. **MT-5: Tier vs Final Score chart** — DEFERRED: needs `final_score` dim added to game source first
 
   **🔴 Large (4–8 hrs each) — see `docs/Phase7_Large_Tier_Plan.md` for full implementation plan:**
-  11. **LT-1: Game Funnel** — no new Lambda; extend progression-analysis parser for `wave_reached` L4; wire `DATA.funnel` + `buildFunnelTable()` (1–2 hrs)
+  11. ✅ **LT-1: Game Funnel** — COMPLETE June 10, 2026 (8-stage funnel live: game_start → boss_attempt/defeated ×3 → player_won; all from boss-analysis; `wave_reached` dropped — param not sent with that event)
   12. **LT-2: Music A/B Test** — new `subType=music-ab`; `ab_music_group` × `eventName`; wire `DATA.abMusic` + `DATA.abSplit` donut (3–4 hrs)
   13. **LT-3: Movement A/B Test** — new `subType=movement-ab`; `movement_group` values TBC via endpoint test; wire `DATA.abMovement` (2–3 hrs)
 
@@ -753,7 +753,7 @@ Tasks organized by completion date (newest first). Includes completion details a
 **Completed Tasks:** 34
 **Completion Rate (June 2026):** 30 tasks completed
 
-**Phase 7 Progress:** ~77% live data (QW1–5 ✅, MT-1 ✅, MT-2 ✅, MT-3 ✅, MT-4 ✅)
+**Phase 7 Progress:** ~82% live data (QW1–5 ✅, MT-1 ✅, MT-2 ✅, MT-3 ✅, MT-4 ✅, LT-1 ✅)
 
 **Average Task Completion Time:**
 - Quick fixes (< 30 min): 7 tasks

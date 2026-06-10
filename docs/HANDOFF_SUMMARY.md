@@ -8,6 +8,44 @@
 
 ---
 
+## June 10, 2026 - Phase 7 LT-1: Game Funnel (Live)
+
+**Session Duration:** ~45 min
+**Status:** Complete ✅ — all 8 funnel stages live from boss-analysis data
+
+### Changes:
+- [x] Extended progression-analysis parser to accumulate avg level (already in place from MT-3)
+- [x] Wired `DATA.funnel` (8 stages) in integration block using `DATA.bossAnalysis` + `DATA.kpis.sessions`
+- [x] Updated `buildFunnelTable()` to calculate conversion rates dynamically from `DATA.funnel`
+- [x] Updated `DATA.funnel` mock to match new 8-stage structure (boss_attempt/boss_defeated × 3 + player_won)
+- [x] Removed `wave_reached L4` stage — `customEvent:level_reached` not sent with `wave_reached` events (always `(not set)`); boss_attempt 1/2/3 stages provide equivalent funnel coverage
+
+### Funnel Structure (live):
+```
+game_start → boss_attempt 1 → boss_defeated 1 → boss_attempt 2 → boss_defeated 2 → boss_attempt 3 → boss_defeated 3 → player_won
+```
+
+### Key Findings (All Time, v4.3):
+- game_start: 112 (100%)
+- boss_attempt 1: 51 (45.5%) — 54.5% of players never reach boss 1
+- boss_defeated 1: 47 (92.2% attempt→defeat rate)
+- boss_attempt 2: TBC live
+- boss_defeated 2: 34 (72.3% of boss 1 defeats)
+- boss_attempt 3: TBC live
+- boss_defeated 3: 33 (97.1% of boss 2 defeats)
+- player_won: 33 (boss 3 defeats proxy)
+
+### Implementation Notes:
+- No new Lambda — all data from existing boss-analysis endpoint
+- `wave_reached` event doesn't include `level_reached` custom param — investigation would require a new dimension in the progression-analysis query
+- `player_won` uses `boss_defeated 3` as proxy (virtually identical; exact count needs BigQuery)
+- Music ON/OFF funnels remain mock until LT-2
+
+### Files Modified:
+- `live.html` — progression parser cleanup, funnel wiring in integration block (~line 3761), `buildFunnelTable()` dynamic (~line 4133), mock update (~line 2315)
+
+---
+
 ## June 10, 2026 - Phase 7 Large Tier Planning (LT-1, LT-2, LT-3)
 
 **Session Duration:** ~1 hour

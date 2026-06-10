@@ -2313,13 +2313,14 @@
           }
         },
         funnel: [
-          { name: 'game_start', n: 2841, pct: 100, dropPct: null },
-          { name: 'wave_reached L4', n: 1562, pct: 55.0, dropPct: 45.0 },
-          { name: 'boss_attempt 1', n: 1034, pct: 36.4, dropPct: 33.8 },
-          { name: 'boss_defeated 1', n: 687, pct: 24.2, dropPct: 33.6 },
-          { name: 'boss_defeated 2', n: 382, pct: 13.4, dropPct: 44.4 },
-          { name: 'boss_defeated 3', n: 271, pct: 9.5, dropPct: 29.1 },
-          { name: 'player_won', n: 239, pct: 8.4, dropPct: 11.8 },
+          { name: 'game_start',      n: 2841, pct: 100,  dropPct: null },
+          { name: 'boss_attempt 1',  n: 1034, pct: 36.4, dropPct: 63.6 },
+          { name: 'boss_defeated 1', n: 687,  pct: 24.2, dropPct: 33.6 },
+          { name: 'boss_attempt 2',  n: 690,  pct: 24.3, dropPct: null  },
+          { name: 'boss_defeated 2', n: 382,  pct: 13.4, dropPct: 44.6 },
+          { name: 'boss_attempt 3',  n: 389,  pct: 13.7, dropPct: null  },
+          { name: 'boss_defeated 3', n: 271,  pct: 9.5,  dropPct: 30.3 },
+          { name: 'player_won',      n: 239,  pct: 8.4,  dropPct: 11.8 },
         ],
         funnelMusicOn: [
           { name: 'game_start', n: 1449, pct: 100 },
@@ -2830,7 +2831,6 @@
           let sumAll = 0, countAll = 0;
           let sumDesk = 0, countDesk = 0;
           let sumMob = 0, countMob = 0;
-
           if (response.rows && response.rows.length > 0) {
             response.rows.forEach(row => {
               const phase = row.dimensionValues[0]?.value?.toLowerCase() || '';           // 'green', 'red', 'purple'
@@ -3750,6 +3750,31 @@
               DATA.platform.mobile.avgLevel  = progressionData.progressionData.avgLevel.mobile;
               console.log('Avg level updated:', progressionData.progressionData.avgLevel);
             }
+
+            // Wire game funnel — all stages from boss-analysis (attempt + defeat per boss)
+            // player_won proxy = boss3 defeats (virtually identical; exact count needs BigQuery session joins)
+            const gs = parseInt((DATA.kpis.sessions || '0').replace(/,/g, ''), 10);
+            if (gs > 0 && DATA.bossAnalysis?.boss1) {
+              const ba1 = DATA.bossAnalysis.boss1.overall.attempts || 0;
+              const bd1 = DATA.bossAnalysis.boss1.overall.defeats  || 0;
+              const ba2 = DATA.bossAnalysis.boss2.overall.attempts || 0;
+              const bd2 = DATA.bossAnalysis.boss2.overall.defeats  || 0;
+              const ba3 = DATA.bossAnalysis.boss3.overall.attempts || 0;
+              const bd3 = DATA.bossAnalysis.boss3.overall.defeats  || 0;
+              const pct  = (n) => parseFloat(((n / gs) * 100).toFixed(1));
+              const drop = (a, b) => a > 0 ? parseFloat((((a - b) / a) * 100).toFixed(1)) : null;
+              DATA.funnel = [
+                { name: 'game_start',      n: gs,  pct: 100,       dropPct: null          },
+                { name: 'boss_attempt 1',  n: ba1, pct: pct(ba1),  dropPct: drop(gs,  ba1) },
+                { name: 'boss_defeated 1', n: bd1, pct: pct(bd1),  dropPct: drop(ba1, bd1) },
+                { name: 'boss_attempt 2',  n: ba2, pct: pct(ba2),  dropPct: drop(bd1, ba2) },
+                { name: 'boss_defeated 2', n: bd2, pct: pct(bd2),  dropPct: drop(ba2, bd2) },
+                { name: 'boss_attempt 3',  n: ba3, pct: pct(ba3),  dropPct: drop(bd2, ba3) },
+                { name: 'boss_defeated 3', n: bd3, pct: pct(bd3),  dropPct: drop(ba3, bd3) },
+                { name: 'player_won',      n: bd3, pct: pct(bd3),  dropPct: null          },
+              ];
+              console.log('Funnel data updated:', DATA.funnel);
+            }
           } else {
             console.warn('Progression-analysis parsing failed, using mock data');
           }
@@ -4101,14 +4126,12 @@
       }
 
       function buildFunnelTable() {
-        const conversions = [
-          { from: 'game_start', to: 'wave_reached L4', overall: '55.0%', on: '~57%', off: '~53%', delta: '+4pp' },
-          { from: 'wave_reached', to: 'boss_attempt 1', overall: '66.2%', on: '~68%', off: '~64%', delta: '+4pp' },
-          { from: 'boss_attempt', to: 'boss_defeated 1', overall: '66.4%', on: '68.1%', off: '64.8%', delta: '+3.3pp' },
-          { from: 'boss_1', to: 'boss_defeated 2', overall: '55.6%', on: '56.7%', off: '54.3%', delta: '+2.4pp' },
-          { from: 'boss_2', to: 'boss_defeated 3', overall: '71.0%', on: '72.5%', off: '69.3%', delta: '+3.2pp' },
-          { from: 'boss_3', to: 'player_won', overall: '88.2%', on: '89.1%', off: '87.0%', delta: '+2.1pp' },
-        ];
+        // Dynamic conversion rates from live DATA.funnel; music ON/OFF columns are '—' until LT-2 is complete
+        const conversions = DATA.funnel.slice(1).map((stage, i) => {
+          const prev = DATA.funnel[i];
+          const rate = prev.n > 0 ? ((stage.n / prev.n) * 100).toFixed(1) + '%' : '—';
+          return { from: prev.name, to: stage.name, overall: rate, on: '—', off: '—', delta: '—' };
+        });
         const tbody = document.getElementById('funnel-table');
         tbody.innerHTML = ''; // Clear existing rows before rebuilding
         conversions.forEach(r => {
