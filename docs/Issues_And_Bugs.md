@@ -13,7 +13,7 @@
 | 🔴 CRITICAL (Blocking) | 1 |
 | 🟡 MEDIUM (Should Fix) | 1 |
 | 🟢 LOW (Nice to Have) | 0 |
-| ✅ RESOLVED | 7 |
+| ✅ RESOLVED | 8 |
 
 ---
 
@@ -485,6 +485,29 @@ _(No items currently)_
 ---
 
 ## ✅ RESOLVED ISSUES
+
+### ISSUE-010: Leaderboard Event Name Investigation
+
+**Status:** ✅ RESOLVED - June 10, 2026
+**Severity:** LOW
+**Found:** June 8, 2026
+**Resolved:** June 10, 2026
+**Affected Component:** Leaderboard Rate KPI
+
+#### Description
+Uncertainty about whether dashboard event name `leaderboard_submit` matched what GA4 was actually receiving. `scorecard_viewed` was also firing and needed to be distinguished.
+
+#### Investigation Findings
+- `leaderboard_submit` fires when a winner **actively submits** their score — 15 events (13 mobile, 2 desktop) over 90 days
+- `scorecard_viewed` fires when **any player sees** the end-of-game screen — 36 events (27 mobile, 9 desktop)
+- Dashboard formula `leaderboard_submit / player_won` is semantically correct: "% of winners who submit to leaderboard"
+- `scorecard_viewed` is a different metric (end-screen engagement rate) — useful future KPI but not leaderboard rate
+- **Leaderboard Rate KPI is already live** — standard GA4 flat query captures `leaderboard_submit` with no new Lambda needed
+
+#### Resolution
+No code changes required. Dashboard event mapping was correct all along.
+
+---
 
 ### ISSUE-009: API Key Re-Enabled on API Gateway Then Reverted (Phase 2 Security Planning Error)
 

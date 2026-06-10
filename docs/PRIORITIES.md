@@ -203,12 +203,11 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Inline Comment:** "Warn if <80% games have outcome events (win or death)"
   - **Dependencies:** None
 
-- [ ] **Investigate Leaderboard Event Name**
-  - **Estimate:** 30 minutes
-  - **Issue:** Dashboard expects `leaderboard_submit` but event not found in GA4
-  - **Investigation:** Check GA4 for alternative event names (scorecard_viewed, etc.)
-  - **Code Changes:** Update event mapping if different name found
-  - **Note:** DebugView showed `leaderboard_submit` IS firing - likely just needs documentation
+- [x] **Investigate Leaderboard Event Name** ✅ RESOLVED June 10, 2026
+  - **Finding:** `leaderboard_submit` is the correct event — dashboard already uses it correctly
+  - **Also firing:** `scorecard_viewed` (36 events) = passive end-screen view, not a submission action
+  - **Leaderboard Rate KPI is already live** — standard GA4 query captures `leaderboard_submit` (15 events: 13 mobile, 2 desktop)
+  - **No code changes needed**
 
 - [x] **API Security Issue - Phase 2** ✅ COMPLETE
   - **Completed:** June 10, 2026
