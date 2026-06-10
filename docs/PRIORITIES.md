@@ -243,8 +243,8 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   5. ✅ **Score Multiplier Distribution chart** — extend ai-analysis with `effective_multiplier` dim (1–2 hrs) — COMPLETE June 10, 2026
 
   **🟡 Medium (2–4 hrs each, existing dims) — see `docs/Phase7_Medium_Tier_Plan.md`:**
-  6. **MT-1: Avg Survival KPI** — wire existing `avgSurvival` from parser to `DATA.kpis.survival` (30 min, no Lambda) ⭐ START HERE
-  7. **MT-2: New User % KPI** — new `subType=new-user-pct` using GA4 built-in `newVsReturning` dim (1–2 hrs)
+  6. ✅ **MT-1: Avg Survival KPI** — COMPLETE June 10, 2026 (format changed to minutes, mock values updated, `DATA.kpis.survival` wired)
+  7. **MT-2: New User % KPI** — new `subType=new-user-pct` using GA4 built-in `newVsReturning` dim (1–2 hrs) ⭐ NEXT
   8. **MT-3: Avg Level KPI + platform cols** — extend progression-analysis parser with manual avg aggregation (2–3 hrs)
   9. **MT-4: Replay Rate KPI** — new `subType=replay-rate` using `is_replay` dim on `game_start` (2–3 hrs)
   10. **MT-5: Tier vs Final Score chart** — DEFERRED: needs `final_score` dim added to game source first

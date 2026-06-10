@@ -1379,7 +1379,7 @@
     <!-- API STATUS BAR -->
     <div class="api-status-bar">
       <span style="color:var(--text-dim)">📡 <strong>LIVE DATA</strong></span>
-      <span id="api-status" style="color:var(--cyan)">Initializing...</span>
+      <span id="api-status" style="color:var(--green)">Initializing...</span>
       <span id="last-update" style="color:var(--text-dim);flex:1;text-align:right">Last updated: —</span>
       <button class="refresh-btn" onclick="manualRefresh()">🔄 Refresh</button>
     </div>
@@ -1468,22 +1468,22 @@
         <div class="kpi mag">
           <div class="kpi-label">New vs Returning</div>
           <div class="kpi-value" id="kpi-new-pct">—</div>
-          <div class="kpi-sub">% first-time players</div>
+          <div class="kpi-sub" id="kpi-new-pct-sub">% first-time players</div>
         </div>
         <div class="kpi grn">
           <div class="kpi-label">Win Rate</div>
           <div class="kpi-value" id="kpi-winrate">—</div>
-          <div class="kpi-sub">player_won / game_start</div>
+          <div class="kpi-sub" id="kpi-winrate-sub">player_won / game_start</div>
         </div>
         <div class="kpi red">
           <div class="kpi-label">Death Rate</div>
           <div class="kpi-value" id="kpi-deathrate">—</div>
-          <div class="kpi-sub">player_death / game_start (excl. abandoned)</div>
+          <div class="kpi-sub" id="kpi-deathrate-sub">player_death / completed games</div>
         </div>
         <div class="kpi yel">
           <div class="kpi-label">Play-Again Rate</div>
           <div class="kpi-value" id="kpi-replay">—</div>
-          <div class="kpi-sub">game_start per user</div>
+          <div class="kpi-sub" id="kpi-replay-sub">game_start per user</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Avg Survival</div>
@@ -1493,7 +1493,7 @@
         <div class="kpi mag">
           <div class="kpi-label">Leaderboard Rate</div>
           <div class="kpi-value" id="kpi-lb-rate">—</div>
-          <div class="kpi-sub">leaderboard_submit / win</div>
+          <div class="kpi-sub" id="kpi-lb-rate-sub">leaderboard_submit / win</div>
         </div>
         <div class="kpi grn">
           <div class="kpi-label">Avg Level Reached</div>
@@ -1568,7 +1568,7 @@
             <div
               style="font-family:var(--mono);font-size:0.65rem;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.05em">
               DEATH RATE BY LEVEL (deaths / wave_reached attempts) · <span id="drt-platform-label"
-                style="color:var(--cyan)">ALL PLATFORMS</span>
+                style="color:var(--green)">ALL PLATFORMS</span>
             </div>
             <table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:0.7rem">
               <thead>
@@ -1695,7 +1695,7 @@
         <div class="kpi">
           <div class="kpi-label">Speed Lock Rate</div>
           <div class="kpi-value" id="kpi-ai-speed-lock">—</div>
-          <div class="kpi-sub">Players who completed 1+ cycles</div>
+          <div class="kpi-sub" id="kpi-ai-speed-lock-sub">Players who completed 1+ cycles</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Avg Tier Adjustments</div>
@@ -1834,12 +1834,12 @@
         <div class="kpi">
           <div class="kpi-label">Desktop Win Rate</div>
           <div class="kpi-value" id="kpi-desk-win">—</div>
-          <div class="kpi-sub">player_won / game_start</div>
+          <div class="kpi-sub" id="kpi-desk-win-sub">player_won / game_start</div>
         </div>
         <div class="kpi mag">
           <div class="kpi-label">Mobile Win Rate</div>
           <div class="kpi-value" id="kpi-mob-win">—</div>
-          <div class="kpi-sub">player_won / game_start</div>
+          <div class="kpi-sub" id="kpi-mob-win-sub">player_won / game_start</div>
         </div>
         <div class="kpi grn">
           <div class="kpi-label">Desktop Avg Level</div>
@@ -2274,14 +2274,21 @@
         kpis: {
           sessions: '2,841',
           newPct: '73%',
+          newPctSub: '<span style="color:var(--green)">—&nbsp;new</span> / <span style="color:#FFD700">—&nbsp;returning</span>',
           winRate: '8.4%',
+          winSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:#FFD700">—&nbsp;starts</span>',
           deathRate: '84.2%',
+          deathSub: '<span style="color:var(--green)">—&nbsp;deaths</span> / <span style="color:#FFD700">—&nbsp;completed</span>',
           replay: '2.3×',
-          survival: '2:22',
+          replaySub: '<span style="color:var(--green)">—&nbsp;replays</span> / <span style="color:#FFD700">—&nbsp;sessions</span>',
+          survival: '2.4m',
           lbRate: '31%',
+          lbRateSub: '<span style="color:var(--green)">—&nbsp;submits</span> / <span style="color:#FFD700">—&nbsp;wins</span>',
           avgLevel: '5.2',
           deskWin: '11.2%',
+          deskWinSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:#FFD700">—&nbsp;starts</span>',
           mobWin: '5.7%',
+          mobWinSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:#FFD700">—&nbsp;starts</span>',
           deskLevel: '6.1',
           mobLevel: '4.3',
         },
@@ -2350,8 +2357,8 @@
           B: { label: 'Scheme B', sessions: 1452, winRate: '8.7%', survival: '2:25', avgLevel: '5.4' },
         },
         platform: {
-          desktop: { sessions: 1534, winRate: '11.2%', survival: '2:38', replay: '2.5×', avgLevel: '6.1', lbRate: '36%', boss1: '28.4%', boss2: '17.1%', boss3: '12.8%' },
-          mobile: { sessions: 1307, winRate: '5.7%', survival: '2:04', replay: '2.1×', avgLevel: '4.3', lbRate: '24%', boss1: '19.6%', boss2: '10.1%', boss3: '6.7%' },
+          desktop: { sessions: 1534, winRate: '11.2%', survival: '2.6m', replay: '2.5×', avgLevel: '6.1', lbRate: '36%', boss1: '28.4%', boss2: '17.1%', boss3: '12.8%' },
+          mobile: { sessions: 1307, winRate: '5.7%', survival: '2.1m', replay: '2.1×', avgLevel: '4.3', lbRate: '24%', boss1: '19.6%', boss2: '10.1%', boss3: '6.7%' },
         },
         // Survival time distribution (buckets: 0-0.5m, 0.5-1m, 1-2m, 2-3m, 3-4m, 4-6m, 6-8m, 8+m)
         // Updated by fetchSurvivalTimeData() with live GA4 data
@@ -2365,6 +2372,7 @@
             avgStartTier: '—',
             avgFinalTier: '—',
             speedLockRate: '—',
+            speedLockSub: '<span style="color:var(--green)">—&nbsp;locked</span> / <span style="color:#FFD700">—&nbsp;adjustments</span>',
             avgAdjustments: '—',
           },
           tierDist: {
@@ -2476,7 +2484,7 @@
               const ec = platformData[platform].eventCounts;
 
               // Extract event counts (verified event names from endpoint test)
-              const sessions = ec['session_start'] || 0;
+              const sessions = ec['game_start'] || 0;
               const gameStarts = ec['game_start'] || 0;
               const playerWon = ec['player_won'] || 0;
               const playerDeath = ec['player_death'] || 0;
@@ -2709,15 +2717,13 @@
               ? platformTotals.mobile.totalDuration / mobileTotal
               : 0;
 
-            const formatMMSS = (seconds) => {
-              const mins = Math.floor(seconds / 60);
-              const secs = Math.floor(seconds % 60);
-              return `${mins}:${secs.toString().padStart(2, '0')}`;
+            const formatMinutes = (seconds) => {
+              return (seconds / 60).toFixed(1) + 'm';
             };
 
             const avgSurvival = {
-              desktop: formatMMSS(desktopAvg),
-              mobile: formatMMSS(mobileAvg)
+              desktop: formatMinutes(desktopAvg),
+              mobile: formatMinutes(mobileAvg)
             };
 
             return {
@@ -2730,7 +2736,7 @@
             return {
               error: error.message,
               survivalDist: { labels: [], desktop: [], mobile: [] },
-              avgSurvival: { desktop: '0:00', mobile: '0:00' }
+              avgSurvival: { desktop: '0.0m', mobile: '0.0m' }
             };
           }
         }
@@ -2917,6 +2923,7 @@
               decreases,
               totalAdjustments,
               speedLockRate,
+              speedLockSub: `<span style="color:var(--green)">${speedLockCount}&nbsp;locked</span> / <span style="color:#FFD700">${totalAdjustments}&nbsp;adjustments</span>`,
               scoreMultCounts,
               hasRealData: totalAdjustments > 0,
             }
@@ -2943,6 +2950,26 @@
               hasRealData: total > 0,
             }
           };
+        }
+
+        if (reportType === 'new-user-pct') {
+          // Parse newVsReturning × eventName response
+          // Counts game_start events for 'new' vs 'returning' users
+          let newCount = 0;
+          let totalCount = 0;
+          if (response.rows && response.rows.length > 0) {
+            response.rows.forEach(row => {
+              const userType  = row.dimensionValues[0]?.value || '';
+              const eventName = row.dimensionValues[1]?.value || '';
+              const count     = parseInt(row.metricValues[0]?.value || '0', 10);
+              if (eventName !== 'game_start') return;
+              totalCount += count;
+              if (userType === 'new') newCount += count;
+            });
+          }
+          const returningCount = totalCount - newCount;
+          const pct = totalCount > 0 ? Math.round((newCount / totalCount) * 100) + '%' : '—';
+          return { newPct: pct, newCount, returningCount, hasRealData: totalCount > 0 };
         }
 
         // ─── EXTRACTION ───────────────────────────────────────────────
@@ -2978,7 +3005,7 @@
 
         // ─── KPI CALCULATIONS ─────────────────────────────────────────
 
-        const sessions = eventCounts['session_start'] || 0;
+        const sessions = eventCounts['game_start'] || 0;
         const gameStarts = eventCounts['game_start'] || 0;
 
         // Event Mapping (verified via GA4 DebugView June 8, 2026):
@@ -3013,8 +3040,11 @@
           kpis: {
             sessions: sessions.toLocaleString(),
             winRate,
+            winSub: `<span style="color:var(--green)">${playerWon}&nbsp;wins</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`,
             deathRate,
+            deathSub: `<span style="color:var(--green)">${playerDeath}&nbsp;deaths</span> / <span style="color:#FFD700">${completedGames}&nbsp;completed</span>`,
             lbRate,
+            lbRateSub: `<span style="color:var(--green)">${leaderboardSubmit}&nbsp;submits</span> / <span style="color:#FFD700">${playerWon}&nbsp;wins</span>`,
             // Note: These require additional dimensions not in current API
             newPct: '—',
             replay: '—',
@@ -3394,6 +3424,30 @@
         }
       }
 
+      async function fetchNewUserPctData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=new-user-pct&version=${version}&dateRange=${dateRange}`;
+        try {
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const data = await response.json();
+          return { success: true, data };
+        } catch (error) {
+          if (error.name === 'TimeoutError') {
+            console.error(`New-user-pct request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error(`Failed to fetch new user pct data:`, error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -3499,8 +3553,10 @@
           }
 
           // Update KPI cards on PLATFORM tab with live data
-          DATA.kpis.deskWin = DATA.platform.desktop.winRate;    // Desktop win rate (LIVE ✅)
-          DATA.kpis.mobWin = DATA.platform.mobile.winRate;      // Mobile win rate (LIVE ✅)
+          DATA.kpis.deskWin    = DATA.platform.desktop.winRate;
+          DATA.kpis.deskWinSub = `<span style="color:var(--green)">${pd.desktop.playerWon}&nbsp;wins</span> / <span style="color:#FFD700">${pd.desktop.gameStarts}&nbsp;starts</span>`;
+          DATA.kpis.mobWin     = DATA.platform.mobile.winRate;
+          DATA.kpis.mobWinSub  = `<span style="color:var(--green)">${pd.mobile.playerWon}&nbsp;wins</span> / <span style="color:#FFD700">${pd.mobile.gameStarts}&nbsp;starts</span>`;
           DATA.kpis.deskLevel = DATA.platform.desktop.avgLevel; // Desktop avg level (mock until Task 6-7)
           DATA.kpis.mobLevel = DATA.platform.mobile.avgLevel;   // Mobile avg level (mock until Task 6-7)
 
@@ -3566,8 +3622,9 @@
 
             // Update average survival time for platform comparison
             if (survivalData.avgSurvival) {
+              DATA.kpis.survival             = survivalData.avgSurvival.desktop;
               DATA.platform.desktop.survival = survivalData.avgSurvival.desktop;
-              DATA.platform.mobile.survival = survivalData.avgSurvival.mobile;
+              DATA.platform.mobile.survival  = survivalData.avgSurvival.mobile;
               console.log('Avg survival times updated:', survivalData.avgSurvival);
             }
           } else {
@@ -3633,6 +3690,7 @@
             DATA.aiAgent.kpis.avgAdjustments = aiData.aiData.totalAdjustments.toString();
             // Populate speed lock rate KPI — populateAIKPIs() reads DATA.aiAgent.kpis.speedLockRate
             DATA.aiAgent.kpis.speedLockRate = aiData.aiData.speedLockRate;
+            DATA.aiAgent.kpis.speedLockSub  = aiData.aiData.speedLockSub;
             // Populate score multiplier distribution — chartAIScoreMult() reads DATA.aiAgent.scoreMultDist.counts
             DATA.aiAgent.scoreMultDist.counts = aiData.aiData.scoreMultCounts;
             console.log('AI analysis data updated:', aiData.aiData.totalAdjustments, 'adjustments');
@@ -3655,6 +3713,20 @@
           }
         } else {
           console.warn('Death-triggers fetch failed:', deathTriggersResult.error);
+        }
+
+        const newUserResult = await fetchNewUserPctData();
+        if (newUserResult.success && newUserResult.data) {
+          const nuData = mapGA4ResponseToDATA(newUserResult.data, 'new-user-pct');
+          if (!nuData.error && nuData.hasRealData) {
+            DATA.kpis.newPct    = nuData.newPct;
+            DATA.kpis.newPctSub = `<span style="color:var(--green)">${nuData.newCount}&nbsp;new</span> / <span style="color:#FFD700">${nuData.returningCount}&nbsp;returning</span>`;
+            console.log('New user % updated:', nuData.newPct, DATA.kpis.newPctSub);
+          } else {
+            console.warn('New-user-pct parsing failed or no data, using mock value');
+          }
+        } else {
+          console.warn('New-user-pct fetch failed:', newUserResult.error);
         }
 
         // Re-render all charts
@@ -3776,14 +3848,21 @@
         const k = DATA.kpis;
         document.getElementById('kpi-sessions').textContent = k.sessions;
         document.getElementById('kpi-new-pct').textContent = k.newPct;
+        document.getElementById('kpi-new-pct-sub').innerHTML = k.newPctSub;
         document.getElementById('kpi-winrate').textContent = k.winRate;
+        document.getElementById('kpi-winrate-sub').innerHTML = k.winSub;
         document.getElementById('kpi-deathrate').textContent = k.deathRate;
+        document.getElementById('kpi-deathrate-sub').innerHTML = k.deathSub;
         document.getElementById('kpi-replay').textContent = k.replay;
+        document.getElementById('kpi-replay-sub').innerHTML = k.replaySub;
         document.getElementById('kpi-survival').textContent = k.survival;
         document.getElementById('kpi-lb-rate').textContent = k.lbRate;
+        document.getElementById('kpi-lb-rate-sub').innerHTML = k.lbRateSub;
         document.getElementById('kpi-avg-level').textContent = k.avgLevel;
         document.getElementById('kpi-desk-win').textContent = k.deskWin;
+        document.getElementById('kpi-desk-win-sub').innerHTML = k.deskWinSub;
         document.getElementById('kpi-mob-win').textContent = k.mobWin;
+        document.getElementById('kpi-mob-win-sub').innerHTML = k.mobWinSub;
         document.getElementById('kpi-desk-level').textContent = k.deskLevel;
         document.getElementById('kpi-mob-level').textContent = k.mobLevel;
       }
@@ -4445,6 +4524,7 @@
         document.getElementById('kpi-ai-avg-start').textContent = k.avgStartTier;
         document.getElementById('kpi-ai-avg-final').textContent = k.avgFinalTier;
         document.getElementById('kpi-ai-speed-lock').textContent = k.speedLockRate;
+        document.getElementById('kpi-ai-speed-lock-sub').innerHTML = k.speedLockSub;
         document.getElementById('kpi-ai-avg-adjustments').textContent = k.avgAdjustments;
       }
 

@@ -209,6 +209,23 @@ exports.handler = async (event) => {
                 deathTriggersRequest.dimensionFilter = dimensionFilter;
             }
             [response] = await analyticsDataClient.runReport(deathTriggersRequest);
+        } else if (requestType === 'standard' && subType === 'new-user-pct') {
+            // ─── NEW USER % REQUEST (New vs returning players) ───
+            const newUserPctRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange],
+                // Multi-dimensional query: newVsReturning × eventName
+                // Returns game_start counts split by new vs returning users
+                dimensions: [
+                    { name: 'newVsReturning' }, // Dimension 0: 'new' or 'returning' (GA4 built-in)
+                    { name: 'eventName' }        // Dimension 1: filter to 'game_start'
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+            if (dimensionFilter) {
+                newUserPctRequest.dimensionFilter = dimensionFilter;
+            }
+            [response] = await analyticsDataClient.runReport(newUserPctRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {
