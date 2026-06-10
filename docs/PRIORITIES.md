@@ -242,12 +242,12 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   4. ✅ **Speed Lock Rate KPI** — new query: `speed_locked` on `ai_difficulty_adjusted` (1–2 hrs) — COMPLETE June 10, 2026
   5. ✅ **Score Multiplier Distribution chart** — extend ai-analysis with `effective_multiplier` dim (1–2 hrs) — COMPLETE June 10, 2026
 
-  **🟡 Medium (2–4 hrs each, existing dims):**
-  6. **Avg Level KPI + platform cols** — average `level_reached` per platform (2–3 hrs)
-  7. **Avg Survival KPI** — session-level average of `session_duration_seconds` (2–3 hrs)
-  8. **Replay Rate KPI** — `is_replay` dim on `game_start` (2–3 hrs)
-  9. **New User % KPI** — GA4 built-in `newVsReturning` dimension (2–3 hrs)
-  10. **Tier vs Final Score chart** — `effective_multiplier` × `new_tier` cross-query (2–4 hrs)
+  **🟡 Medium (2–4 hrs each, existing dims) — see `docs/Phase7_Medium_Tier_Plan.md`:**
+  6. **MT-1: Avg Survival KPI** — wire existing `avgSurvival` from parser to `DATA.kpis.survival` (30 min, no Lambda) ⭐ START HERE
+  7. **MT-2: New User % KPI** — new `subType=new-user-pct` using GA4 built-in `newVsReturning` dim (1–2 hrs)
+  8. **MT-3: Avg Level KPI + platform cols** — extend progression-analysis parser with manual avg aggregation (2–3 hrs)
+  9. **MT-4: Replay Rate KPI** — new `subType=replay-rate` using `is_replay` dim on `game_start` (2–3 hrs)
+  10. **MT-5: Tier vs Final Score chart** — DEFERRED: needs `final_score` dim added to game source first
 
   **🔴 Large (4–8 hrs each):**
   11. **Game Funnel endpoint** — `game_start` → `wave_reached` → `boss_attempt` → `boss_defeated` → `player_won` (3–4 hrs)
@@ -652,11 +652,11 @@ Tasks organized by completion date (newest first). Includes completion details a
 
 ## 📊 STATISTICS
 
-**Pending Tasks:** 6 (API Security + AI chart investigation + 4 lower priority)
-**Completed Tasks:** 27
-**Completion Rate (June 2026):** 23 tasks completed
+**Pending Tasks:** 5 (Phase 7 medium/large tasks + 4 lower priority)
+**Completed Tasks:** 32
+**Completion Rate (June 2026):** 28 tasks completed
 
-**Phase 6 Progress:** ~60% live data (Phase 6 endpoints complete ✅, AI chart investigation pending)
+**Phase 7 Progress:** ~70% live data (QW1–5 complete ✅, medium tier tasks next)
 
 **Average Task Completion Time:**
 - Quick fixes (< 30 min): 7 tasks

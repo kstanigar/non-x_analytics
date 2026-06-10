@@ -8,6 +8,27 @@
 
 ---
 
+## June 10, 2026 - Phase 7 Quick Wins (QW1–5)
+
+**Session Duration:** ~3 hours
+**Status:** Complete ✅
+
+Implemented all 5 quick win endpoints, bringing dashboard from ~60% to ~70%+ live. QW1 (Device Mix) and QW2 (Boss Platform Funnel) required no Lambda deploy — wired existing data. QW3 (Death Triggers) added a new `death-triggers` Lambda handler; discovered `death_phase` is sent on `play_again` not `player_death`. QW4 (Speed Lock Rate) extended ai-analysis with `speed_locked` as dim 5. QW5 (Score Multiplier) extended ai-analysis with `effective_multiplier` as dim 6; discovered it's sent on `player_won` not `ai_difficulty_adjusted`, and a continuous multiplier value `2.1875` maps to the last bucket. All changes committed `a8abd58`.
+
+### Changes:
+- [x] QW1: Device Mix — derives desktop/mobile % from live `DATA.platform.sessions` counts
+- [x] QW2: Boss Platform Funnel — wires `DATA.bossAnalysis.boss1/2.desktop/mobile.defeatRate` to `chartPlatformFunnel()`
+- [x] QW3: Death Triggers by Phase — new `death-triggers` Lambda handler + parser + fetch + integration
+- [x] QW4: Speed Lock Rate KPI — `speed_locked` dim 5 on ai-analysis, `53.6%` live
+- [x] QW5: Score Multiplier Distribution — `effective_multiplier` dim 6, reads `player_won` rows
+
+### Key Discoveries:
+- `death_phase` sent on `play_again` (not `player_death`) — parser filters by `play_again`
+- `effective_multiplier` sent on `player_won` (not `ai_difficulty_adjusted`) — separate accumulation in parser
+- `2.1875` continuous multiplier value exists — maps to `1.50×+` last bucket
+
+---
+
 ## June 10, 2026 - Master Data Points Map + Dashboard Audit
 
 **Session Duration:** ~45 min
