@@ -8,6 +8,28 @@
 
 ---
 
+## June 10, 2026 - Phase 7 Medium Tier (MT-4: Replay Rate KPI)
+
+**Session Duration:** ~30 min
+**Status:** Complete ✅ — awaiting Lambda deploy
+
+### Changes:
+- [x] MT-4: Replay Rate KPI — new `subType=replay-rate` Lambda handler (`is_replay` × `eventName` × `deviceCategory`); parser counts `game_start` where `is_replay='true'` vs total; `DATA.kpis.replay` as `%`; colored sub-label shows `N replay starts / N total starts`; platform desktop/mobile split also wired
+- [x] Format change: `replay` mock changed from `'2.3×'` to `'28%'`; platform mocks changed from `'2.5×'`/`'2.1×'` to `'—%'`
+
+### Key Implementation Details:
+- `is_replay` is registered GA4 custom dim (Feb 27, 2026) — no game-side changes needed
+- 3-dim query: `is_replay × eventName × deviceCategory` — gives platform split for free
+- Filter to `game_start` events only in parser
+- `DATA.platform.desktop.replay` + `DATA.platform.mobile.replay` also wired — platform comparison table updates live
+- Requires Lambda deploy before live data shows
+
+### Files Modified:
+- `api/index.js` — replay-rate handler after new-user-pct block (~line 229)
+- `live.html` — parser, fetch function `fetchReplayRateData()`, integration in `loadAndRenderGA4Data()`
+
+---
+
 ## June 10, 2026 - Phase 7 Medium Tier (MT-3: Avg Level KPI)
 
 **Session Duration:** ~30 min

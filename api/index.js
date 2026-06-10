@@ -226,6 +226,22 @@ exports.handler = async (event) => {
                 newUserPctRequest.dimensionFilter = dimensionFilter;
             }
             [response] = await analyticsDataClient.runReport(newUserPctRequest);
+        } else if (requestType === 'standard' && subType === 'replay-rate') {
+            // ─── REPLAY RATE REQUEST (Replay sessions as % of total game starts) ───
+            const replayRateRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange],
+                // Multi-dimensional query: is_replay × eventName × deviceCategory
+                // Returns game_start counts split by replay vs first-play, per platform
+                dimensions: [
+                    { name: 'customEvent:is_replay' }, // Dimension 0: 'true' or 'false'
+                    { name: 'eventName' },              // Dimension 1: filter to 'game_start'
+                    { name: 'deviceCategory' }          // Dimension 2: 'desktop', 'mobile', 'tablet'
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+            if (dimensionFilter) { replayRateRequest.dimensionFilter = dimensionFilter; }
+            [response] = await analyticsDataClient.runReport(replayRateRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {

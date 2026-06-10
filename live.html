@@ -2279,8 +2279,8 @@
           winSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:#FFD700">—&nbsp;starts</span>',
           deathRate: '84.2%',
           deathSub: '<span style="color:var(--green)">—&nbsp;deaths</span> / <span style="color:#FFD700">—&nbsp;completed</span>',
-          replay: '2.3×',
-          replaySub: '<span style="color:var(--green)">—&nbsp;replays</span> / <span style="color:#FFD700">—&nbsp;sessions</span>',
+          replay: '28%',
+          replaySub: '<span style="color:var(--green)">—&nbsp;replay starts</span> / <span style="color:#FFD700">—&nbsp;total starts</span>',
           survival: '2.4m',
           lbRate: '31%',
           lbRateSub: '<span style="color:var(--green)">—&nbsp;submits</span> / <span style="color:#FFD700">—&nbsp;wins</span>',
@@ -2357,8 +2357,8 @@
           B: { label: 'Scheme B', sessions: 1452, winRate: '8.7%', survival: '2:25', avgLevel: '5.4' },
         },
         platform: {
-          desktop: { sessions: 1534, winRate: '11.2%', survival: '2.6m', replay: '2.5×', avgLevel: '6.1', lbRate: '36%', boss1: '28.4%', boss2: '17.1%', boss3: '12.8%' },
-          mobile: { sessions: 1307, winRate: '5.7%', survival: '2.1m', replay: '2.1×', avgLevel: '4.3', lbRate: '24%', boss1: '19.6%', boss2: '10.1%', boss3: '6.7%' },
+          desktop: { sessions: 1534, winRate: '11.2%', survival: '2.6m', replay: '—%', avgLevel: '6.1', lbRate: '36%', boss1: '28.4%', boss2: '17.1%', boss3: '12.8%' },
+          mobile: { sessions: 1307, winRate: '5.7%', survival: '2.1m', replay: '—%', avgLevel: '4.3', lbRate: '24%', boss1: '19.6%', boss2: '10.1%', boss3: '6.7%' },
         },
         // Survival time distribution (buckets: 0-0.5m, 0.5-1m, 1-2m, 2-3m, 3-4m, 4-6m, 6-8m, 8+m)
         // Updated by fetchSurvivalTimeData() with live GA4 data
@@ -2990,6 +2990,38 @@
           return { newPct: pct, newCount, returningCount, hasRealData: totalCount > 0 };
         }
 
+        if (reportType === 'replay-rate') {
+          // Parse is_replay × eventName × deviceCategory response
+          // Counts game_start events where is_replay='true' vs total, per platform
+          let replayAll = 0, replayDesk = 0, replayMob = 0;
+          let totalAll = 0, totalDesk = 0, totalMob = 0;
+          if (response.rows && response.rows.length > 0) {
+            response.rows.forEach(row => {
+              const isReplay  = row.dimensionValues[0]?.value || '';
+              const eventName = row.dimensionValues[1]?.value || '';
+              const device    = row.dimensionValues[2]?.value?.toLowerCase() || '';
+              const count     = parseInt(row.metricValues[0]?.value || '0', 10);
+              if (eventName !== 'game_start') return;
+              totalAll += count;
+              if (device === 'desktop') totalDesk += count;
+              else if (device === 'mobile') totalMob += count;
+              if (isReplay === 'true') {
+                replayAll += count;
+                if (device === 'desktop') replayDesk += count;
+                else if (device === 'mobile') replayMob += count;
+              }
+            });
+          }
+          const fmt = (r, t) => t > 0 ? Math.round((r / t) * 100) + '%' : '—';
+          return {
+            replayRate: fmt(replayAll, totalAll),
+            replaySub: `<span style="color:var(--green)">${replayAll}&nbsp;replay starts</span> / <span style="color:#FFD700">${totalAll}&nbsp;total starts</span>`,
+            desktop: { replayRate: fmt(replayDesk, totalDesk) },
+            mobile:  { replayRate: fmt(replayMob,  totalMob)  },
+            hasRealData: totalAll > 0,
+          };
+        }
+
         // ─── EXTRACTION ───────────────────────────────────────────────
 
         const eventCounts = {};
@@ -3466,6 +3498,30 @@
         }
       }
 
+      async function fetchReplayRateData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=replay-rate&version=${version}&dateRange=${dateRange}`;
+        try {
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(API_CONFIG.timeout), // AbortSignal.timeout() — Baseline 2024
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const data = await response.json();
+          return { success: true, data };
+        } catch (error) {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
+            console.error(`Replay-rate request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error(`Failed to fetch replay rate data:`, error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -3755,6 +3811,23 @@
           }
         } else {
           console.warn('New-user-pct fetch failed:', newUserResult.error);
+        }
+
+        // Fetch replay rate data (% of game_start events that are replays, per platform)
+        const replayResult = await fetchReplayRateData();
+        if (replayResult.success && replayResult.data) {
+          const rrData = mapGA4ResponseToDATA(replayResult.data, 'replay-rate');
+          if (!rrData.error && rrData.hasRealData) {
+            DATA.kpis.replay             = rrData.replayRate;
+            DATA.kpis.replaySub          = rrData.replaySub;
+            DATA.platform.desktop.replay = rrData.desktop.replayRate;
+            DATA.platform.mobile.replay  = rrData.mobile.replayRate;
+            console.log('Replay rate updated:', rrData.replayRate, rrData.replaySub);
+          } else {
+            console.warn('Replay-rate parsing failed or no data, using mock value');
+          }
+        } else {
+          console.warn('Replay-rate fetch failed:', replayResult.error);
         }
 
         // Re-render all charts
