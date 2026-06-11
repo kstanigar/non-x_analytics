@@ -8,6 +8,40 @@
 
 ---
 
+## June 11, 2026 - Deploy Plan: AWS Standing Tiger + GitHub Pages CI/CD
+
+**Status:** Planned ✅ — Ready to implement
+
+### Architecture Decision
+- **Staging:** `staging` branch → GitHub Actions → GitHub Pages (free QA URL)
+- **Production:** `main` branch → GitHub Actions → AWS S3 static hosting
+- **Lambda API:** Deployed manually (separate from dashboard HTML)
+- **Why not GitHub Pages for prod:** S3 is the correct AWS static hosting path; enables custom domain + CloudFront later
+- **Why not AWS for staging:** GitHub Pages is free and instant — no AWS costs for QA
+
+### Day-to-Day Workflow
+```
+Push to staging → GitHub Pages auto-deploys → QA
+Merge staging → main → S3 auto-deploys → production live
+```
+
+### GitHub Secrets Required
+- `AWS_ACCESS_KEY_ID` — IAM user with S3 write access
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_S3_BUCKET` — bucket name for production hosting
+
+### URLs After Deploy
+- Staging: `https://kstanigar.github.io/non-x_analytics/`
+- Production: S3 website URL (or custom domain)
+
+### Files to Create
+- `.github/workflows/deploy-staging.yml`
+- `.github/workflows/deploy-production.yml`
+
+### Full checklist in PRIORITIES.md → "Deploy to AWS Standing Tiger Account + GitHub Pages Staging + CI/CD"
+
+---
+
 ## June 11, 2026 - Final Security Audit
 
 **Status:** Complete ✅ — Committed June 11, 2026 (hash: bc59894)

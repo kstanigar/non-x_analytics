@@ -204,17 +204,131 @@ Tasks organized by date added (newest first). Tasks include planning details, in
     - CloudWatch log retention → 14 days
     - Update `ALLOWED_ORIGIN` to Standing Tiger domain
 
-- [ ] **Deploy to AWS Standing Tiger Account**
+- [ ] **Deploy to AWS Standing Tiger Account + GitHub Pages Staging + CI/CD**
   - **Estimate:** 2–4 hours
   - **Priority:** HIGH — production deployment
-  - **Scope:**
-    - Create new Lambda function in Standing Tiger AWS account
-    - Configure API Gateway with prod stage
-    - Set up environment variables (GOOGLE_CREDENTIALS, GA4_PROPERTY_ID)
-    - Configure Usage Plan + rate limiting (10 req/s, 1000 req/day)
-    - Update `API_CONFIG.baseURL` in `live.html` to new endpoint
-    - Deploy and smoke-test all endpoints (platform-split, timeseries, boss, survival, powerup, progression, ai-analysis, death-triggers, new-user-pct, replay-rate)
-    - Verify CORS on new domain
+  - **Architecture:**
+    - `staging` branch → GitHub Actions → GitHub Pages (QA URL, free)
+    - `main` branch → GitHub Actions → AWS S3 (production hosting)
+    - Lambda API deployed manually (separate from dashboard HTML)
+  - **Why S3 for prod (not GitHub Pages):** S3 is the proper AWS static hosting solution; enables custom domain, CloudFront CDN later; ~$0/mo at indie traffic
+  - **Why GitHub Pages for staging (not AWS):** Free, instant, no AWS costs for QA previews
+
+  **Part 1 — GitHub Actions CI/CD Setup (~30 min):**
+  1. Create `staging` branch: `git checkout -b staging && git push origin staging`
+  2. Repo → Settings → Actions → General → Read and write permissions ✅
+  3. Create `.github/workflows/deploy-staging.yml` (push to `staging` → GitHub Pages)
+  4. Create `.github/workflows/deploy-production.yml` (push to `main` → S3 sync)
+  5. Add AWS credentials to GitHub Secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET`
+  6. URLs after setup:
+     - **Staging:** `https://kstanigar.github.io/non-x_analytics/`
+     - **Production:** `https://YOUR-S3-BUCKET.s3-website.us-east-2.amazonaws.com`
+
+  **Staging workflow (`.github/workflows/deploy-staging.yml`):**
+  ```yaml
+  name: Deploy Staging
+  on:
+    push:
+      branches: [staging]
+  permissions:
+    contents: write
+    pages: write
+    id-token: write
+  jobs:
+    deploy:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Prepare
+          run: mkdir -p deploy && cp live.html deploy/index.html
+        - name: Deploy to GitHub Pages
+          uses: JamesIves/github-pages-deploy-action@v4
+          with:
+            branch: gh-pages
+            folder: deploy
+  ```
+
+  **Production workflow (`.github/workflows/deploy-production.yml`):**
+  ```yaml
+  name: Deploy Production
+  on:
+    push:
+      branches: [main]
+  jobs:
+    deploy:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Deploy live.html to S3
+          env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_DEFAULT_REGION: us-east-2
+          run: aws s3 cp live.html s3://${{ secrets.AWS_S3_BUCKET }}/index.html
+  ```
+
+  **Part 2 — AWS Lambda + API Gateway (~60 min):**
+  1. Package Lambda zip:
+     ```bash
+     mkdir -p lambda-package && cp api/index.js lambda-package/
+     cd lambda-package && npm init -y && npm install @google-analytics/data
+     zip -r ../function.zip . && cd ..
+     ```
+  2. Lambda console → Create function
+     - Name: `non-x-analytics-api`, Runtime: Node.js 20.x
+     - Memory: 256 MB, Timeout: 30s
+     - Env vars: `GOOGLE_CREDENTIALS`, `GA4_PROPERTY_ID`
+     - Upload `function.zip`, Handler: `index.handler`
+  3. API Gateway → Create REST API
+     - Resource: `/analytics`, Method: GET, Lambda Proxy integration
+     - Enable CORS, Deploy to `prod` stage
+  4. Usage Plan: Rate 10 req/s, Burst 10, Quota 1000/day → attach to prod stage
+  5. Smoke test all 13 subTypes with curl
+
+  **Part 3 — S3 Static Hosting (~20 min):**
+  1. S3 → Create bucket (name matches `AWS_S3_BUCKET` secret)
+  2. Properties → Static website hosting → Enable, Index: `index.html`
+  3. Permissions → Block public access → OFF
+  4. Bucket policy → add public read policy
+  5. Upload `live.html` manually as `index.html` for initial deploy
+
+  **Part 4 — Wire Everything (~10 min):**
+  1. Update `API_CONFIG.baseURL` in `live.html` to new Standing Tiger Lambda URL
+  2. Update `ALLOWED_ORIGIN` in `api/index.js` to S3 website URL (or custom domain)
+  3. Re-zip and re-upload Lambda
+  4. Push to `staging` → verify GitHub Pages loads with new Lambda
+  5. Merge to `main` → verify S3 auto-deploy fires via Actions
+
+  **Day-to-day workflow:**
+  ```
+  Work on main (or feature branch)
+        ↓
+  git checkout staging && git merge main && git push origin staging
+        ↓
+  QA at https://kstanigar.github.io/non-x_analytics/
+        ↓
+  git checkout main && git merge staging && git push origin main
+        ↓
+  GitHub Actions → S3 sync → production live
+  ```
+
+  **Full deploy checklist:**
+  - [ ] `staging` branch created and pushed
+  - [ ] Actions read/write permissions enabled
+  - [ ] `deploy-staging.yml` created and working
+  - [ ] `deploy-production.yml` created and working
+  - [ ] GitHub Secrets added: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET`
+  - [ ] Lambda created, zip uploaded, env vars set
+  - [ ] API Gateway deployed to prod stage
+  - [ ] Usage Plan attached
+  - [ ] Smoke test passes (all 13 subTypes)
+  - [ ] S3 bucket created with static hosting enabled
+  - [ ] `live.html` API_CONFIG.baseURL updated to new Lambda URL
+  - [ ] `ALLOWED_ORIGIN` updated to S3/custom domain URL
+  - [ ] Push to `staging` → GitHub Pages loads ✅
+  - [ ] Merge to `main` → S3 auto-deploy fires ✅
+  - [ ] CloudWatch log retention → 14 days
+
   - **Dependencies:** Final Security Audit complete ✅
 
 - [ ] **BigQuery Integration** — Avg Starting Tier + Avg Final Tier KPIs
