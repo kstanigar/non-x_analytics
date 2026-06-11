@@ -8,6 +8,47 @@
 
 ---
 
+## June 11, 2026 - Lambda Comment Cleanup
+
+**Status:** Complete ✅
+
+### Goal
+Remove comment noise from `api/index.js`. Replace verbose handler banners with single-line query signatures. Remove 23 redundant comments. Keep comments that document non-obvious GA4 enum values, business context, and security rationale.
+
+### Rules Applied
+- Handler banners → one line: `// dim1 × dim2 × eventName`
+- Remove: "Apply version filter if specified" (×11), "Returns X split by Y" (×12), other obvious restatements
+- Keep: CORS deploy note, validation rationale, `alltime` start date, GA4 enum value comments, error handling rationale, music-funnel row count note
+
+### Changes
+- 16 handler banners replaced with short query signatures
+- 23 noise comments removed
+- Zero information lost
+
+---
+
+## June 11, 2026 - New Engagement Metrics (Code Complete — Deploy Pending)
+
+**Status:** Code complete ✅ — Lambda deploy + staging test + commit pending 🔄
+
+### All 5 Tasks Complete
+- [x] Task 1: `api/index.js` — `'engagement-events'` added to `VALID_SUBTYPES`; new handler queries `scorecard_viewed`, `music_toggled`, `leave_game`, `survey_submitted`
+- [x] Task 2: `live.html` — "Player Behavior" `kpi-grid` + `section-label` inserted after line 1505 (5 tiles: scorecard, music, leave, boss reach, survey)
+- [x] Task 3: `live.html` — 5 new `DATA.kpis` defaults added after `completeness: 100`
+- [x] Task 4: `live.html` — 5 new properties added to `mapGA4ResponseToDATA()` return kpis block
+- [x] Task 5: `live.html` — `fetchEngagementData()` function added; call site added in `loadAndRenderGA4Data()`; 5 DOM updates added to `populateKPIs()`
+
+### Still Needed Before Live
+- [ ] Deploy updated `api/index.js` to Lambda
+- [ ] Test endpoint: `?type=standard&subType=engagement-events&version=4.3&dateRange=90day`
+- [ ] Commit + push to staging, verify tiles populate
+- [ ] Merge to main
+
+### ⚠️ Priority Shift
+User shifted priorities on June 11, 2026 before deploy step. Resume here when returning to this feature.
+
+---
+
 ## June 11, 2026 - Data Completeness Banner
 
 **Status:** Complete ✅

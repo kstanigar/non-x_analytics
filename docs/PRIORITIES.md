@@ -364,7 +364,7 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Security note (June 11, 2026):** Haiku agent research on 2026 BigQuery best practices needed before implementation — credential storage pattern, query cost controls, caching strategy. Planned as next research task.
   - **Dependencies:** Standing Tiger AWS deploy complete ✅, GA4 BigQuery Export enabled
 
-- [ ] **New Engagement Metrics — 6 KPIs on Overview Page** ⭐ NEXT PRIORITY
+- [ ] **New Engagement Metrics — 6 KPIs on Overview Page** ⚠️ CODE COMPLETE — DEPLOY PENDING
   - **Estimate:** 3–4 hours total
   - **Decision (June 11, 2026):** Implement all 6 in a new "Player Behavior" row on the Overview page
   - **All 6 events already firing in GA4 — no game-side changes needed**
@@ -380,23 +380,23 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   | Session Return Rate | already live as "New vs Returning" — reframe existing tile, no new Lambda |
 
   **Lambda (one new endpoint batches 4 events):**
-  - New `subType=engagement-events` handler: `eventName` dim, filter to `scorecard_viewed`, `music_toggled`, `leave_game`, `survey_submitted`
-  - Insert before line 311 in `api/index.js` (before `realtime` handler)
-  - Add `'engagement-events'` to `VALID_SUBTYPES` at `api/index.js:15`
+  - [x] New `subType=engagement-events` handler: `eventName` dim, filter to `scorecard_viewed`, `music_toggled`, `leave_game`, `survey_submitted` ✅ COMPLETE June 11, 2026
+  - [x] Add `'engagement-events'` to `VALID_SUBTYPES` at `api/index.js:15` ✅ COMPLETE June 11, 2026
   - Boss Reach Rate uses existing `DATA.bossAnalysis.boss1.overall.attempts` — no Lambda needed
 
   **Exact insertion points (verified by Haiku agent June 11, 2026):**
 
-  | Change | File | Line(s) | Detail |
+  | Change | File | Line(s) | Status |
   |--------|------|---------|--------|
-  | HTML — new "Player Behavior" kpi-grid | `live.html` | After **1505** | Before `<div class="insight-box" id="overview-insight">` at line 1507 |
-  | DATA.kpis defaults | `live.html` | After **2295** | After `mobLevel: '4.3',` (last property in DATA.kpis init block) |
-  | `mapGA4ResponseToDATA()` return kpis | `live.html` | After **3228** | After `mobLevel: '—',` (last property in return kpis block) |
-  | `populateKPIs()` updates | `live.html` | After **4211** | After `kpi-mob-level` line, before closing `}` at 4212 |
-  | New Lambda handler | `api/index.js` | Before **311** | Before `realtime` handler starts |
-  | VALID_SUBTYPES whitelist | `api/index.js` | **15** | Add `'engagement-events'` |
+  | VALID_SUBTYPES whitelist | `api/index.js` | **15** | ✅ COMPLETE |
+  | New Lambda handler | `api/index.js` | Before **311** | ✅ COMPLETE |
+  | HTML — new "Player Behavior" kpi-grid | `live.html` | After **1505** | ⏳ NEXT |
+  | DATA.kpis defaults | `live.html` | After **2295** | ⏳ Pending |
+  | `mapGA4ResponseToDATA()` return kpis | `live.html` | After **3228** | ⏳ Pending |
+  | `populateKPIs()` updates | `live.html` | After **4211** | ⏳ Pending |
 
   **Dependencies:** None
+  **Resume:** Deploy `api/index.js` to Lambda → test endpoint → commit → staging → main
 
 - [ ] **KPI Tooltips — Hybrid Approach**
   - **Estimate:** 2–3 hours

@@ -1504,6 +1504,35 @@
         </div>
       </div>
 
+      <div class="section-label">Player Behavior</div>
+      <div class="kpi-grid">
+        <div class="kpi yel">
+          <div class="kpi-label">Scorecard View Rate</div>
+          <div class="kpi-value" id="kpi-scorecard-rate">—</div>
+          <div class="kpi-sub">scorecard_viewed / game_start</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Music Toggle Rate</div>
+          <div class="kpi-value" id="kpi-music-rate">—</div>
+          <div class="kpi-sub">music_toggled / game_start</div>
+        </div>
+        <div class="kpi red">
+          <div class="kpi-label">Leave Game Rate</div>
+          <div class="kpi-value" id="kpi-leave-rate">—</div>
+          <div class="kpi-sub">leave_game / game_start</div>
+        </div>
+        <div class="kpi grn">
+          <div class="kpi-label">Boss Reach Rate</div>
+          <div class="kpi-value" id="kpi-boss-reach-rate">—</div>
+          <div class="kpi-sub">boss_attempt / game_start</div>
+        </div>
+        <div class="kpi mag">
+          <div class="kpi-label">Survey Response Rate</div>
+          <div class="kpi-value" id="kpi-survey-rate">—</div>
+          <div class="kpi-sub">survey_submitted / game_start</div>
+        </div>
+      </div>
+
       <div id="completeness-banner" class="insight-box" style="display:none;border-left:3px solid var(--yel);margin-bottom:0">
         ⚠️ <strong>Data Completeness:</strong> Only <span id="completeness-pct">—</span>% of sessions have a recorded outcome. Version 4.3 data includes test sessions from development.
       </div>
@@ -2298,6 +2327,11 @@
           deskLevel: '6.1',
           mobLevel: '4.3',
           completeness: 100,
+          scorecardRate: '—',
+          musicRate: '—',
+          leaveRate: '—',
+          bossReachRate: '—',
+          surveyRate: '—',
         },
         daily: {
           labels: ['Feb 25', 'Feb 26', 'Feb 27', 'Feb 28', 'Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7', 'Mar 8', 'Mar 9', 'Mar 10'],
@@ -3234,6 +3268,11 @@
             deskLevel: '—',
             mobLevel: '—',
             completeness,
+            scorecardRate: '—',
+            musicRate: '—',
+            leaveRate: '—',
+            bossReachRate: '—',
+            surveyRate: '—',
           },
           reportType,
           rowCount: response.rowCount || response.rows.length,
@@ -3723,6 +3762,29 @@
         }
       }
 
+      async function fetchEngagementData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=engagement-events&version=${version}&dateRange=${dateRange}`;
+        try {
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return { success: true, data: await response.json() };
+        } catch (error) {
+          if (error.name === 'TimeoutError') {
+            console.error(`Engagement-events request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error('Failed to fetch engagement events data:', error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -4088,6 +4150,29 @@
           console.warn('Movement-AB fetch failed:', movementABResult.error);
         }
 
+        const engagementResult = await fetchEngagementData();
+        if (engagementResult.success && engagementResult.data) {
+          const rows = engagementResult.data.rows || [];
+          const gameStarts = DATA.kpis.sessions ? parseInt(DATA.kpis.sessions.replace(/,/g, '')) : 0;
+          const counts = { scorecard_viewed: 0, music_toggled: 0, leave_game: 0, survey_submitted: 0 };
+          rows.forEach(row => {
+            const name = row.dimensionValues?.[0]?.value;
+            if (counts.hasOwnProperty(name)) counts[name] = parseInt(row.metricValues?.[0]?.value || 0);
+          });
+          if (gameStarts > 0) {
+            DATA.kpis.scorecardRate = (counts.scorecard_viewed / gameStarts * 100).toFixed(1) + '%';
+            DATA.kpis.musicRate     = (counts.music_toggled    / gameStarts * 100).toFixed(1) + '%';
+            DATA.kpis.leaveRate     = (counts.leave_game       / gameStarts * 100).toFixed(1) + '%';
+            DATA.kpis.surveyRate    = (counts.survey_submitted / gameStarts * 100).toFixed(1) + '%';
+          }
+          DATA.kpis.bossReachRate = DATA.bossAnalysis?.boss1?.overall?.attempts > 0
+            ? (DATA.bossAnalysis.boss1.overall.attempts / gameStarts * 100).toFixed(1) + '%'
+            : '—';
+          populateKPIs(DATA.kpis);
+        } else {
+          console.warn('Engagement-events fetch failed:', engagementResult.error);
+        }
+
         // Re-render all charts
         reinitAllCharts();
 
@@ -4224,6 +4309,11 @@
         } else {
           banner.style.display = 'none';
         }
+        document.getElementById('kpi-scorecard-rate').textContent  = k.scorecardRate;
+        document.getElementById('kpi-music-rate').textContent      = k.musicRate;
+        document.getElementById('kpi-leave-rate').textContent      = k.leaveRate;
+        document.getElementById('kpi-boss-reach-rate').textContent = k.bossReachRate;
+        document.getElementById('kpi-survey-rate').textContent     = k.surveyRate;
       }
 
       // ── Chart defaults ─────────────────────────────────────────────────

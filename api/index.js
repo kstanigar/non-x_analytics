@@ -1,27 +1,25 @@
 const { BetaAnalyticsDataClient } = require('@google-analytics/data');
 
-// Initialize the Google Analytics client using Environment Variables
 const analyticsDataClient = new BetaAnalyticsDataClient({
     credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS)
 });
 
-const propertyId = process.env.GA4_PROPERTY_ID; // e.g., 'YOUR-GA4-PROPERTY-ID'
+const propertyId = process.env.GA4_PROPERTY_ID;
 
 // CORS origin — set to production domain before Standing Tiger deploy (replace '*')
 const ALLOWED_ORIGIN = 'https://kstanigar.github.io';
 
 // Input validation whitelists — reject unknown values before hitting GA4
 const VALID_TYPES      = ['standard', 'realtime'];
-const VALID_SUBTYPES   = ['platform-split','daily-timeseries','boss-analysis','survival-time','powerup-analysis','progression-analysis','ai-analysis','death-triggers','new-user-pct','replay-rate','music-ab','music-funnel','movement-ab'];
+const VALID_SUBTYPES   = ['platform-split','daily-timeseries','boss-analysis','survival-time','powerup-analysis','progression-analysis','ai-analysis','death-triggers','new-user-pct','replay-rate','music-ab','music-funnel','movement-ab','engagement-events'];
 const VALID_DATE_RANGES = ['7day','30day','90day','alltime'];
 
 exports.handler = async (event) => {
     try {
-        // Simple routing based on a query parameter (e.g., ?type=realtime)
         const requestType = event.queryStringParameters?.type || 'standard';
-        const version = event.queryStringParameters?.version || '4.3'; // Default to version 4.3
-        const subType = event.queryStringParameters?.subType || null;  // NEW: Enables multi-dimensional queries (platform-split, daily-timeseries, boss-analysis)
-        const dateRangeParam = event.queryStringParameters?.dateRange || '7day'; // Extract date range parameter (default to 7 days)
+        const version = event.queryStringParameters?.version || '4.3';
+        const subType = event.queryStringParameters?.subType || null;
+        const dateRangeParam = event.queryStringParameters?.dateRange || '7day';
 
         // Validate inputs — return 400 for unknown values to prevent unexpected GA4 queries
         if (!VALID_TYPES.includes(requestType)) {
@@ -34,20 +32,18 @@ exports.handler = async (event) => {
             return { statusCode: 400, headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN }, body: JSON.stringify({ error: 'Invalid date range' }) };
         }
 
-        // Map date range string to GA4 date range object
         const dateRangeMap = {
-            '7day': { startDate: '7daysAgo', endDate: 'today' },
-            '30day': { startDate: '30daysAgo', endDate: 'today' },
-            '90day': { startDate: '90daysAgo', endDate: 'today' },
-            'alltime': { startDate: '2026-03-01', endDate: 'today' } // All data since v4.3 implementation (early-mid Apr 2026)
+            '7day':    { startDate: '7daysAgo',  endDate: 'today' },
+            '30day':   { startDate: '30daysAgo', endDate: 'today' },
+            '90day':   { startDate: '90daysAgo', endDate: 'today' },
+            'alltime': { startDate: '2026-03-01', endDate: 'today' } // v4.3 data start date
         };
 
-        // Get date range object (fallback to 7 days if invalid value)
         const dateRange = dateRangeMap[dateRangeParam] || dateRangeMap['7day'];
 
         let response;
 
-        // Build dimension filter for analytics_version (unless "all" is specified)
+        // Build version filter — omitted when version === 'all'
         const dimensionFilter = version === 'all' ? undefined : {
             filter: {
                 fieldName: 'customEvent:analytics_version',
@@ -58,169 +54,139 @@ exports.handler = async (event) => {
             }
         };
 
-        // ─── PLATFORM SPLIT REQUEST (Desktop vs Mobile breakdown) ───
+        // platform × deviceCategory × eventName
         if (requestType === 'standard' && subType === 'platform-split') {
             const platformSplitRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [dateRange], // Dynamic date range from query parameter
-                // Multi-dimensional query: platform × deviceCategory × eventName
-                // Returns separate counts for desktop vs mobile gameplay
+                dateRanges: [dateRange],
                 dimensions: [
-                    { name: 'platform' },      // Dimension 0: 'WEB' or 'APP'
-                    { name: 'deviceCategory' }, // Dimension 1: 'desktop', 'mobile', 'tablet'
-                    { name: 'eventName' }      // Dimension 2: event identifier
+                    { name: 'platform' },       // 'WEB' or 'APP'
+                    { name: 'deviceCategory' },  // 'desktop', 'mobile', 'tablet'
+                    { name: 'eventName' }
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
-
-            // Apply version filter if specified
             if (dimensionFilter) {
                 platformSplitRequest.dimensionFilter = dimensionFilter;
             }
-
             [response] = await analyticsDataClient.runReport(platformSplitRequest);
+
+        // date × eventName daily trends
         } else if (requestType === 'standard' && subType === 'daily-timeseries') {
-            // ─── DAILY TIMESERIES REQUEST (14-day Play/Win trend) ───
             const dailyTimeseriesRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [dateRange], // Dynamic date range from query parameter
-                // Multi-dimensional query: date × eventName
-                // Returns daily counts for game_start, player_won, etc.
+                dateRanges: [dateRange],
                 dimensions: [
-                    { name: 'date' },         // Dimension 0: YYYYMMDD format (e.g., "20260609")
-                    { name: 'eventName' }     // Dimension 1: game_start, player_won, etc.
+                    { name: 'date' },        // YYYYMMDD format (e.g., "20260609")
+                    { name: 'eventName' }    // game_start, player_won, etc.
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
-
-            // Apply version filter if specified
             if (dimensionFilter) {
                 dailyTimeseriesRequest.dimensionFilter = dimensionFilter;
             }
-
             [response] = await analyticsDataClient.runReport(dailyTimeseriesRequest);
+
+        // deviceCategory × boss_id × eventName
         } else if (requestType === 'standard' && subType === 'boss-analysis') {
-            // ─── BOSS ANALYSIS REQUEST (Boss defeat rates by platform) ───
             const bossAnalysisRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [dateRange], // Dynamic date range from query parameter
-                // Multi-dimensional query: deviceCategory × boss_id × eventName
-                // Returns boss attempts/defeats split by desktop vs mobile
+                dateRanges: [dateRange],
                 dimensions: [
-                    { name: 'deviceCategory' },        // Dimension 0: 'desktop', 'mobile', 'tablet'
-                    { name: 'customEvent:boss_id' },   // Dimension 1: '1', '2', or '3'
-                    { name: 'eventName' }              // Dimension 2: 'boss_attempt', 'boss_defeated'
+                    { name: 'deviceCategory' },       // 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:boss_id' },   // '1', '2', or '3'
+                    { name: 'eventName' }              // 'boss_attempt', 'boss_defeated'
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
-
-            // Apply version filter if specified
             if (dimensionFilter) {
                 bossAnalysisRequest.dimensionFilter = dimensionFilter;
             }
-
             [response] = await analyticsDataClient.runReport(bossAnalysisRequest);
+
+        // deviceCategory × session_duration_seconds × eventName
         } else if (requestType === 'standard' && subType === 'survival-time') {
-            // ─── SURVIVAL TIME REQUEST (Session duration distribution by platform) ───
             const survivalTimeRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [dateRange], // Dynamic date range from query parameter
-                // Multi-dimensional query: deviceCategory × session_duration_seconds × eventName
-                // Returns session duration distribution split by desktop vs mobile
+                dateRanges: [dateRange],
                 dimensions: [
-                    { name: 'deviceCategory' },                    // Dimension 0: 'desktop', 'mobile', 'tablet'
-                    { name: 'customEvent:session_duration_seconds' }, // Dimension 1: duration in seconds (e.g., "45", "120", "180")
-                    { name: 'eventName' }                          // Dimension 2: 'player_won', 'player_death', etc.
+                    { name: 'deviceCategory' },                       // 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:session_duration_seconds' },  // duration in seconds (e.g., "45", "120")
+                    { name: 'eventName' }                             // 'player_won', 'player_death', etc.
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
-
-            // Apply version filter if specified
             if (dimensionFilter) {
                 survivalTimeRequest.dimensionFilter = dimensionFilter;
             }
-
             [response] = await analyticsDataClient.runReport(survivalTimeRequest);
+
+        // powerup_type × phase × eventName × deviceCategory
         } else if (requestType === 'standard' && subType === 'powerup-analysis') {
-            // ─── POWERUP ANALYSIS REQUEST (Powerup collection by phase and platform) ───
             const powerupAnalysisRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [dateRange], // Dynamic date range from query parameter
-                // Multi-dimensional query: powerup_type × phase × eventName × deviceCategory
-                // Returns powerup collection counts split by phase (Green/Red/Purple) and platform (desktop/mobile)
+                dateRanges: [dateRange],
                 dimensions: [
-                    { name: 'customEvent:powerup_type' },  // Dimension 0: 'health', 'double_laser', 'shield', 'quad_shot'
-                    { name: 'customEvent:phase' },         // Dimension 1: 'green', 'red', 'purple'
-                    { name: 'eventName' },                 // Dimension 2: 'powerup_collected'
-                    { name: 'deviceCategory' }             // Dimension 3: 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:powerup_type' },  // 'health', 'double_laser', 'shield', 'quad_shot'
+                    { name: 'customEvent:phase' },          // 'green', 'red', 'purple'
+                    { name: 'eventName' },                  // 'powerup_collected'
+                    { name: 'deviceCategory' }              // 'desktop', 'mobile', 'tablet'
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
-
-            // Apply version filter if specified
             if (dimensionFilter) {
                 powerupAnalysisRequest.dimensionFilter = dimensionFilter;
             }
-
             [response] = await analyticsDataClient.runReport(powerupAnalysisRequest);
+
+        // phase × level_reached × eventName × deviceCategory
         } else if (requestType === 'standard' && subType === 'progression-analysis') {
-            // ─── PROGRESSION ANALYSIS REQUEST (Phase/level drop-off by event) ───
             const progressionAnalysisRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [dateRange], // Dynamic date range from query parameter
-                // Multi-dimensional query: phase × level_reached × eventName × deviceCategory
-                // Returns progression counts split by phase (Green/Red/Purple) and level reached
+                dateRanges: [dateRange],
                 dimensions: [
-                    { name: 'customEvent:phase' },         // Dimension 0: 'green', 'red', 'purple'
-                    { name: 'customEvent:level_reached' }, // Dimension 1: integer level values
-                    { name: 'eventName' },                 // Dimension 2: 'wave_reached', 'player_won', 'player_death'
-                    { name: 'deviceCategory' }             // Dimension 3: 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:phase' },          // 'green', 'red', 'purple'
+                    { name: 'customEvent:level_reached' },  // integer level values
+                    { name: 'eventName' },                  // 'wave_reached', 'player_won', 'player_death'
+                    { name: 'deviceCategory' }              // 'desktop', 'mobile', 'tablet'
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
-
-            // Apply version filter if specified
             if (dimensionFilter) {
                 progressionAnalysisRequest.dimensionFilter = dimensionFilter;
             }
-
             [response] = await analyticsDataClient.runReport(progressionAnalysisRequest);
+
+        // old_tier × new_tier × direction × eventName × deviceCategory
         } else if (requestType === 'standard' && subType === 'ai-analysis') {
-            // ─── AI ANALYSIS REQUEST (Tier distribution and flow by direction) ───
             const aiAnalysisRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [dateRange], // Dynamic date range from query parameter
-                // Multi-dimensional query: old_tier × new_tier × direction × eventName × deviceCategory
-                // Returns AI adjustment counts split by tier transition and direction (up/down)
+                dateRanges: [dateRange],
                 dimensions: [
-                    { name: 'customEvent:old_tier' },     // Dimension 0: tier before adjustment ('-3' to '3')
-                    { name: 'customEvent:new_tier' },     // Dimension 1: tier after adjustment ('-3' to '3')
-                    { name: 'customEvent:direction' },    // Dimension 2: 'increase' or 'decrease'
-                    { name: 'eventName' },                // Dimension 3: 'ai_difficulty_adjusted'
-                    { name: 'deviceCategory' },           // Dimension 4: 'desktop', 'mobile', 'tablet'
-                    { name: 'customEvent:speed_locked' },          // Dimension 5: 'true' or 'false'
-                    { name: 'customEvent:effective_multiplier' }  // Dimension 6: '0.5', '1.2', '1.75' etc.
+                    { name: 'customEvent:old_tier' },              // tier before adjustment ('-3' to '3')
+                    { name: 'customEvent:new_tier' },              // tier after adjustment ('-3' to '3')
+                    { name: 'customEvent:direction' },             // 'increase' or 'decrease'
+                    { name: 'eventName' },                         // 'ai_difficulty_adjusted'
+                    { name: 'deviceCategory' },                    // 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:speed_locked' },          // 'true' or 'false'
+                    { name: 'customEvent:effective_multiplier' }   // '0.5', '1.2', '1.75', etc.
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
-
-            // Apply version filter if specified
             if (dimensionFilter) {
                 aiAnalysisRequest.dimensionFilter = dimensionFilter;
             }
-
             [response] = await analyticsDataClient.runReport(aiAnalysisRequest);
+
+        // death_phase × eventName × deviceCategory
         } else if (requestType === 'standard' && subType === 'death-triggers') {
-            // ─── DEATH TRIGGERS REQUEST (Death counts by phase) ───
             const deathTriggersRequest = {
                 property: `properties/${propertyId}`,
                 dateRanges: [dateRange],
-                // Multi-dimensional query: death_phase × eventName × deviceCategory
-                // Returns player_death counts split by game phase (green/red/purple)
                 dimensions: [
-                    { name: 'customEvent:death_phase' }, // Dimension 0: 'green', 'red', 'purple'
-                    { name: 'eventName' },               // Dimension 1: 'player_death'
-                    { name: 'deviceCategory' }           // Dimension 2: 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:death_phase' },  // 'green', 'red', 'purple'
+                    { name: 'eventName' },                 // 'player_death'
+                    { name: 'deviceCategory' }             // 'desktop', 'mobile', 'tablet'
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
@@ -228,16 +194,15 @@ exports.handler = async (event) => {
                 deathTriggersRequest.dimensionFilter = dimensionFilter;
             }
             [response] = await analyticsDataClient.runReport(deathTriggersRequest);
+
+        // newVsReturning × eventName
         } else if (requestType === 'standard' && subType === 'new-user-pct') {
-            // ─── NEW USER % REQUEST (New vs returning players) ───
             const newUserPctRequest = {
                 property: `properties/${propertyId}`,
                 dateRanges: [dateRange],
-                // Multi-dimensional query: newVsReturning × eventName
-                // Returns game_start counts split by new vs returning users
                 dimensions: [
-                    { name: 'newVsReturning' }, // Dimension 0: 'new' or 'returning' (GA4 built-in)
-                    { name: 'eventName' }        // Dimension 1: filter to 'game_start'
+                    { name: 'newVsReturning' },  // 'new' or 'returning' (GA4 built-in dimension)
+                    { name: 'eventName' }         // filtered to 'game_start'
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
@@ -245,71 +210,92 @@ exports.handler = async (event) => {
                 newUserPctRequest.dimensionFilter = dimensionFilter;
             }
             [response] = await analyticsDataClient.runReport(newUserPctRequest);
+
+        // is_replay × eventName × deviceCategory
         } else if (requestType === 'standard' && subType === 'replay-rate') {
-            // ─── REPLAY RATE REQUEST (Replay sessions as % of total game starts) ───
             const replayRateRequest = {
                 property: `properties/${propertyId}`,
                 dateRanges: [dateRange],
-                // Multi-dimensional query: is_replay × eventName × deviceCategory
-                // Returns game_start counts split by replay vs first-play, per platform
                 dimensions: [
-                    { name: 'customEvent:is_replay' }, // Dimension 0: 'true' or 'false'
-                    { name: 'eventName' },              // Dimension 1: filter to 'game_start'
-                    { name: 'deviceCategory' }          // Dimension 2: 'desktop', 'mobile', 'tablet'
+                    { name: 'customEvent:is_replay' },  // 'true' or 'false'
+                    { name: 'eventName' },               // filtered to 'game_start'
+                    { name: 'deviceCategory' }           // 'desktop', 'mobile', 'tablet'
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
             if (dimensionFilter) { replayRateRequest.dimensionFilter = dimensionFilter; }
             [response] = await analyticsDataClient.runReport(replayRateRequest);
+
+        // ab_music_group × eventName
         } else if (requestType === 'standard' && subType === 'music-ab') {
-            // ─── MUSIC A/B REQUEST (Win/LB/toggle rates split by ab_music_group) ───
             const musicABRequest = {
                 property: `properties/${propertyId}`,
                 dateRanges: [dateRange],
-                // Multi-dimensional query: ab_music_group × eventName
-                // Returns event counts split by music_on vs music_off cohort
                 dimensions: [
-                    { name: 'customEvent:ab_music_group' }, // Dimension 0: 'music_on' or 'music_off'
-                    { name: 'eventName' }                    // Dimension 1: game_start, player_won, etc.
+                    { name: 'customEvent:ab_music_group' },  // 'A' or 'B'
+                    { name: 'eventName' }                     // game_start, player_won, etc.
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
             if (dimensionFilter) { musicABRequest.dimensionFilter = dimensionFilter; }
             [response] = await analyticsDataClient.runReport(musicABRequest);
+
+        // ab_music_group × boss_id × eventName — max 12 rows (2 groups × 3 bosses × 2 events)
         } else if (requestType === 'standard' && subType === 'music-funnel') {
-            // ─── MUSIC FUNNEL REQUEST (Per-boss funnel split by ab_music_group) ───
             const musicFunnelRequest = {
                 property: `properties/${propertyId}`,
                 dateRanges: [dateRange],
-                // 3-dim query: ab_music_group × boss_id × eventName
-                // Returns boss_attempt/boss_defeated counts per group (A/B) per boss (1/2/3)
-                // Expected rows: 2 groups × 3 bosses × 2 events = max 12 rows
                 dimensions: [
-                    { name: 'customEvent:ab_music_group' }, // Dimension 0: 'A' or 'B'
-                    { name: 'customEvent:boss_id' },         // Dimension 1: '1', '2', '3'
-                    { name: 'eventName' }                    // Dimension 2: 'boss_attempt', 'boss_defeated'
+                    { name: 'customEvent:ab_music_group' },  // 'A' or 'B'
+                    { name: 'customEvent:boss_id' },          // '1', '2', '3'
+                    { name: 'eventName' }                     // 'boss_attempt', 'boss_defeated'
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
             if (dimensionFilter) { musicFunnelRequest.dimensionFilter = dimensionFilter; }
             [response] = await analyticsDataClient.runReport(musicFunnelRequest);
+
+        // movement_group × eventName
         } else if (requestType === 'standard' && subType === 'movement-ab') {
-            // ─── MOVEMENT A/B REQUEST (Win rate split by movement_group) ───
             const movementABRequest = {
                 property: `properties/${propertyId}`,
                 dateRanges: [dateRange],
-                // Multi-dimensional query: movement_group × eventName
-                // Returns event counts split by movement scheme cohort
                 dimensions: [
-                    { name: 'customEvent:movement_group' }, // Dimension 0: values TBC from endpoint test
-                    { name: 'eventName' }                    // Dimension 1: game_start, player_won, etc.
+                    { name: 'customEvent:movement_group' },  // values TBC from endpoint test
+                    { name: 'eventName' }                     // game_start, player_won, etc.
                 ],
                 metrics: [{ name: 'eventCount' }],
             };
             if (dimensionFilter) { movementABRequest.dimensionFilter = dimensionFilter; }
             [response] = await analyticsDataClient.runReport(movementABRequest);
+
+        // engagement eventName filter
+        } else if (requestType === 'standard' && subType === 'engagement-events') {
+            const engagementRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'eventName' }],
+                metrics: [{ name: 'eventCount' }],
+                dimensionFilter: {
+                    andGroup: {
+                        expressions: [
+                            ...(dimensionFilter ? [dimensionFilter] : []),
+                            {
+                                filter: {
+                                    fieldName: 'eventName',
+                                    inListFilter: {
+                                        values: ['scorecard_viewed', 'music_toggled', 'leave_game', 'survey_submitted']
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            };
+            [response] = await analyticsDataClient.runReport(engagementRequest);
+
+        // real-time event data
         } else if (requestType === 'realtime') {
-            // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {
                 property: `properties/${propertyId}`,
                 dimensions: [{ name: 'eventName' }],
@@ -319,11 +305,12 @@ exports.handler = async (event) => {
                 realtimeRequest.dimensionFilter = dimensionFilter;
             }
             [response] = await analyticsDataClient.runRealtimeReport(realtimeRequest);
+
+        // historical event data fallback
         } else {
-            // ─── 2. STANDARD API (Historical Data) ───
             const standardRequest = {
                 property: `properties/${propertyId}`,
-                dateRanges: [dateRange], // Dynamic date range from query parameter
+                dateRanges: [dateRange],
                 dimensions: [{ name: 'eventName' }],
                 metrics: [{ name: 'eventCount' }],
             };
@@ -333,7 +320,6 @@ exports.handler = async (event) => {
             [response] = await analyticsDataClient.runReport(standardRequest);
         }
 
-        // Return successful response to API Gateway
         return {
             statusCode: 200,
             headers: {
