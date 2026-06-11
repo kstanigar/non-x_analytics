@@ -1983,7 +1983,7 @@
                 <tr>
                   <td><code>powerup_type</code></td>
                   <td>Event</td>
-                  <td>'health', 'double_laser', 'shield', 'quad_shot'</td>
+                  <td>'health', 'double_laser', 'shield'</td>
                   <td>powerup_collected</td>
                 </tr>
               </tbody>
@@ -2303,13 +2303,13 @@
         // Powerup collection by phase (Green/Red/Purple)
         // Updated by fetchPowerupAnalysisData() with live GA4 data
         powerups: {
-          labels: ['Health', 'Double Laser', 'Shield', 'Quad Shot'],
-          green: [420, 310, 280, 0],    // Mock data (replaced by live when API called)
-          red: [510, 390, 340, 0],      // Mock data (replaced by live when API called)
-          purple: [280, 210, 430, 310], // Mock data (replaced by live when API called)
-          byPlatform: {                 // Platform breakdown (future enhancement)
-            desktop: [0, 0, 0, 0],
-            mobile: [0, 0, 0, 0]
+          labels: ['Health', 'Double Laser', 'Shield'],
+          green: [420, 310, 280],    // Mock data (replaced by live when API called)
+          red: [510, 390, 340],      // Mock data (replaced by live when API called)
+          purple: [280, 210, 430],   // Mock data (replaced by live when API called)
+          byPlatform: {              // Platform breakdown (future enhancement)
+            desktop: [0, 0, 0],
+            mobile: [0, 0, 0]
           }
         },
         funnel: [
@@ -2745,23 +2745,23 @@
         // ─── POWERUP-ANALYSIS RESPONSE HANDLER ───
         if (reportType === 'powerup-analysis') {
           // Initialize phase-based powerup data structure
-          // Structure: { green: {health: 0, double_laser: 0, shield: 0, quad_shot: 0}, red: {...}, purple: {...} }
+          // Structure: { green: {health: 0, double_laser: 0, shield: 0}, red: {...}, purple: {...} }
           const powerupData = {
-            green: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 },
-            red: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 },
-            purple: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 }
+            green: { health: 0, double_laser: 0, shield: 0 },
+            red: { health: 0, double_laser: 0, shield: 0 },
+            purple: { health: 0, double_laser: 0, shield: 0 }
           };
 
           // Platform-specific powerup data (for future enhancements)
           const powerupByPlatform = {
-            desktop: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 },
-            mobile: { health: 0, double_laser: 0, shield: 0, quad_shot: 0 }
+            desktop: { health: 0, double_laser: 0, shield: 0 },
+            mobile: { health: 0, double_laser: 0, shield: 0 }
           };
 
           // Parse response rows: powerup_type × phase × eventName × deviceCategory
           if (response.rows && response.rows.length > 0) {
             response.rows.forEach(row => {
-              const powerupType = row.dimensionValues[0]?.value?.toLowerCase() || '';  // 'health', 'double_laser', 'shield', 'quad_shot'
+              const powerupType = row.dimensionValues[0]?.value?.toLowerCase() || '';  // 'health', 'double_laser', 'shield'
               const phase = row.dimensionValues[1]?.value?.toLowerCase() || '';        // 'green', 'red', 'purple'
               const eventName = row.dimensionValues[2]?.value || '';                    // 'powerup_collected'
               const deviceCategory = row.dimensionValues[3]?.value?.toLowerCase() || ''; // 'desktop', 'mobile', 'tablet'
@@ -2785,8 +2785,8 @@
 
             // Convert to array format for chart
             // Chart expects: { labels: [...], green: [...], red: [...], purple: [...] }
-            const powerupLabels = ['Health', 'Double Laser', 'Shield', 'Quad Shot'];
-            const powerupKeys = ['health', 'double_laser', 'shield', 'quad_shot'];
+            const powerupLabels = ['Health', 'Double Laser', 'Shield'];
+            const powerupKeys = ['health', 'double_laser', 'shield'];
 
             const chartData = {
               labels: powerupLabels,
@@ -2807,13 +2807,13 @@
             console.warn('⚠️ No powerup data in GA4 response, using fallback');
             return {
               powerupCollection: {
-                labels: ['Health', 'Double Laser', 'Shield', 'Quad Shot'],
-                green: [0, 0, 0, 0],
-                red: [0, 0, 0, 0],
-                purple: [0, 0, 0, 0],
+                labels: ['Health', 'Double Laser', 'Shield'],
+                green: [0, 0, 0],
+                red: [0, 0, 0],
+                purple: [0, 0, 0],
                 byPlatform: {
-                  desktop: [0, 0, 0, 0],
-                  mobile: [0, 0, 0, 0]
+                  desktop: [0, 0, 0],
+                  mobile: [0, 0, 0]
                 }
               }
             };
@@ -4332,11 +4332,11 @@
         new Chart(document.getElementById('chart-powerup'), {
           type: 'bar',
           data: {
-            labels: d?.labels || ['Health', 'Double Laser', 'Shield', 'Quad Shot'],  // Fallback to default labels
+            labels: d?.labels || ['Health', 'Double Laser', 'Shield'],  // Fallback to default labels
             datasets: [
-              { label: 'Green Phase', data: d?.green || [0, 0, 0, 0], backgroundColor: GRN + '55', borderColor: GRN, borderWidth: 1 },
-              { label: 'Red Phase', data: d?.red || [0, 0, 0, 0], backgroundColor: RED + '55', borderColor: RED, borderWidth: 1 },
-              { label: 'Purple Phase', data: d?.purple || [0, 0, 0, 0], backgroundColor: PUR + '55', borderColor: PUR, borderWidth: 1 },
+              { label: 'Green Phase', data: d?.green || [0, 0, 0], backgroundColor: GRN + '55', borderColor: GRN, borderWidth: 1 },
+              { label: 'Red Phase', data: d?.red || [0, 0, 0], backgroundColor: RED + '55', borderColor: RED, borderWidth: 1 },
+              { label: 'Purple Phase', data: d?.purple || [0, 0, 0], backgroundColor: PUR + '55', borderColor: PUR, borderWidth: 1 },
             ]
           },
           options: { responsive: true, maintainAspectRatio: false, scales: gridOpts(), plugins: { legend: { labels: { font: { size: getLegendFontSize() }, color: 'rgba(200,232,255,0.5)', boxWidth: 12 } } } }
@@ -4757,24 +4757,32 @@
         });
 
         const sigTbody = document.getElementById('ab-sig-table');
+        const sigStatus = (nA, nB) => {
+          const n = Math.min(nA, nB);
+          if (n >= 1000) return { text: '✓ Significant (n>1000)', color: GRN };
+          if (n >= 100)  return { text: 'Emerging (n>100)',       color: YEL };
+          return           { text: `⚠ Insufficient (n=${n})`,    color: RED };
+        };
+        const mSig  = sigStatus(DATA.abMusic.A.sessions,    DATA.abMusic.B.sessions);
+        const mvSig = sigStatus(DATA.abMovement.A.sessions, DATA.abMovement.B.sessions);
         sigTbody.innerHTML = `
     <tr>
       <td>Music Default (A/B)</td>
-      <td style="color:${CYAN}">1,449</td>
-      <td style="color:${MAG}">1,392</td>
-      <td style="color:${GRN}">✓ Significant (n>1000)</td>
+      <td style="color:${CYAN}">${DATA.abMusic.A.sessions.toLocaleString()}</td>
+      <td style="color:${MAG}">${DATA.abMusic.B.sessions.toLocaleString()}</td>
+      <td style="color:${mSig.color}">${mSig.text}</td>
       <td>Win Rate, Replay, Survival</td>
       <td>p &lt; 0.05</td>
-      <td style="color:${GRN}">Ship Music ON as default</td>
+      <td style="color:${mSig.color}">${DATA.abMusic.A.sessions >= 100 && DATA.abMusic.B.sessions >= 100 ? 'Ship Music ON as default' : 'Gather more data'}</td>
     </tr>
     <tr>
       <td>Movement Scheme (A/B)</td>
-      <td style="color:${CYAN}">1,389</td>
-      <td style="color:${MAG}">1,452</td>
-      <td style="color:${YEL}">Emerging (n>1000)</td>
+      <td style="color:${CYAN}">${DATA.abMovement.A.sessions.toLocaleString()}</td>
+      <td style="color:${MAG}">${DATA.abMovement.B.sessions.toLocaleString()}</td>
+      <td style="color:${mvSig.color}">${mvSig.text}</td>
       <td>Avg Level, Win Rate</td>
       <td>p &lt; 0.05</td>
-      <td style="color:${YEL}">Monitor 1 more week</td>
+      <td style="color:${mvSig.color}">${DATA.abMovement.A.sessions >= 100 && DATA.abMovement.B.sessions >= 100 ? 'Monitor 1 more week' : 'Gather more data'}</td>
     </tr>`;
       }
 
