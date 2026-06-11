@@ -3193,6 +3193,14 @@
           ? ((playerDeath / completedGames) * 100).toFixed(1) + '%'
           : '0%';
 
+        // Warn if <80% of games have recorded outcomes (win or death)
+        if (gameStarts > 0 && completedGames / gameStarts < 0.8) {
+          console.warn(
+            `⚠️ Data Completeness: Only ${((completedGames / gameStarts) * 100).toFixed(1)}% of games have recorded outcomes. ` +
+            `${gameStarts - completedGames} of ${gameStarts} games have no outcome event.`
+          );
+        }
+
         const lbRate = playerWon > 0
           ? ((leaderboardSubmit / playerWon) * 100).toFixed(0) + '%'
           : '0%';
