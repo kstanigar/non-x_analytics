@@ -8,7 +8,7 @@ const analyticsDataClient = new BetaAnalyticsDataClient({
 const propertyId = process.env.GA4_PROPERTY_ID; // e.g., 'YOUR-GA4-PROPERTY-ID'
 
 // CORS origin — set to production domain before Standing Tiger deploy (replace '*')
-const ALLOWED_ORIGIN = '*';
+const ALLOWED_ORIGIN = 'https://kstanigar.github.io';
 
 // Input validation whitelists — reject unknown values before hitting GA4
 const VALID_TYPES      = ['standard', 'realtime'];
