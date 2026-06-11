@@ -242,6 +242,38 @@ exports.handler = async (event) => {
             };
             if (dimensionFilter) { replayRateRequest.dimensionFilter = dimensionFilter; }
             [response] = await analyticsDataClient.runReport(replayRateRequest);
+        } else if (requestType === 'standard' && subType === 'music-ab') {
+            // ─── MUSIC A/B REQUEST (Win/LB/toggle rates split by ab_music_group) ───
+            const musicABRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange],
+                // Multi-dimensional query: ab_music_group × eventName
+                // Returns event counts split by music_on vs music_off cohort
+                dimensions: [
+                    { name: 'customEvent:ab_music_group' }, // Dimension 0: 'music_on' or 'music_off'
+                    { name: 'eventName' }                    // Dimension 1: game_start, player_won, etc.
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+            if (dimensionFilter) { musicABRequest.dimensionFilter = dimensionFilter; }
+            [response] = await analyticsDataClient.runReport(musicABRequest);
+        } else if (requestType === 'standard' && subType === 'music-funnel') {
+            // ─── MUSIC FUNNEL REQUEST (Per-boss funnel split by ab_music_group) ───
+            const musicFunnelRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange],
+                // 3-dim query: ab_music_group × boss_id × eventName
+                // Returns boss_attempt/boss_defeated counts per group (A/B) per boss (1/2/3)
+                // Expected rows: 2 groups × 3 bosses × 2 events = max 12 rows
+                dimensions: [
+                    { name: 'customEvent:ab_music_group' }, // Dimension 0: 'A' or 'B'
+                    { name: 'customEvent:boss_id' },         // Dimension 1: '1', '2', '3'
+                    { name: 'eventName' }                    // Dimension 2: 'boss_attempt', 'boss_defeated'
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+            if (dimensionFilter) { musicFunnelRequest.dimensionFilter = dimensionFilter; }
+            [response] = await analyticsDataClient.runReport(musicFunnelRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {

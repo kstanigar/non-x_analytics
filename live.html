@@ -3022,6 +3022,93 @@
           };
         }
 
+        if (reportType === 'music-ab') {
+          // Parse ab_music_group × eventName response
+          // GA4 sends group values as 'A' and 'B' (not 'music_on'/'music_off')
+          const groups = { a: {}, b: {} };
+
+          if (response.rows && response.rows.length > 0) {
+            response.rows.forEach(row => {
+              const group     = row.dimensionValues[0]?.value?.toLowerCase() || '';
+              const eventName = row.dimensionValues[1]?.value || '';
+              const count     = parseInt(row.metricValues[0]?.value || '0', 10);
+              if (!groups[group]) return; // skip unknown groups (e.g. '(not set)')
+              groups[group][eventName] = (groups[group][eventName] || 0) + count;
+            });
+          }
+
+          const calc = (grp) => {
+            const g   = groups[grp];
+            const gs  = g['game_start']         || 0;
+            const pw  = g['player_won']         || 0;
+            const lb  = g['leaderboard_submit'] || 0;
+            const mt  = g['music_toggled']      || 0;
+            const fmt = (n, d) => d > 0 ? Math.round((n / d) * 100) + '%' : '—';
+            return { sessions: gs, winRate: fmt(pw, gs), lbRate: fmt(lb, pw), musicToggle: fmt(mt, gs) };
+          };
+
+          const on  = calc('a'); // Group A = Music ON
+          const off = calc('b'); // Group B = Music OFF
+          const totalGs = on.sessions + off.sessions;
+
+          return {
+            musicAB: { on, off },
+            abSplit: {
+              musicOn:  totalGs > 0 ? Math.round((on.sessions  / totalGs) * 100) : 51,
+              musicOff: totalGs > 0 ? Math.round((off.sessions / totalGs) * 100) : 49,
+            },
+            hasRealData: totalGs > 0,
+          };
+        }
+
+        if (reportType === 'music-funnel') {
+          // Parse ab_music_group × boss_id × eventName response
+          // Builds 8-stage funnel arrays for Music ON (Group A) and Music OFF (Group B)
+          const bossCounts = {
+            a: { boss1: { attempts: 0, defeats: 0 }, boss2: { attempts: 0, defeats: 0 }, boss3: { attempts: 0, defeats: 0 } },
+            b: { boss1: { attempts: 0, defeats: 0 }, boss2: { attempts: 0, defeats: 0 }, boss3: { attempts: 0, defeats: 0 } },
+          };
+
+          if (response.rows && response.rows.length > 0) {
+            response.rows.forEach(row => {
+              const group     = row.dimensionValues[0]?.value?.toLowerCase() || '';
+              const bossId    = row.dimensionValues[1]?.value || '';
+              const eventName = row.dimensionValues[2]?.value || '';
+              const count     = parseInt(row.metricValues[0]?.value || '0', 10);
+              if (!bossCounts[group]) return; // skip unknown groups (e.g. '(not set)')
+              const bKey = `boss${bossId}`;
+              if (!bossCounts[group][bKey]) return; // skip unexpected boss_id values
+              if (eventName === 'boss_attempt')  bossCounts[group][bKey].attempts += count;
+              if (eventName === 'boss_defeated') bossCounts[group][bKey].defeats  += count;
+            });
+          }
+
+          // game_start counts from DATA.abMusic — already populated by music-ab fetch (runs first)
+          const gsA = DATA.abMusic?.A?.sessions || 0;
+          const gsB = DATA.abMusic?.B?.sessions || 0;
+
+          const buildArr = (grp, gs) => {
+            const bc  = bossCounts[grp];
+            const pct = (n) => gs > 0 ? parseFloat(((n / gs) * 100).toFixed(1)) : 0;
+            return [
+              { name: 'game_start',      n: gs,                pct: 100                     },
+              { name: 'boss_attempt 1',  n: bc.boss1.attempts, pct: pct(bc.boss1.attempts)  },
+              { name: 'boss_defeated 1', n: bc.boss1.defeats,  pct: pct(bc.boss1.defeats)   },
+              { name: 'boss_attempt 2',  n: bc.boss2.attempts, pct: pct(bc.boss2.attempts)  },
+              { name: 'boss_defeated 2', n: bc.boss2.defeats,  pct: pct(bc.boss2.defeats)   },
+              { name: 'boss_attempt 3',  n: bc.boss3.attempts, pct: pct(bc.boss3.attempts)  },
+              { name: 'boss_defeated 3', n: bc.boss3.defeats,  pct: pct(bc.boss3.defeats)   },
+              { name: 'player_won',      n: bc.boss3.defeats,  pct: pct(bc.boss3.defeats)   }, // proxy for player_won
+            ];
+          };
+
+          return {
+            funnelMusicOn:  buildArr('a', gsA),
+            funnelMusicOff: buildArr('b', gsB),
+            hasRealData: (gsA + gsB) > 0,
+          };
+        }
+
         // ─── EXTRACTION ───────────────────────────────────────────────
 
         const eventCounts = {};
@@ -3522,6 +3609,54 @@
         }
       }
 
+      async function fetchMusicABData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=music-ab&version=${version}&dateRange=${dateRange}`;
+        try {
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(API_CONFIG.timeout), // AbortSignal.timeout() — Baseline 2024
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const data = await response.json();
+          return { success: true, data };
+        } catch (error) {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
+            console.error(`Music-AB request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error('Failed to fetch music A/B data:', error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
+      async function fetchMusicFunnelData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=music-funnel&version=${version}&dateRange=${dateRange}`;
+        try {
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(API_CONFIG.timeout), // AbortSignal.timeout() — Baseline 2024
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const data = await response.json();
+          return { success: true, data };
+        } catch (error) {
+          if (error.name === 'TimeoutError') { // AbortSignal.timeout() throws TimeoutError, not AbortError
+            console.error(`Music-Funnel request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error('Failed to fetch music funnel data:', error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -3855,6 +3990,49 @@
           console.warn('Replay-rate fetch failed:', replayResult.error);
         }
 
+        // Fetch music A/B + funnel data in parallel (independent queries, saves ~300ms)
+        // Promise.all is safe — both fetch functions return {success, error} and never reject
+        const [musicABResult, musicFunnelResult] = await Promise.all([
+          fetchMusicABData(),
+          fetchMusicFunnelData(),
+        ]);
+
+        // Process music-ab FIRST — music-funnel parser reads DATA.abMusic.A/B.sessions
+        if (musicABResult.success && musicABResult.data) {
+          const mabData = mapGA4ResponseToDATA(musicABResult.data, 'music-ab');
+          if (!mabData.error && mabData.hasRealData) {
+            DATA.abMusic.A.sessions    = mabData.musicAB.on.sessions;
+            DATA.abMusic.A.winRate     = mabData.musicAB.on.winRate;
+            DATA.abMusic.A.lbRate      = mabData.musicAB.on.lbRate;
+            DATA.abMusic.A.musicToggle = mabData.musicAB.on.musicToggle;
+            DATA.abMusic.B.sessions    = mabData.musicAB.off.sessions;
+            DATA.abMusic.B.winRate     = mabData.musicAB.off.winRate;
+            DATA.abMusic.B.lbRate      = mabData.musicAB.off.lbRate;
+            DATA.abMusic.B.musicToggle = mabData.musicAB.off.musicToggle;
+            DATA.abSplit.musicOn       = mabData.abSplit.musicOn;
+            DATA.abSplit.musicOff      = mabData.abSplit.musicOff;
+            console.log('Music A/B data updated:', DATA.abMusic, DATA.abSplit);
+          } else {
+            console.warn('Music-AB parsing failed or no data, using mock values');
+          }
+        } else {
+          console.warn('Music-AB fetch failed:', musicABResult.error);
+        }
+
+        // Process music-funnel AFTER music-ab (parser reads DATA.abMusic.A/B.sessions)
+        if (musicFunnelResult.success && musicFunnelResult.data) {
+          const mfData = mapGA4ResponseToDATA(musicFunnelResult.data, 'music-funnel');
+          if (!mfData.error && mfData.hasRealData) {
+            DATA.funnelMusicOn  = mfData.funnelMusicOn;
+            DATA.funnelMusicOff = mfData.funnelMusicOff;
+            console.log('Music funnel data updated:', DATA.funnelMusicOn, DATA.funnelMusicOff);
+          } else {
+            console.warn('Music-Funnel parsing failed or no data, using mock values');
+          }
+        } else {
+          console.warn('Music-Funnel fetch failed:', musicFunnelResult.error);
+        }
+
         // Re-render all charts
         reinitAllCharts();
 
@@ -4126,11 +4304,29 @@
       }
 
       function buildFunnelTable() {
-        // Dynamic conversion rates from live DATA.funnel; music ON/OFF columns are '—' until LT-2 is complete
+        // Dynamic conversion rates from live DATA.funnel, DATA.funnelMusicOn, DATA.funnelMusicOff
         const conversions = DATA.funnel.slice(1).map((stage, i) => {
           const prev = DATA.funnel[i];
           const rate = prev.n > 0 ? ((stage.n / prev.n) * 100).toFixed(1) + '%' : '—';
-          return { from: prev.name, to: stage.name, overall: rate, on: '—', off: '—', delta: '—' };
+
+          // Music ON rate from DATA.funnelMusicOn (live after music-funnel fetch)
+          const onStage  = DATA.funnelMusicOn?.[i + 1];
+          const onPrev   = DATA.funnelMusicOn?.[i];
+          const onRate   = (onPrev?.n > 0 && onStage) ? ((onStage.n / onPrev.n) * 100).toFixed(1) + '%' : '—';
+
+          // Music OFF rate from DATA.funnelMusicOff (live after music-funnel fetch)
+          const offStage = DATA.funnelMusicOff?.[i + 1];
+          const offPrev  = DATA.funnelMusicOff?.[i];
+          const offRate  = (offPrev?.n > 0 && offStage) ? ((offStage.n / offPrev.n) * 100).toFixed(1) + '%' : '—';
+
+          // Delta in percentage points (positive = ON better, negative = OFF better)
+          const onNum  = parseFloat(onRate);
+          const offNum = parseFloat(offRate);
+          const delta  = (!isNaN(onNum) && !isNaN(offNum))
+            ? (onNum - offNum >= 0 ? '+' : '') + (onNum - offNum).toFixed(1) + 'pp'
+            : '—';
+
+          return { from: prev.name, to: stage.name, overall: rate, on: onRate, off: offRate, delta };
         });
         const tbody = document.getElementById('funnel-table');
         tbody.innerHTML = ''; // Clear existing rows before rebuilding

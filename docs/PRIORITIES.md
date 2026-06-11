@@ -346,7 +346,8 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
   **🔴 Large (4–8 hrs each) — see `docs/Phase7_Large_Tier_Plan.md` for full implementation plan:**
   11. ✅ **LT-1: Game Funnel** — COMPLETE June 10, 2026 (8-stage funnel live: game_start → boss_attempt/defeated ×3 → player_won; all from boss-analysis; `wave_reached` dropped — param not sent with that event)
-  12. **LT-2: Music A/B Test** — new `subType=music-ab`; `ab_music_group` × `eventName`; wire `DATA.abMusic` + `DATA.abSplit` donut (3–4 hrs)
+  12. ✅ **LT-2: Music A/B Test** — COMPLETE June 10, 2026 (`music-ab` Lambda + parser + fetch + integration; `ab_music_group` returns `'A'`/`'B'` not `'music_on'`/`'music_off'` — parser fixed; A=73 sessions, B=39 sessions; Group B wins on win rate 44% vs 23%)
+      - ✅ **LT-2b: Music Funnel Table** — COMPLETE June 10, 2026 (`music-funnel` Lambda handler + parser + `Promise.all` parallel fetch; Conversion Rates Table Music ON/OFF/Delta columns fully live; key finding: Music OFF players reach Boss 1 at 64% vs Music ON 37% — -27.1pp delta)
   13. **LT-3: Movement A/B Test** — new `subType=movement-ab`; `movement_group` values TBC via endpoint test; wire `DATA.abMovement` (2–3 hrs)
 
   **⚫ BigQuery required (session-level joins):**

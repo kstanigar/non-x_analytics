@@ -265,6 +265,39 @@ Agent: [Implements]
 
 ---
 
+### **Rule 8: Always Update api/index.js Before Lambda Deploy Instructions**
+
+**Rule:** Any time a new Lambda handler is added or changed, `api/index.js` must be updated in the repo FIRST, before presenting deploy instructions to the user.
+
+**Problem:** If Lambda deploy instructions are given before the file is saved, the user may paste stale code from their clipboard or a previous session.
+
+**Process:**
+```
+Write new handler code
+   ↓
+Edit api/index.js (repo file updated) ✅
+   ↓
+Confirm file is correct (diff or read)
+   ↓
+THEN present deploy instructions with the message:
+"api/index.js is up to date. Paste the contents into Lambda."
+```
+
+**Forbidden:**
+```
+❌ "Here's the Lambda code to paste: [code block]"
+   (without first updating api/index.js)
+```
+
+**Correct:**
+```
+✅ Edit api/index.js → verify → "api/index.js is updated. Use that file for Lambda."
+```
+
+**Note:** User copies `api/index.js` directly into the AWS Lambda console. The repo file IS the Lambda source of truth.
+
+---
+
 ## 📋 STANDARD WORKFLOW
 
 ### **1. Task Received**

@@ -1,7 +1,7 @@
 # Phase 7: Large Tier Implementation Plan
 
 **Created:** June 10, 2026
-**Status:** Pending — ready to implement
+**Status:** LT-1 complete ✅ — LT-2 next
 **Research:** Haiku agent (all line numbers verified against live.html + api/index.js)
 
 ---
@@ -10,17 +10,25 @@
 
 | # | Task | Effort | Lambda? | Status |
 |---|------|--------|---------|--------|
-| LT-1 | Game Funnel | 1–2 hrs | No (extend existing parsers) | ⏳ Next |
-| LT-2 | Music A/B Test | 3–4 hrs | New handler | ⏳ Pending |
+| LT-1 | Game Funnel | 1 hr actual | No | ✅ Complete — June 10, 2026 |
+| LT-2 | Music A/B Test | 3–4 hrs | New handler | ⏳ Next |
 | LT-3 | Movement A/B Test | 2–3 hrs | New handler | ⏳ Pending |
 
 **Recommended order:** LT-1 → LT-2 → LT-3
 
 ---
 
-## LT-1: Game Funnel — No new Lambda needed
+## LT-1: Game Funnel ✅ COMPLETE — June 10, 2026
 
-### Summary
+**Commit:** ec575c0
+
+### What shipped
+8-stage funnel live: `game_start → boss_attempt 1 → boss_defeated 1 → boss_attempt 2 → boss_defeated 2 → boss_attempt 3 → boss_defeated 3 → player_won`. All data from existing boss-analysis endpoint. `buildFunnelTable()` now dynamic. Music ON/OFF columns show `—` until LT-2.
+
+### Deviation from plan
+`wave_reached L4` stage was dropped — `customEvent:level_reached` is not sent with `wave_reached` events (always `(not set)` in GA4). Boss attempt stages provide equivalent funnel coverage with no data gaps.
+
+### Summary (original)
 All funnel data is already available from existing endpoints. Only parser extensions and integration wiring required.
 
 ### Funnel Stages & Data Sources

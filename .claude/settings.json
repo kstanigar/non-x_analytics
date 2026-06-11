@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(echo \"$CLAUDE_TOOL_INPUT\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))\" 2>/dev/null); if echo \"$file\" | grep -q 'api/index.js'; then echo '[HOOK] api/index.js being updated — Lambda source of truth is now current'; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

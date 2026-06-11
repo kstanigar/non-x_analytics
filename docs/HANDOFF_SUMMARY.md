@@ -8,6 +8,62 @@
 
 ---
 
+## June 10, 2026 - Phase 7 LT-2b: Music Funnel Table (Live)
+
+**Session Duration:** ~30 min
+**Status:** LT-2b complete ✅
+
+### LT-2b Changes (Complete):
+- [x] Added `music-funnel` Lambda handler (`ab_music_group × boss_id × eventName`)
+- [x] Added `music-funnel` parser to `mapGA4ResponseToDATA()` — builds `DATA.funnelMusicOn[]` / `DATA.funnelMusicOff[]` (8-stage arrays)
+- [x] Upgraded integration to `Promise.all([fetchMusicABData(), fetchMusicFunnelData()])` — parallel fetch, music-ab processed first (music-funnel parser reads `DATA.abMusic.A/B.sessions`)
+- [x] Updated `buildFunnelTable()` to read live ON/OFF/Delta rates
+
+### LT-2b Live Data (All Time, v4.3):
+- Conversion Rates Table Music ON/OFF/Delta columns: all populated ✅
+- Key finding: Music OFF players reach Boss 1 at **64.1% vs 37.0%** (-27.1pp delta)
+- Boss 2 defeat rate: Music OFF 94.7% vs Music ON 73.9% (-20.8pp delta)
+- Music ON players slightly edge Boss 3 (100.0% vs 94.4%, +5.6pp)
+- Endpoint: 48 rows returned, all 6 boss_id rows (A/B × boss 1/2/3 × attempt/defeated) parsed correctly
+
+### Files Modified:
+- `api/index.js` — music-funnel handler (line 260)
+- `live.html` — music-funnel parser, fetchMusicFunnelData(), Promise.all integration, buildFunnelTable() update
+
+---
+
+## June 10, 2026 - Phase 7 LT-2: Music A/B Test (Live) + LT-2b Planning
+
+**Session Duration:** ~1 hour
+**Status:** LT-2 complete ✅ — LT-2b planned, ready to implement
+
+### LT-2 Changes (Complete):
+- [x] Added `music-ab` Lambda handler (`ab_music_group × eventName`)
+- [x] Added `music-ab` parser to `mapGA4ResponseToDATA()` — initially used `music_on`/`music_off` group keys, fixed to `'a'`/`'b'` after endpoint test revealed GA4 sends `'A'`/`'B'`
+- [x] Added `fetchMusicABData()` fetch function (AbortSignal.timeout pattern)
+- [x] Added integration block wiring `DATA.abMusic.A/B` + `DATA.abSplit` donut
+
+### LT-2 Live Data (All Time, v4.3):
+- Group A (Music ON): 73 sessions, win rate 23%, lb rate 47%, toggle 8%
+- Group B (Music OFF): 39 sessions, win rate 44%, lb rate 41%, toggle 5%
+- A/B Split donut: 65% / 35%
+- **Key finding:** Group B (Music OFF) wins on win rate (44% vs 23%) — surprising result
+
+### LT-2b: Music Funnel Table (Planned):
+- Problem: Conversion Rates Table Music ON/OFF/Delta columns all show `—`
+- Root cause: music-ab query has no `boss_id` dim — can't compute per-stage conversion rates
+- Fix: New `subType=music-funnel` endpoint: `ab_music_group × boss_id × eventName`
+- Parser builds `DATA.funnelMusicOn[]` / `DATA.funnelMusicOff[]` (8-stage arrays)
+- Integration upgrades to `Promise.all([fetchMusicABData(), fetchMusicFunnelData()])` — parallel fetch saves ~300ms
+- `buildFunnelTable()` updated to read live ON/OFF/Delta rates
+- Full plan: `docs/Phase7_Music_Funnel_Plan.md`
+
+### Files Modified:
+- `api/index.js` — music-ab handler
+- `live.html` — parser, fetch function, integration block
+
+---
+
 ## June 10, 2026 - Phase 7 LT-1: Game Funnel (Live)
 
 **Session Duration:** ~45 min
