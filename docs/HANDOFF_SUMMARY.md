@@ -8,6 +8,21 @@
 
 ---
 
+## June 11, 2026 - Data Completeness Banner
+
+**Status:** Complete ✅
+
+### Changes (live.html — 4 edits)
+- HTML `#completeness-banner` div after kpi-grid (line ~1506) — yellow `insight-box`, hidden by default
+- `completeness` variable computed in `mapGA4ResponseToDATA()` (line ~3196); refactored `console.warn` to use it
+- `completeness` added to `DATA.kpis` defaults (`100`) and return block
+- `populateKPIs()` shows banner + populates `#completeness-pct` when `< 80`, hides otherwise
+
+### Behavior
+Invisible when data is clean (≥80% outcomes). When test session pollution pulls completeness below 80%, yellow warning appears on Overview page — visible to stakeholders without DevTools.
+
+---
+
 ## June 11, 2026 - Planning Session: Phase 8 Scope + Doc Cleanup
 
 **Status:** Complete ✅

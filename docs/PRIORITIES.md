@@ -317,14 +317,14 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
   - **Dependencies:** Final Security Audit complete ✅
 
-- [ ] **Data Completeness Banner** (visible UI warning on Overview)
-  - **Estimate:** 15 min
-  - **Why:** Console.warn is invisible to stakeholders. Banner surfaces the data quality issue directly on the dashboard.
-  - **Location:** `live.html` — after the KPI grid on Overview page (after line ~1505)
-  - **Logic:** Same condition as `console.warn` — show when `completedGames / gameStarts < 0.80`
-  - **UI:** Yellow `insight-box` style, hidden by default (`display:none`), shown via JS after KPI calc
-  - **Content:** "⚠️ Data Completeness: Only X% of sessions have a recorded outcome. Version 4.3 data includes test sessions from development."
-  - **Dependencies:** None
+- [x] **Data Completeness Banner** ✅ COMPLETE
+  - **Completed:** June 11, 2026
+  - **Files:** `live.html` — 4 changes
+    - HTML banner `#completeness-banner` after kpi-grid (line ~1506), hidden by default
+    - `completeness` variable computed in `mapGA4ResponseToDATA()` (line ~3196)
+    - `completeness` added to `DATA.kpis` defaults (default: 100) and return block
+    - `populateKPIs()` shows/hides banner and populates `#completeness-pct` span
+  - **Behavior:** Banner visible on Overview page when live data has <80% outcome coverage; hidden otherwise
 
 - [ ] **BigQuery Integration** — Avg Starting Tier + Avg Final Tier KPIs
   - **Estimate:** 3–5 hours (setup + Lambda + dashboard wiring)
