@@ -15,7 +15,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NON-X Analytics - Live Dashboard</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+    integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw=="
+    crossorigin="anonymous"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap');
 
@@ -2802,7 +2804,6 @@
               }
             };
 
-            console.log('✅ Powerup analysis data parsed:', chartData);
             return { powerupCollection: chartData };
 
           } else {
@@ -3713,14 +3714,11 @@
        */
       async function loadAndRenderGA4Data(type = 'standard') {
         if (isRefreshing) {
-          console.log('Refresh already in progress, skipping...');
           return false;
         }
 
         isRefreshing = true;
         updateAPIStatus('loading', 'Fetching data...');
-
-        console.log(`[${new Date().toLocaleTimeString()}] Fetching GA4 data...`);
 
         const result = await fetchGA4Data(type);
 
@@ -3732,7 +3730,6 @@
           return false;
         }
 
-        console.log('Mapping GA4 response to DATA format...');
         const mappedData = mapGA4ResponseToDATA(result.data, type);
 
         if (mappedData.error) {
@@ -3752,12 +3749,10 @@
         }
 
         // Update DATA object (only KPIs for now, since current API is limited)
-        console.log(`Successfully mapped ${mappedData.rowCount} events`);
         DATA.kpis = mappedData.kpis;
         DATA.eventCounts = mappedData.eventCounts; // Store for reference
 
         // Fetch platform-split data (desktop vs mobile breakdown)
-        console.log('Fetching platform-split data...');
         const platformResult = await fetchPlatformSplitData();
 
         if (platformResult.success && platformResult.data) {
@@ -3801,8 +3796,6 @@
             },
           };
 
-          console.log('Platform data updated:', DATA.platform);
-
           // Derive device mix percentages from live session counts
           const totalSessions = DATA.platform.desktop.sessions + DATA.platform.mobile.sessions;
           if (totalSessions > 0) {
@@ -3823,7 +3816,6 @@
         }
 
         // Fetch daily timeseries data (14-day trend)
-        console.log('Fetching daily-timeseries data...');
         const dailyResult = await fetchDailyTimeseriesData();
 
         if (dailyResult.success && dailyResult.data) {
@@ -3832,7 +3824,6 @@
 
           if (!dailyData.error && dailyData.daily) {
             DATA.daily = dailyData.daily;
-            console.log('Daily timeseries data updated:', DATA.daily);
           } else {
             console.warn('Daily-timeseries parsing failed, using mock data');
           }
@@ -3841,7 +3832,6 @@
         }
 
         // Fetch boss analysis data (boss defeat rates by platform)
-        console.log('Fetching boss-analysis data...');
         const bossResult = await fetchBossAnalysisData();
 
         if (bossResult.success && bossResult.data) {
@@ -3850,7 +3840,6 @@
 
           if (!bossData.error && bossData.bossAnalysis) {
             DATA.bossAnalysis = bossData.bossAnalysis;
-            console.log('Boss analysis data updated:', DATA.bossAnalysis);
 
             // Wire live boss defeat rates into DATA.platform for chartPlatformFunnel()
             if (DATA.bossAnalysis.boss1 && DATA.bossAnalysis.boss2) {
@@ -3867,7 +3856,6 @@
         }
 
         // Fetch survival time distribution (session duration by platform)
-        console.log('Fetching survival-time data...');
         const survivalResult = await fetchSurvivalTimeData();
 
         if (survivalResult.success && survivalResult.data) {
@@ -3876,14 +3864,12 @@
           if (!survivalData.error && survivalData.survivalDist) {
             // Update survival distribution chart data
             DATA.survivalDist = survivalData.survivalDist;
-            console.log('Survival distribution updated:', DATA.survivalDist);
 
             // Update average survival time for platform comparison
             if (survivalData.avgSurvival) {
               DATA.kpis.survival             = survivalData.avgSurvival.desktop;
               DATA.platform.desktop.survival = survivalData.avgSurvival.desktop;
               DATA.platform.mobile.survival  = survivalData.avgSurvival.mobile;
-              console.log('Avg survival times updated:', survivalData.avgSurvival);
             }
           } else {
             console.warn('Survival-time parsing failed, using mock data');
@@ -3893,7 +3879,6 @@
         }
 
         // Fetch powerup analysis data (powerup collection by phase and platform)
-        console.log('Fetching powerup-analysis data...');
         const powerupResult = await fetchPowerupAnalysisData();
 
         if (powerupResult.success && powerupResult.data) {
@@ -3902,7 +3887,6 @@
           if (!powerupData.error && powerupData.powerupCollection) {
             // Update powerup collection chart data
             DATA.powerups = powerupData.powerupCollection;
-            console.log('Powerup collection updated:', DATA.powerups);
           } else {
             console.warn('Powerup-analysis parsing failed, using mock data');
           }
@@ -3911,7 +3895,6 @@
         }
 
         // Fetch progression analysis data (wave drop-off by level and platform)
-        console.log('Fetching progression-analysis data...');
         const progressionResult = await fetchProgressionAnalysisData();
 
         if (progressionResult.success && progressionResult.data) {
@@ -3923,7 +3906,6 @@
             DATA.deathsByLevel.levelDesktop = progressionData.progressionData.levelDesktop;
             DATA.deathsByLevel.levelMobile = progressionData.progressionData.levelMobile;
             DATA.deathsByLevel.hasRealData = progressionData.progressionData.hasRealData;
-            console.log('Progression data updated:', DATA.deathsByLevel.levelDeaths);
 
             // Wire avg level KPI — manual weighted average (GA4 has no native AVG metric)
             if (progressionData.progressionData.avgLevel) {
@@ -3932,7 +3914,6 @@
               DATA.kpis.mobLevel             = progressionData.progressionData.avgLevel.mobile;
               DATA.platform.desktop.avgLevel = progressionData.progressionData.avgLevel.desktop;
               DATA.platform.mobile.avgLevel  = progressionData.progressionData.avgLevel.mobile;
-              console.log('Avg level updated:', progressionData.progressionData.avgLevel);
             }
 
             // Wire game funnel — all stages from boss-analysis (attempt + defeat per boss)
@@ -3957,7 +3938,6 @@
                 { name: 'boss_defeated 3', n: bd3, pct: pct(bd3),  dropPct: drop(ba3, bd3) },
                 { name: 'player_won',      n: bd3, pct: pct(bd3),  dropPct: null          },
               ];
-              console.log('Funnel data updated:', DATA.funnel);
             }
           } else {
             console.warn('Progression-analysis parsing failed, using mock data');
@@ -3967,7 +3947,6 @@
         }
 
         // Fetch AI analysis data (tier distribution and flow by direction)
-        console.log('Fetching AI-analysis data...');
         const aiResult = await fetchAIAnalysisData();
 
         if (aiResult.success && aiResult.data) {
@@ -3986,7 +3965,6 @@
             DATA.aiAgent.kpis.speedLockSub  = aiData.aiData.speedLockSub;
             // Populate score multiplier distribution — chartAIScoreMult() reads DATA.aiAgent.scoreMultDist.counts
             DATA.aiAgent.scoreMultDist.counts = aiData.aiData.scoreMultCounts;
-            console.log('AI analysis data updated:', aiData.aiData.totalAdjustments, 'adjustments');
           } else {
             console.warn('AI-analysis parsing failed or no data, charts remain empty');
           }
@@ -3994,13 +3972,11 @@
           console.warn('AI-analysis fetch failed:', aiResult.error);
         }
 
-        console.log('Fetching death-triggers data...');
         const deathTriggersResult = await fetchDeathTriggersData();
         if (deathTriggersResult.success && deathTriggersResult.data) {
           const dtData = mapGA4ResponseToDATA(deathTriggersResult.data, 'death-triggers');
           if (!dtData.error && dtData.deathTriggers?.hasRealData) {
             DATA.aiAgent.deathTriggers.counts = dtData.deathTriggers.counts;
-            console.log('Death triggers data updated:', dtData.deathTriggers.counts);
           } else {
             console.warn('Death-triggers parsing failed or no data, chart remains empty');
           }
@@ -4014,7 +3990,6 @@
           if (!nuData.error && nuData.hasRealData) {
             DATA.kpis.newPct    = nuData.newPct;
             DATA.kpis.newPctSub = `<span style="color:var(--green)">${nuData.newCount}&nbsp;new</span> / <span style="color:#FFD700">${nuData.returningCount}&nbsp;returning</span>`;
-            console.log('New user % updated:', nuData.newPct, DATA.kpis.newPctSub);
           } else {
             console.warn('New-user-pct parsing failed or no data, using mock value');
           }
@@ -4031,7 +4006,6 @@
             DATA.kpis.replaySub          = rrData.replaySub;
             DATA.platform.desktop.replay = rrData.desktop.replayRate;
             DATA.platform.mobile.replay  = rrData.mobile.replayRate;
-            console.log('Replay rate updated:', rrData.replayRate, rrData.replaySub);
           } else {
             console.warn('Replay-rate parsing failed or no data, using mock value');
           }
@@ -4060,7 +4034,6 @@
             DATA.abMusic.B.musicToggle = mabData.musicAB.off.musicToggle;
             DATA.abSplit.musicOn       = mabData.abSplit.musicOn;
             DATA.abSplit.musicOff      = mabData.abSplit.musicOff;
-            console.log('Music A/B data updated:', DATA.abMusic, DATA.abSplit);
           } else {
             console.warn('Music-AB parsing failed or no data, using mock values');
           }
@@ -4074,7 +4047,6 @@
           if (!mfData.error && mfData.hasRealData) {
             DATA.funnelMusicOn  = mfData.funnelMusicOn;
             DATA.funnelMusicOff = mfData.funnelMusicOff;
-            console.log('Music funnel data updated:', DATA.funnelMusicOn, DATA.funnelMusicOff);
           } else {
             console.warn('Music-Funnel parsing failed or no data, using mock values');
           }
@@ -4093,7 +4065,6 @@
             DATA.abMovement.B.sessions = mabData.movementAB.B.sessions;
             DATA.abMovement.B.winRate  = mabData.movementAB.B.winRate;
             DATA.abMovement.B.label    = 'Full Direction';         // movement_group 'B' — full directional movement
-            console.log('Movement A/B data updated:', DATA.abMovement);
           } else {
             console.warn('Movement-AB parsing failed or no data, using mock values');
           }
@@ -4118,7 +4089,6 @@
        * Manual refresh triggered by user
        */
       async function manualRefresh() {
-        console.log('Manual refresh triggered by user');
         await loadAndRenderGA4Data('standard');
       }
 
@@ -4136,8 +4106,6 @@
         const version = versionShort === '43' ? '4.3' :
                         versionShort === '42' ? '4.2' :
                         versionShort === 'all' ? 'all' : '4.3';
-
-        console.log(`Data range changed to: ${dateRange} days, version ${version}`);
 
         // Trigger refresh with new version and date range filters
         await loadAndRenderGA4Data('standard');
@@ -4194,14 +4162,11 @@
 
         // Set up new timer
         refreshTimer = setInterval(async () => {
-          console.log('Auto-refresh triggered');
           await loadAndRenderGA4Data('standard');
         }, API_CONFIG.refreshInterval);
 
         // Also update "last updated" display every 10 seconds
         setInterval(updateLastUpdateTime, 10000);
-
-        console.log(`Auto-refresh enabled (every ${API_CONFIG.refreshInterval / 1000 / 60} minutes)`);
       }
 
       /**
@@ -4211,7 +4176,6 @@
         if (refreshTimer) {
           clearInterval(refreshTimer);
           refreshTimer = null;
-          console.log('Auto-refresh disabled');
         }
       }
 
@@ -5255,10 +5219,6 @@
       // ══════════════════════════════════════════════════════════════
 
       document.addEventListener('DOMContentLoaded', async () => {
-        console.log('NON-X Analytics Live Dashboard - Initializing...');
-        console.log('Version: 5.0 (Live API Integration)');
-        console.log('API Endpoint:', API_CONFIG.baseURL + API_CONFIG.endpoints.analytics);
-
         // Show loading state
         updateAPIStatus('loading', 'Initializing...');
 
@@ -5268,7 +5228,6 @@
         if (success) {
           // Start auto-refresh timer
           startAutoRefresh();
-          console.log('✅ Dashboard initialized successfully');
         } else {
           console.warn('⚠️ Dashboard initialized with errors - check console');
           // Still show sample data from DATA object defaults

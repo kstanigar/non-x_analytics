@@ -7,6 +7,14 @@ const analyticsDataClient = new BetaAnalyticsDataClient({
 
 const propertyId = process.env.GA4_PROPERTY_ID; // e.g., 'YOUR-GA4-PROPERTY-ID'
 
+// CORS origin — set to production domain before Standing Tiger deploy (replace '*')
+const ALLOWED_ORIGIN = '*';
+
+// Input validation whitelists — reject unknown values before hitting GA4
+const VALID_TYPES      = ['standard', 'realtime'];
+const VALID_SUBTYPES   = ['platform-split','daily-timeseries','boss-analysis','survival-time','powerup-analysis','progression-analysis','ai-analysis','death-triggers','new-user-pct','replay-rate','music-ab','music-funnel','movement-ab'];
+const VALID_DATE_RANGES = ['7day','30day','90day','alltime'];
+
 exports.handler = async (event) => {
     try {
         // Simple routing based on a query parameter (e.g., ?type=realtime)
@@ -14,6 +22,17 @@ exports.handler = async (event) => {
         const version = event.queryStringParameters?.version || '4.3'; // Default to version 4.3
         const subType = event.queryStringParameters?.subType || null;  // NEW: Enables multi-dimensional queries (platform-split, daily-timeseries, boss-analysis)
         const dateRangeParam = event.queryStringParameters?.dateRange || '7day'; // Extract date range parameter (default to 7 days)
+
+        // Validate inputs — return 400 for unknown values to prevent unexpected GA4 queries
+        if (!VALID_TYPES.includes(requestType)) {
+            return { statusCode: 400, headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN }, body: JSON.stringify({ error: 'Invalid request type' }) };
+        }
+        if (subType && !VALID_SUBTYPES.includes(subType)) {
+            return { statusCode: 400, headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN }, body: JSON.stringify({ error: 'Invalid subType' }) };
+        }
+        if (!VALID_DATE_RANGES.includes(dateRangeParam)) {
+            return { statusCode: 400, headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN }, body: JSON.stringify({ error: 'Invalid date range' }) };
+        }
 
         // Map date range string to GA4 date range object
         const dateRangeMap = {
@@ -318,17 +337,19 @@ exports.handler = async (event) => {
         return {
             statusCode: 200,
             headers: {
-                "Access-Control-Allow-Origin": "*", // Required for CORS
+                "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(response),
         };
-        
+
     } catch (error) {
+        // Log full error server-side (CloudWatch); return generic message to client
+        console.error('Lambda error:', error);
         return {
             statusCode: 500,
-            headers: { "Access-Control-Allow-Origin": "*" },
-            body: JSON.stringify({ error: error.message }),
+            headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+            body: JSON.stringify({ error: 'Internal server error' }),
         };
     }
 };
