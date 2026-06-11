@@ -2,9 +2,43 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 10, 2026
+**Last Updated:** June 11, 2026
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
+
+---
+
+## June 11, 2026 - Final Security Audit
+
+**Status:** Complete ✅ — Committed June 11, 2026 (hash: bc59894)
+
+### Scope
+Pre-deploy security hardening for Standing Tiger. Two Haiku agents used: one for AWS 2026 best practices research, one for codebase investigation.
+
+### Findings (Resolved)
+
+**🔴 Critical — Fixed:**
+1. `api/index.js:331` — `error.message` exposed to client → replaced with `'Internal server error'`; full error now logged to CloudWatch only
+2. `api/index.js:321,330` — `Access-Control-Allow-Origin: "*"` hardcoded → replaced with `ALLOWED_ORIGIN` constant (currently `'*'`, one-line flip at Standing Tiger deploy)
+
+**🟡 Medium — Fixed:**
+3. `api/index.js:13–16` — No input validation on query params → added whitelist validation for `type`, `subType`, `dateRange`; returns 400 for unknown values
+4. `live.html` (27 instances) — `console.log()` calls exposing API structure, data shapes, and endpoint URL → all removed; `console.warn`/`console.error` retained
+5. `live.html:18` — Chart.js CDN missing SRI hash → added verified `integrity=` attribute (sha512)
+
+**✅ Clean — No Action Needed:**
+- No hardcoded API keys or credentials in source
+- Rate limiting already configured (10 req/s, 1000/day)
+- TLS 1.3 already in place
+
+### AWS Console Actions (User — ~5 min before deploy)
+- Set Lambda timeout → 30 seconds
+- Set CloudWatch log retention → 14 days
+- Update `ALLOWED_ORIGIN` in `api/index.js` to Standing Tiger domain
+
+### Files Modified
+- `api/index.js` — 3 security changes (+16 lines)
+- `live.html` — SRI hash + 27 console.log removals (-27 lines)
 
 ---
 

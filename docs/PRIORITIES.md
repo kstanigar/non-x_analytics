@@ -188,18 +188,21 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ### Added: June 10, 2026 (Pre-Launch Checklist)
 
-- [ ] **Final Security Audit** ⛔ REQUIRED BEFORE DEPLOY
-  - **Estimate:** 1–2 hours
-  - **Priority:** CRITICAL — must complete before any public deployment
-  - **Scope:**
-    - Audit all API endpoints for exposed credentials, keys, or internal infra details
-    - Verify CORS policy is appropriate for new hosting domain
-    - Review Lambda IAM permissions (least privilege)
-    - Check all console.log statements — remove any that expose internal data
-    - Verify no sensitive info in HTML source (comments, data attributes, config objects)
-    - Confirm Usage Plan limits are appropriate for expected traffic
-    - Review error messages — ensure they don't leak stack traces or infra details
-  - **Dependencies:** Must complete before AWS Standing Tiger deploy
+- [x] **Final Security Audit** ✅ COMPLETE
+  - **Completed:** June 11, 2026
+  - **Time Invested:** ~1 hour (2 Haiku agents: AWS research + codebase investigation)
+  - **Commit:** bc59894
+  - **Critical fixes applied:**
+    - `error.message` → `'Internal server error'` (no internal details exposed to client)
+    - `ALLOWED_ORIGIN` constant added — flip one line at Standing Tiger deploy
+    - Input validation whitelist for `type`, `subType`, `dateRange` params (returns 400 for unknowns)
+    - 27 `console.log` statements removed from `live.html` (including one that logged the API endpoint URL)
+    - SRI integrity hash added to Chart.js CDN script
+  - **Clean:** No hardcoded API keys, credentials, or secrets found in source ✅
+  - **AWS console actions remaining (user, ~5 min before deploy):**
+    - Lambda timeout → 30s
+    - CloudWatch log retention → 14 days
+    - Update `ALLOWED_ORIGIN` to Standing Tiger domain
 
 - [ ] **Deploy to AWS Standing Tiger Account**
   - **Estimate:** 2–4 hours
