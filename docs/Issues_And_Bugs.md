@@ -159,87 +159,28 @@ git checkout live.html  # Restore previous version
 
 ### ISSUE-002: 52.6% of Games Have Missing Outcome Events
 
-**Status:** 🔴 OPEN - Requires investigation
-**Severity:** CRITICAL
-**Found:** June 7, 2026 (Data Investigation Session)
-**Affected Component:** GA4 Event Tracking
-**Location:** Game source code (event tracking logic)
+**Status:** ✅ RESOLVED — June 11, 2026
+**Severity:** ~~CRITICAL~~ → NOT A BUG
+**Found:** June 7, 2026 | **Resolved:** June 11, 2026
 
-#### Description
-Approximately 52.6% of games that fire `game_start` events do NOT fire either `player_won` or `player_death` outcome events. This indicates incomplete event tracking and makes the data unreliable for decision-making.
+#### Root Cause (Confirmed)
+Test/dev data pollution during version 4.3 data collection window:
+- AWS security vulnerability fix testing generated incomplete sessions
+- Xenon_3 dev environment setup created partial game sessions
+- These sessions fire `game_start` but never reach an outcome state
 
-#### Observed Data
-From live GA4 data (version 4.3, last 7 days):
-- Total `game_start` events: 19
-- `player_won` events: 6 (31.6%)
-- `player_death` events: 3 (15.8%)
-- **Games with no outcome: 10 (52.6%)**
+This is **expected behavior** for dev/test sessions, not a tracking bug. Real player sessions have correct outcome events.
 
-#### Impact
-- **High:** Cannot trust any conversion metrics or funnel analysis
-- Missing data prevents accurate win rate, death rate, and engagement calculations
-- Impossible to determine if players are abandoning games or if events aren't firing
-- Blocks informed game design decisions
+#### Resolution Applied
+1. ✅ **Data completeness warning** implemented at `live.html:~3197` — `console.warn()` fires when `completedGames / gameStarts < 0.8`, logs exact % and raw counts for developers
+2. ✅ **Death Rate formula** already uses `completedGames` denominator (ISSUE-001 fix) — so rate is accurate on real player sessions regardless of abandoned count
+3. ✅ **Visible banner** planned in PRIORITIES.md — shows on Overview page when completeness < 80% (pending implementation)
 
-#### Possible Root Causes
-1. **Game Abandonment (Expected):** Players close browser/tab mid-game without triggering outcome event
-2. **Missing Edge Cases (Bug):** Certain game flows don't fire outcome events:
-   - Falling off map without death trigger
-   - Level transition bugs
-   - Pause/unpause states
-   - AI system crashes
-3. **Client-Side Event Sending Issue (Bug):** Events queued but not sent before page unload
-4. **Network Issues (External):** Events dropped before reaching GA4
-
-#### Investigation Required
-1. **GA4 DebugView Real-Time Testing:**
-   - Play complete game (win scenario) → verify both `game_start` and `player_won` fire
-   - Play complete game (death scenario) → verify both `game_start` and `player_death` fire
-   - Abandon game mid-way → check if ANY outcome event fires
-   - Check if `analytics_version: "4.3"` dimension is sent correctly
-
-2. **Game Code Audit:**
-   - Review where `game_start` event is triggered
-   - Review where `player_won` event is triggered
-   - Review where `player_death` event is triggered
-   - Identify any game states that skip outcome events
-
-3. **GA4 Console Cross-Check:**
-   - Run Exploration query to validate event completeness
-   - Check for sampling or filtering at GA4 level
-   - Compare against expected user behavior
-
-#### Recommended Fix
-After investigation determines root cause:
-- **If abandonment:** Add `game_abandoned` event when user navigates away
-- **If edge case:** Add missing event triggers for all game end states
-- **If client-side:** Implement `sendBeacon()` or queue persistence for events
-
-#### Temporary Workaround
-Add data completeness warning to dashboard:
-```javascript
-const recordedGames = playerWon + playerDeath;
-const completeness = gameStarts > 0 ? (recordedGames / gameStarts * 100).toFixed(1) : 'N/A';
-
-if (completeness < 80) {
-  console.warn(
-    `⚠️ Data Completeness: Only ${completeness}% of games have recorded outcomes. ` +
-    `${gameStarts - recordedGames} games have no outcome event. ` +
-    `This may indicate event tracking issues.`
-  );
-}
-```
-
-#### Action Items
-- [ ] Conduct GA4 DebugView real-time testing (play game, observe events)
-- [ ] Audit game source code for event triggering logic
-- [ ] Run GA4 Exploration query to validate data completeness
-- [ ] Determine if issue is abandonment (expected) or bug (needs fix)
-- [ ] Implement appropriate fix based on root cause
-- [ ] Add data completeness warning to dashboard (temporary)
+#### Future Improvement (Optional)
+If game dev adds a `customEvent:source` dimension (`'dev'`/`'prod'`) to events, Lambda can filter test sessions at query time. Not urgent — current workaround is sufficient.
 
 #### Related Issues
-- See ISSUE-001 (Death Rate Formula) - this missing data causes death rate to be misleading
+- See ISSUE-001 (Death Rate Formula) — resolved, uses `completedGames` denominator
 
 ---
 

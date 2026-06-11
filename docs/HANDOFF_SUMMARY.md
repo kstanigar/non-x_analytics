@@ -8,6 +8,50 @@
 
 ---
 
+## June 11, 2026 - Planning Session: Phase 8 Scope + Doc Cleanup
+
+**Status:** Complete ✅
+
+### Work Completed
+
+**Implementations:**
+- [x] Data Completeness Warning (`live.html:~3197`) — `console.warn` fires when `completedGames / gameStarts < 0.8`; logs exact % + raw counts
+
+**ISSUE-002 Closed:**
+- [x] Haiku agent investigation confirmed root cause: test/dev session pollution during v4.3 window (AWS security testing + Xenon_3 setup), not a tracking bug
+- [x] `Issues_And_Bugs.md` updated — ISSUE-002 marked RESOLVED with full explanation
+- [x] `PRIORITIES.md` updated — investigation task marked complete
+
+**Plans Documented (all with exact line numbers):**
+- [x] **New Engagement Metrics** (6 KPIs on Overview) — exact insertion points verified by Haiku agent:
+  - HTML after line 1505, DATA.kpis defaults after 2295, return block after 3228, `populateKPIs()` after 4211, Lambda before line 311, `VALID_SUBTYPES` at line 15
+- [x] **Data Completeness Banner** — visible UI warning, 15 min task
+- [x] **KPI Tooltips** — hybrid approach approved (CSS hover for simple, ℹ icon → Data Dictionary accordion for complex)
+- [x] **Case Study + Data Dictionary** — now two separate tabs (both too dense to share)
+- [x] **BigQuery** — 2026 security best practices research flagged as pre-req before implementation
+- [x] **MT-5 unblocked** — `final_score` needs only game-side event param + GA4 custom dim registration ($0 cost, no BigQuery)
+
+**Doc Cleanup:**
+- [x] Archived `Phase7_Large_Tier_Plan.md`, `Phase7_Medium_Tier_Plan.md`, `Phase7_Music_Funnel_Plan.md` → `docs/archive/phase-documentation/`
+- [x] Archived `Dashboard_Data_Audit_June2026.md` → `docs/archive/investigations/` (superseded by Master_Data_Points_Map.md)
+
+### Active Docs (docs/ root — 8 files)
+- `HANDOFF_SUMMARY.md` — session history
+- `PRIORITIES.md` — task tracker
+- `Issues_And_Bugs.md` — issue tracker
+- `BLOG_NOTES.md` — blog content ideas
+- `GA4_Custom_Dimensions_Reference.md` — all 31 GA4 dims
+- `Master_Data_Points_Map.md` — live vs mock data map
+- `DOCUMENTATION_SYSTEM_README.md` — meta doc
+- `README.md` — project README
+
+### Next Up (from PRIORITIES.md)
+1. **Data Completeness Banner** — 15 min, visible UI warning on Overview
+2. **New Engagement Metrics** — 6 KPIs, ~3–4 hrs, exact lines documented
+3. **BigQuery** — Haiku agent research first (2026 security best practices)
+
+---
+
 ## June 11, 2026 - Full Deploy: AWS Lambda + GitHub Pages CI/CD
 
 **Status:** Complete ✅ — June 11, 2026

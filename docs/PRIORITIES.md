@@ -317,6 +317,15 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
   - **Dependencies:** Final Security Audit complete ✅
 
+- [ ] **Data Completeness Banner** (visible UI warning on Overview)
+  - **Estimate:** 15 min
+  - **Why:** Console.warn is invisible to stakeholders. Banner surfaces the data quality issue directly on the dashboard.
+  - **Location:** `live.html` — after the KPI grid on Overview page (after line ~1505)
+  - **Logic:** Same condition as `console.warn` — show when `completedGames / gameStarts < 0.80`
+  - **UI:** Yellow `insight-box` style, hidden by default (`display:none`), shown via JS after KPI calc
+  - **Content:** "⚠️ Data Completeness: Only X% of sessions have a recorded outcome. Version 4.3 data includes test sessions from development."
+  - **Dependencies:** None
+
 - [ ] **BigQuery Integration** — Avg Starting Tier + Avg Final Tier KPIs
   - **Estimate:** 3–5 hours (setup + Lambda + dashboard wiring)
   - **Priority:** MEDIUM — unlocks 2 KPIs that GA4 API cannot provide
@@ -352,87 +361,93 @@ Tasks organized by date added (newest first). Tasks include planning details, in
     )
     ```
   - **Dashboard wiring:** `DATA.kpis.avgStartTier`, `DATA.kpis.avgFinalTier` → `#kpi-avg-start-tier`, `#kpi-avg-final-tier`
-  - **Dependencies:** Standing Tiger AWS deploy complete, GA4 BigQuery Export enabled
+  - **Security note (June 11, 2026):** Haiku agent research on 2026 BigQuery best practices needed before implementation — credential storage pattern, query cost controls, caching strategy. Planned as next research task.
+  - **Dependencies:** Standing Tiger AWS deploy complete ✅, GA4 BigQuery Export enabled
 
-- [ ] **New Metrics Discussion** 💬 NEEDS USER INPUT
-  - **Estimate:** 30 min discussion → implementation TBD
-  - **Purpose:** Identify any high-value metrics missing from the dashboard before launch
-  - **Candidates to discuss:**
-    - **Scorecard View Rate** — `scorecard_viewed / game_start` (% of players who reach end screen)
-    - **Music Toggle Rate** — `music_toggled / game_start` (engagement with music feature)
-    - **Leave Game Rate** — `leave_game / game_start` (rage quit / drop-off signal)
-    - **Session Return Rate** — `returning_user / total sessions` (loyalty signal)
-    - **Boss Reach Rate** — `boss_attempt / game_start` (how far players get)
-    - **Survey Response Rate** — `survey_submitted / game_start` (feedback engagement)
-  - **Note:** All of these events are already firing in GA4 — no game-side changes needed
-  - **Action:** Review list and decide which to add
+- [ ] **New Engagement Metrics — 6 KPIs on Overview Page** ⭐ NEXT PRIORITY
+  - **Estimate:** 3–4 hours total
+  - **Decision (June 11, 2026):** Implement all 6 in a new "Player Behavior" row on the Overview page
+  - **All 6 events already firing in GA4 — no game-side changes needed**
 
-- [ ] **KPI Tooltips** 💬 NEEDS USER INPUT
+  **Metrics:**
+  | KPI | Formula | Note |
+  |-----|---------|------|
+  | Scorecard View Rate | `scorecard_viewed / game_start` | % reaching end screen |
+  | Music Toggle Rate | `music_toggled / game_start` | engagement with music feature |
+  | Leave Game Rate | `leave_game / game_start` | rage quit / drop-off signal |
+  | Boss Reach Rate | `boss_attempt / game_start` | how far players get |
+  | Survey Response Rate | `survey_submitted / game_start` | feedback engagement |
+  | Session Return Rate | already live as "New vs Returning" — reframe existing tile, no new Lambda |
+
+  **Lambda (one new endpoint batches 4 events):**
+  - New `subType=engagement-events` handler: `eventName` dim, filter to `scorecard_viewed`, `music_toggled`, `leave_game`, `survey_submitted`
+  - Insert before line 311 in `api/index.js` (before `realtime` handler)
+  - Add `'engagement-events'` to `VALID_SUBTYPES` at `api/index.js:15`
+  - Boss Reach Rate uses existing `DATA.bossAnalysis.boss1.overall.attempts` — no Lambda needed
+
+  **Exact insertion points (verified by Haiku agent June 11, 2026):**
+
+  | Change | File | Line(s) | Detail |
+  |--------|------|---------|--------|
+  | HTML — new "Player Behavior" kpi-grid | `live.html` | After **1505** | Before `<div class="insight-box" id="overview-insight">` at line 1507 |
+  | DATA.kpis defaults | `live.html` | After **2295** | After `mobLevel: '4.3',` (last property in DATA.kpis init block) |
+  | `mapGA4ResponseToDATA()` return kpis | `live.html` | After **3228** | After `mobLevel: '—',` (last property in return kpis block) |
+  | `populateKPIs()` updates | `live.html` | After **4211** | After `kpi-mob-level` line, before closing `}` at 4212 |
+  | New Lambda handler | `api/index.js` | Before **311** | Before `realtime` handler starts |
+  | VALID_SUBTYPES whitelist | `api/index.js` | **15** | Add `'engagement-events'` |
+
+  **Dependencies:** None
+
+- [ ] **KPI Tooltips — Hybrid Approach**
   - **Estimate:** 2–3 hours
-  - **Purpose:** Add hover tooltips to KPI cards explaining what each metric means and how it's calculated
-  - **Approach options:**
-    - CSS-only tooltips (`:hover` + `::after` pseudo-element) — lightweight, no JS
-    - JS tooltip on click (better for mobile)
-    - Info icon (ℹ) next to each KPI label that reveals formula on hover/tap
-  - **Content per KPI:** label, formula, data source, what "good" looks like
-  - **Dependencies:** Metrics discussion complete (so tooltip content is final)
+  - **Approach (approved June 11, 2026):** Three-tier hybrid
+    - **Simple KPIs** (Win Rate, Death Rate, Replay Rate, etc.): CSS `::after` tooltip on `:hover`; click/tap on mobile
+    - **Complex KPIs** (Avg Level, AI Tier, Survival, A/B stats): Small `ℹ` icon inline with label → navigates to `#dict-[metric]` anchor on Data Dictionary page, accordion auto-expands
+    - **Pattern:** Easy things show inline. Deep explanations live in the Data Dictionary.
+  - **Implementation:**
+    - One CSS block for `.kpi-tooltip` class + `::after` pseudo-element
+    - One JS `click` handler on `[data-dict]` attributes to navigate + expand accordion
+    - No third-party libraries needed
+  - **Content per KPI:** formula, data source, what the value means, what "good" looks like
+  - **Dependencies:** Data Dictionary page complete (so anchor targets exist)
 
 ---
 
 ### Added: June 8, 2026 (Phase 5 Completion)
 
-- [ ] **Complete Phase 5 Task #5: Case Study Page**
-  - **Estimate:** 2–3 hours (expanded scope)
-  - **Location:** `live.html` - Replace Looker tab content (lines ~1347-1575)
-  - **Requirements:**
-    - Two-column layout (casual left, technical right)
-    - Left: Game overview, data insights, design decisions, A/B test impact
-    - Right: Analytics methodology, statistical significance, chart interpretation
-    - **Data Dictionary section** — define every metric, event, and custom dimension used in the dashboard (what it is, how it's calculated, when it fires, what values it takes)
-    - No sensitive info (API keys, Lambda details, AWS infrastructure)
-  - **Data Dictionary should cover:**
-    - All KPIs (formula + data source)
-    - All GA4 custom dimensions used (31 registered)
-    - All event names and their triggers
-    - Version filtering explanation
-  - **Inline Comments:** Add section headers for each content card
-  - **Code Changes:** Replace Looker page HTML with case study + data dictionary structure
-  - **Dependencies:** Metrics discussion complete (so dictionary covers final metric set)
-  - **Blocker:** None
+- [ ] **Case Study Page** (Tab 6 — replaces Looker tab)
+  - **Estimate:** 2–3 hours
+  - **Decision (June 11, 2026):** Case Study and Data Dictionary are NOW SEPARATE TABS — both are too dense to share a page
+  - **Location:** `live.html` — replace Looker tab content (lines ~1347–1575)
+  - **Layout:** Two-column
+    - Left (casual): Game overview, player behavior insights, key findings, design decisions made from data
+    - Right (technical): Analytics methodology, statistical significance notes, chart interpretation, version history
+  - **No sensitive info:** No API keys, Lambda URLs, or AWS infrastructure details
+  - **Dependencies:** New Engagement Metrics done (so findings are final before writing)
 
-- [ ] **Investigate ISSUE-002: Missing Outcome Events** ⚠️ LIKELY RESOLVED
-  - **Estimate:** 30 minutes (reduced from 2-3 hours)
-  - **Issue:** 52.6% of games have no outcome (neither win nor death)
-  - **Root Cause (User Explanation - June 9, 2026):**
-    - Incomplete games from AWS security vulnerability fixes testing
-    - Dev environment setup for Xenon_3 (game repo) caused test sessions
-    - Version 4.3 data includes these incomplete test sessions
-  - **Resolution:** Likely not a bug, just test data pollution
-  - **Validation Steps:**
-    1. Check recent GA4 data (last 7 days) for completeness rate
-    2. Filter out test sessions if needed (by session_id or timestamp)
-    3. Document findings in Issues_And_Bugs.md
-  - **Code Changes:** None needed (data quality issue, not code bug)
-  - **Dependencies:** None
-  - **Priority:** LOW (explanation provided, not urgent)
+- [ ] **Data Dictionary Page** (new Tab 7)
+  - **Estimate:** 3–4 hours
+  - **Decision (June 11, 2026):** Separate tab — too dense to share with Case Study
+  - **Location:** `live.html` — add new tab button + new page `div` after the Case Study tab
+  - **Layout:** Accordion sections by category:
+    - Top-Line KPIs (formula, data source, what "good" looks like)
+    - Engagement KPIs (new 6 metrics)
+    - GA4 Events (all event names, when they fire, what params they carry)
+    - Custom Dimensions (all 31 registered dims, possible values, which queries use them)
+    - A/B Test Definitions (group assignments, metric definitions)
+    - Version Filtering (what v4.3 means, why it matters)
+  - **Anchor IDs:** Every section gets `id="dict-[metric]"` — used by KPI tooltip ℹ icons
+  - **Dependencies:** New Engagement Metrics done (so all KPIs are final before writing)
 
-- [ ] **Add Data Completeness Warning to Dashboard**
-  - **Estimate:** 10 minutes
-  - **Location:** `live.html` - After KPI calculations (~line 1810)
-  - **Code Changes:**
-    ```javascript
-    // Add after line 1809
-    const completedGames = playerWon + playerDeath;
-    const completeness = gameStarts > 0 ? (completedGames / gameStarts * 100).toFixed(1) : 'N/A';
+- [x] **Investigate ISSUE-002: Missing Outcome Events** ✅ RESOLVED June 11, 2026
+  - **Root Cause:** Test/dev data pollution (AWS security testing + Xenon_3 dev setup during v4.3 window)
+  - **Resolution:** Not a bug. `console.warn` added at `live.html:~3197`. Visible banner planned (see below).
+  - **Full details:** `docs/Issues_And_Bugs.md`
 
-    if (completeness < 80) {
-      console.warn(
-        `⚠️ Data Completeness: Only ${completeness}% of games have recorded outcomes. ` +
-        `${gameStarts - completedGames} games have no outcome event.`
-      );
-    }
-    ```
-  - **Inline Comment:** "Warn if <80% games have outcome events (win or death)"
+- [x] **Add Data Completeness Warning to Dashboard** ✅ COMPLETE
+  - **Completed:** June 11, 2026
+  - **Location:** `live.html` — after `completedGames` definition in `mapGA4ResponseToDATA()` (line ~3195)
+  - **Change:** `console.warn()` fires when `completedGames / gameStarts < 0.8` — logs exact % and raw counts
   - **Dependencies:** None
 
 - [x] **Investigate Leaderboard Event Name** ✅ RESOLVED June 10, 2026
@@ -478,7 +493,7 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   7. ✅ **MT-2: New User % KPI** — COMPLETE June 10, 2026 (25% live, colored counts `28 new / 83 returning`, Lambda deployed)
   8. ✅ **MT-3: Avg Level KPI + platform cols** — COMPLETE June 10, 2026 (weighted avg from player_death events, wired to Overview + Platform tab)
   9. ✅ **MT-4: Replay Rate KPI** — COMPLETE June 10, 2026 (7% live; 8 replay / 112 total starts; desktop 4%, mobile 10%)
-  10. **MT-5: Tier vs Final Score chart** — DEFERRED: needs `final_score` dim added to game source first
+  10. **MT-5: Tier vs Final Score chart** — UNBLOCKED (June 11, 2026): `final_score` does NOT need BigQuery or a separate DB. Game just needs to add `final_score` as an event param on `player_won` → register as GA4 custom dim → standard Lambda query works. Cost: $0. Waiting on game-side code change.
 
   **🔴 Large (4–8 hrs each) — see `docs/Phase7_Large_Tier_Plan.md` for full implementation plan:**
   11. ✅ **LT-1: Game Funnel** — COMPLETE June 10, 2026 (8-stage funnel live: game_start → boss_attempt/defeated ×3 → player_won; all from boss-analysis; `wave_reached` dropped — param not sent with that event)
