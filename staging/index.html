@@ -1504,6 +1504,10 @@
         </div>
       </div>
 
+      <div id="completeness-banner" class="insight-box" style="display:none;border-left:3px solid var(--yel);margin-bottom:0">
+        ⚠️ <strong>Data Completeness:</strong> Only <span id="completeness-pct">—</span>% of sessions have a recorded outcome. Version 4.3 data includes test sessions from development.
+      </div>
+
       <div class="insight-box" id="overview-insight">
         <strong>📡 Connect your GA4 data source</strong> — This dashboard uses sample data. To populate with real data,
         connect GA4 via the Looker Studio guide (tab 6) and export event metrics to replace the placeholder values.
@@ -2293,6 +2297,7 @@
           mobWinSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:#FFD700">—&nbsp;starts</span>',
           deskLevel: '6.1',
           mobLevel: '4.3',
+          completeness: 100,
         },
         daily: {
           labels: ['Feb 25', 'Feb 26', 'Feb 27', 'Feb 28', 'Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7', 'Mar 8', 'Mar 9', 'Mar 10'],
@@ -3193,10 +3198,12 @@
           ? ((playerDeath / completedGames) * 100).toFixed(1) + '%'
           : '0%';
 
+        const completeness = gameStarts > 0 ? (completedGames / gameStarts) * 100 : 100;
+
         // Warn if <80% of games have recorded outcomes (win or death)
-        if (gameStarts > 0 && completedGames / gameStarts < 0.8) {
+        if (completeness < 80) {
           console.warn(
-            `⚠️ Data Completeness: Only ${((completedGames / gameStarts) * 100).toFixed(1)}% of games have recorded outcomes. ` +
+            `⚠️ Data Completeness: Only ${completeness.toFixed(1)}% of games have recorded outcomes. ` +
             `${gameStarts - completedGames} of ${gameStarts} games have no outcome event.`
           );
         }
@@ -3226,6 +3233,7 @@
             mobWin: '—',
             deskLevel: '—',
             mobLevel: '—',
+            completeness,
           },
           reportType,
           rowCount: response.rowCount || response.rows.length,
@@ -4209,6 +4217,13 @@
         document.getElementById('kpi-mob-win-sub').innerHTML = k.mobWinSub;
         document.getElementById('kpi-desk-level').textContent = k.deskLevel;
         document.getElementById('kpi-mob-level').textContent = k.mobLevel;
+        const banner = document.getElementById('completeness-banner');
+        if (k.completeness < 80) {
+          document.getElementById('completeness-pct').textContent = k.completeness.toFixed(1);
+          banner.style.display = '';
+        } else {
+          banner.style.display = 'none';
+        }
       }
 
       // ── Chart defaults ─────────────────────────────────────────────────
