@@ -10,35 +10,43 @@
 
 ## June 11, 2026 - Deploy Plan: AWS Standing Tiger + GitHub Pages CI/CD
 
-**Status:** Planned ✅ — Ready to implement
+**Status:** Workflows created ✅ — Ready to execute
 
-### Architecture Decision
-- **Staging:** `staging` branch → GitHub Actions → GitHub Pages (free QA URL)
-- **Production:** `main` branch → GitHub Actions → AWS S3 static hosting
-- **Lambda API:** Deployed manually (separate from dashboard HTML)
-- **Why not GitHub Pages for prod:** S3 is the correct AWS static hosting path; enables custom domain + CloudFront later
-- **Why not AWS for staging:** GitHub Pages is free and instant — no AWS costs for QA
+### Architecture (Final Decision)
+- **Staging:** `staging` branch → GitHub Actions → GitHub Pages `/staging/` subfolder
+- **Production:** `main` branch → GitHub Actions → GitHub Pages root `/`
+- **Lambda API:** Deployed manually to AWS Standing Tiger (separate from dashboard HTML)
+- **Why GitHub Pages for both:** Free, no AWS credentials in GitHub, custom domain via CNAME supported. S3 is overkill for a static read-only dashboard.
+
+### Workflow Files Created
+- `.github/workflows/deploy-staging.yml` ✅
+- `.github/workflows/deploy-production.yml` ✅
+
+### URLs After Deploy
+- Staging: `https://kstanigar.github.io/non-x_analytics/staging/`
+- Production: `https://kstanigar.github.io/non-x_analytics/` (or custom domain)
+
+### Custom Domain Setup (when ready)
+1. DNS → add CNAME record: `analytics` → `kstanigar.github.io`
+2. Repo → Settings → Pages → Custom domain → enter domain → Save
+3. Repo → Settings → Variables → `CUSTOM_DOMAIN` = `analytics.yourgame.com`
+4. Wait for DNS propagation → enable Enforce HTTPS
+5. Update `ALLOWED_ORIGIN` in `api/index.js` to custom domain → re-upload Lambda
 
 ### Day-to-Day Workflow
 ```
-Push to staging → GitHub Pages auto-deploys → QA
-Merge staging → main → S3 auto-deploys → production live
+Work on main → merge to staging → push staging → QA
+QA passes → merge to main → push main → production auto-deploys in ~30s
 ```
 
-### GitHub Secrets Required
-- `AWS_ACCESS_KEY_ID` — IAM user with S3 write access
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_S3_BUCKET` — bucket name for production hosting
+### Next Steps to Execute
+1. Repo Settings → Actions → read/write permissions
+2. Repo Settings → Pages → source: `gh-pages` branch
+3. Create `staging` branch and push
+4. Deploy Lambda to Standing Tiger AWS account
+5. Update `API_CONFIG.baseURL` + `ALLOWED_ORIGIN` → commit → push
 
-### URLs After Deploy
-- Staging: `https://kstanigar.github.io/non-x_analytics/`
-- Production: S3 website URL (or custom domain)
-
-### Files to Create
-- `.github/workflows/deploy-staging.yml`
-- `.github/workflows/deploy-production.yml`
-
-### Full checklist in PRIORITIES.md → "Deploy to AWS Standing Tiger Account + GitHub Pages Staging + CI/CD"
+### Full checklist in PRIORITIES.md → "Deploy to AWS Standing Tiger Account + GitHub Pages CI/CD"
 
 ---
 

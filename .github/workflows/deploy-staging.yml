@@ -1,0 +1,27 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [staging]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare staging build
+        run: |
+          mkdir -p deploy
+          cp live.html deploy/index.html
+
+      - name: Deploy to GitHub Pages (staging subfolder)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: deploy
+          target-folder: staging
+          clean: false

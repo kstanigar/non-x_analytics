@@ -1,0 +1,33 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare production build
+        run: |
+          mkdir -p deploy
+          cp live.html deploy/index.html
+          # CNAME file tells GitHub Pages to serve this site on the custom domain.
+          # If you haven't set up a custom domain yet, delete or comment out the next line.
+          # Replace with your actual domain (e.g. analytics.yourdomain.com) when ready.
+          echo "${CUSTOM_DOMAIN}" > deploy/CNAME
+        env:
+          CUSTOM_DOMAIN: ${{ vars.CUSTOM_DOMAIN }}
+
+      - name: Deploy to GitHub Pages (production root)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: deploy
+          target-folder: /
+          clean: false
