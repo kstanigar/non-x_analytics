@@ -274,6 +274,21 @@ exports.handler = async (event) => {
             };
             if (dimensionFilter) { musicFunnelRequest.dimensionFilter = dimensionFilter; }
             [response] = await analyticsDataClient.runReport(musicFunnelRequest);
+        } else if (requestType === 'standard' && subType === 'movement-ab') {
+            // ─── MOVEMENT A/B REQUEST (Win rate split by movement_group) ───
+            const movementABRequest = {
+                property: `properties/${propertyId}`,
+                dateRanges: [dateRange],
+                // Multi-dimensional query: movement_group × eventName
+                // Returns event counts split by movement scheme cohort
+                dimensions: [
+                    { name: 'customEvent:movement_group' }, // Dimension 0: values TBC from endpoint test
+                    { name: 'eventName' }                    // Dimension 1: game_start, player_won, etc.
+                ],
+                metrics: [{ name: 'eventCount' }],
+            };
+            if (dimensionFilter) { movementABRequest.dimensionFilter = dimensionFilter; }
+            [response] = await analyticsDataClient.runReport(movementABRequest);
         } else if (requestType === 'realtime') {
             // ─── 1. REAL-TIME API (Last 30 Mins) ───
             const realtimeRequest = {

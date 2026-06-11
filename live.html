@@ -2354,8 +2354,8 @@
           B: { label: 'Music OFF', sessions: 1392, winRate: '7.2%', survival: '2:11', replay: '2.1×', lbRate: '27%', avgLevel: '4.8', musicToggle: '22%' },
         },
         abMovement: {
-          A: { label: 'Scheme A', sessions: 1389, winRate: '8.1%', survival: '2:19', avgLevel: '5.0' },
-          B: { label: 'Scheme B', sessions: 1452, winRate: '8.7%', survival: '2:25', avgLevel: '5.4' },
+          A: { label: 'Horizontal (1.25× pts)', sessions: 1389, winRate: '8.1%', survival: '2:19', avgLevel: '5.0' },
+          B: { label: 'Full Direction',         sessions: 1452, winRate: '8.7%', survival: '2:25', avgLevel: '5.4' },
         },
         platform: {
           desktop: { sessions: 1534, winRate: '11.2%', survival: '2.6m', replay: '—%', avgLevel: '6.1', lbRate: '36%', boss1: '28.4%', boss2: '17.1%', boss3: '12.8%' },
@@ -3109,6 +3109,30 @@
           };
         }
 
+        if (reportType === 'movement-ab') {
+          // Parse movement_group × eventName response
+          // Dynamic group discovery — sorts alphabetically so A=groups[0], B=groups[1]
+          const groupCounts = {};
+          if (response.rows && response.rows.length > 0) {
+            response.rows.forEach(row => {
+              const group     = row.dimensionValues[0]?.value?.toLowerCase() || '';
+              const eventName = row.dimensionValues[1]?.value || '';
+              const count     = parseInt(row.metricValues[0]?.value || '0', 10);
+              if (!group || group === '(not set)') return;
+              if (!groupCounts[group]) groupCounts[group] = {};
+              groupCounts[group][eventName] = (groupCounts[group][eventName] || 0) + count;
+            });
+          }
+          const groups = Object.keys(groupCounts).sort();
+          if (groups.length < 2) return { hasRealData: false };
+          const calc = (grp) => {
+            const g = groupCounts[grp] || {};
+            const gs = g['game_start'] || 0, pw = g['player_won'] || 0;
+            return { sessions: gs, winRate: gs > 0 ? Math.round((pw / gs) * 100) + '%' : '—', label: grp };
+          };
+          return { movementAB: { A: calc(groups[0]), B: calc(groups[1]) }, hasRealData: true };
+        }
+
         // ─── EXTRACTION ───────────────────────────────────────────────
 
         const eventCounts = {};
@@ -3657,6 +3681,29 @@
         }
       }
 
+      async function fetchMovementABData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const [dateRange, versionShort] = selectedValue.split('-');
+        const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=movement-ab&version=${version}&dateRange=${dateRange}`;
+        try {
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          return { success: true, data: await response.json() };
+        } catch (error) {
+          if (error.name === 'TimeoutError') {
+            console.error(`Movement-AB request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error('Failed to fetch movement A/B data:', error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -4031,6 +4078,25 @@
           }
         } else {
           console.warn('Music-Funnel fetch failed:', musicFunnelResult.error);
+        }
+
+        // Fetch movement A/B data (win rate split by movement_group)
+        const movementABResult = await fetchMovementABData();
+        if (movementABResult.success && movementABResult.data) {
+          const mabData = mapGA4ResponseToDATA(movementABResult.data, 'movement-ab');
+          if (!mabData.error && mabData.hasRealData) {
+            DATA.abMovement.A.sessions = mabData.movementAB.A.sessions;
+            DATA.abMovement.A.winRate  = mabData.movementAB.A.winRate;
+            DATA.abMovement.A.label    = 'Horizontal (1.25× pts)'; // movement_group 'A' — horizontal only, 1.25× points multiplier
+            DATA.abMovement.B.sessions = mabData.movementAB.B.sessions;
+            DATA.abMovement.B.winRate  = mabData.movementAB.B.winRate;
+            DATA.abMovement.B.label    = 'Full Direction';         // movement_group 'B' — full directional movement
+            console.log('Movement A/B data updated:', DATA.abMovement);
+          } else {
+            console.warn('Movement-AB parsing failed or no data, using mock values');
+          }
+        } else {
+          console.warn('Movement-AB fetch failed:', movementABResult.error);
         }
 
         // Re-render all charts

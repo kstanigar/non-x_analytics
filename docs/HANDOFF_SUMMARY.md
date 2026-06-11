@@ -8,6 +8,36 @@
 
 ---
 
+## June 11, 2026 - Phase 7 LT-3: Movement A/B Test (Live)
+
+**Session Duration:** ~1 hour
+**Status:** LT-3 complete ✅
+
+### LT-3 Changes (Complete):
+- [x] Added `movement-ab` Lambda handler (`movement_group × eventName`)
+- [x] Added `movement-ab` parser — dynamic group discovery (sorts alphabetically → A=groups[0], B=groups[1])
+- [x] Added `fetchMovementABData()` fetch function (AbortSignal.timeout pattern)
+- [x] Added integration block wiring `DATA.abMovement.A/B`
+- [x] Fixed label assignment — groups reversed from initial assumption: A = Horizontal (1.25× pts), B = Full Direction
+- [x] Updated mock defaults to match correct labels
+
+### Endpoint Test Results (All Time, v4.3):
+- Group A (Horizontal, 1.25× pts): 19 sessions
+- Group B (Full Direction): 93 sessions
+- Win rate: `—` for both — `player_won` not tagged with `movement_group` in game code (game-side fix needed if win rate required)
+- Heavy imbalance (19 vs 93) — worth checking A/B assignment logic in game
+
+### Key Finding:
+- `movement_group` values confirmed as `'A'` and `'B'` (same as `ab_music_group`)
+- Labels corrected after endpoint test revealed A=Horizontal, B=Full Direction (opposite of initial assumption)
+
+### Files Modified:
+- `api/index.js` — movement-ab handler (after music-funnel, before realtime)
+- `live.html` — parser (line ~3113), fetchMovementABData(), integration block, mock defaults (line 2357)
+- `docs/Phase7_Large_Tier_Plan.md` — LT-3 plan with verified line numbers
+
+---
+
 ## June 10, 2026 - Phase 7 LT-2b: Music Funnel Table (Live)
 
 **Session Duration:** ~30 min

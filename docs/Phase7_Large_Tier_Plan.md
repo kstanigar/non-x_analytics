@@ -320,19 +320,15 @@ if (musicABResult.success && musicABResult.data) {
 
 ## LT-3: Movement A/B Test — New Lambda handler
 
+**Status:** ⏳ In progress — June 10, 2026
+
 ### Summary
-Same pattern as LT-2. New `subType=movement-ab` using `customEvent:movement_group`.
+Same pattern as LT-2. New `subType=movement-ab` using `customEvent:movement_group`. Parser uses dynamic group discovery (groups sorted alphabetically → A/B) since `movement_group` values are unconfirmed until endpoint test.
 
 ### GA4 Details
 - **Dimension:** `customEvent:movement_group`
-- **Values:** Unknown — need to verify via endpoint test before implementing
-- **Recommended:** Hit endpoint raw first, inspect actual values in response
-
-### Endpoint to test first (before implementation):
-```
-GET /analytics?type=standard&subType=movement-ab&version=4.3&dateRange=90day
-```
-Check `dimensionValues[0]` values in the response to confirm group names.
+- **Values:** TBC — deploy handler first, then test endpoint to confirm actual values
+- **Scope:** Event (sent on all game events)
 
 ### Metrics to make live
 
@@ -344,12 +340,25 @@ Check `dimensionValues[0]` values in the response to confirm group names.
 | `avgLevel` | Needs `level_reached` dim — **skip, leave mock** | `'5.0'` / `'5.4'` |
 
 ### Files to Modify
-- `api/index.js` — new handler (same pattern as music-ab)
+- `api/index.js` — new handler (same pattern as music-funnel)
 - `live.html` — parser, fetch function, integration
+
+### Task List
+
+| # | Task | File | Insertion Point | Status |
+|---|------|------|-----------------|--------|
+| 1 | Add Lambda handler | `api/index.js` | After line 276 (after `music-funnel`, before `realtime`) | ⏳ |
+| 2 | Deploy Lambda | AWS console | — | ⏳ |
+| 3 | Test endpoint raw | URL | — | ⏳ |
+| 4 | Add parser | `live.html` | Before line 3112 (`// ─── EXTRACTION ───`) | ⏳ |
+| 5 | Add fetch function | `live.html` | After line 3658 (after `fetchMusicFunnelData()` closing `}`) | ⏳ |
+| 6 | Add integration block | `live.html` | Before line 4036 (`// Re-render all charts`) | ⏳ |
+| 7 | Test dashboard | browser | — | ⏳ |
 
 ---
 
-### Change 1: api/index.js — new handler (after music-ab, before realtime)
+### Change 1: api/index.js — new handler
+**Insert after line 276** (after `music-funnel`, before `realtime`):
 
 ```javascript
 } else if (requestType === 'standard' && subType === 'movement-ab') {
@@ -365,19 +374,18 @@ Check `dimensionValues[0]` values in the response to confirm group names.
     };
     if (dimensionFilter) { movementABRequest.dimensionFilter = dimensionFilter; }
     [response] = await analyticsDataClient.runReport(movementABRequest);
-}
 ```
 
 ---
 
-### Change 2: live.html — parser (after music-ab parser, before `// ─── EXTRACTION ───`)
+### Change 2: live.html — parser
+**Insert before line 3112** (`// ─── EXTRACTION ───`):
 
 ```javascript
 if (reportType === 'movement-ab') {
   // Parse movement_group × eventName response
-  // Group key names depend on actual GA4 values — discovered via endpoint test
+  // Dynamic group discovery — sorts group names alphabetically so A=groups[0], B=groups[1]
   const groupCounts = {};
-
   if (response.rows && response.rows.length > 0) {
     response.rows.forEach(row => {
       const group     = row.dimensionValues[0]?.value?.toLowerCase() || '';
@@ -388,32 +396,23 @@ if (reportType === 'movement-ab') {
       groupCounts[group][eventName] = (groupCounts[group][eventName] || 0) + count;
     });
   }
-
-  const groups = Object.keys(groupCounts); // discover actual group names from data
+  const groups = Object.keys(groupCounts).sort();
   if (groups.length < 2) return { hasRealData: false };
-
   const calc = (grp) => {
-    const g  = groupCounts[grp] || {};
-    const gs = g['game_start'] || 0;
-    const pw = g['player_won'] || 0;
-    return { sessions: gs, winRate: gs > 0 ? Math.round((pw / gs) * 100) + '%' : '—' };
+    const g = groupCounts[grp] || {};
+    const gs = g['game_start'] || 0, pw = g['player_won'] || 0;
+    return { sessions: gs, winRate: gs > 0 ? Math.round((pw / gs) * 100) + '%' : '—', label: grp };
   };
-
-  return {
-    movementAB: {
-      A: { ...calc(groups[0]), label: groups[0] }, // group A = first alphabetically
-      B: { ...calc(groups[1]), label: groups[1] }, // group B = second
-    },
-    hasRealData: true,
-  };
+  return { movementAB: { A: calc(groups[0]), B: calc(groups[1]) }, hasRealData: true };
 }
 ```
 
-> **Note:** Parser uses dynamic group discovery from response since `movement_group` values are unconfirmed. Labels will be set to raw GA4 values initially — update `DATA.abMovement.A.label` / `.B.label` with friendly names once values are known.
+> Labels are set to raw GA4 values initially. Update `DATA.abMovement.A.label` / `.B.label` with friendly names after endpoint test confirms actual values.
 
 ---
 
-### Change 3: live.html — fetch function (after fetchMusicABData)
+### Change 3: live.html — fetch function
+**Insert after line 3658** (after `fetchMusicFunnelData()` closing `}`, before `loadAndRenderGA4Data`):
 
 ```javascript
 async function fetchMovementABData() {
@@ -428,8 +427,7 @@ async function fetchMovementABData() {
       headers: { 'Content-Type': 'application/json' }
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    const data = await response.json();
-    return { success: true, data };
+    return { success: true, data: await response.json() };
   } catch (error) {
     if (error.name === 'TimeoutError') {
       console.error(`Movement-AB request timeout after ${API_CONFIG.timeout}ms`);
@@ -443,7 +441,8 @@ async function fetchMovementABData() {
 
 ---
 
-### Change 4: live.html — integration (after music-AB integration, before reinitAllCharts())
+### Change 4: live.html — integration
+**Insert before line 4036** (`// Re-render all charts`):
 
 ```javascript
 // Fetch movement A/B data (win rate split by movement_group)
@@ -469,7 +468,7 @@ if (movementABResult.success && movementABResult.data) {
 ---
 
 ### Testing (LT-3)
-- [ ] First: test endpoint raw to confirm `movement_group` values
+- [ ] Endpoint test: check `dimensionValues[0]` values to confirm `movement_group` names
 - [ ] Console shows `Movement A/B data updated:` with non-zero sessions
 - [ ] Movement A/B cards show live winRate and session counts
 - [ ] Labels update to real group names from GA4
