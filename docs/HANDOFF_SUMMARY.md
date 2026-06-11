@@ -22,6 +22,7 @@
   4. Replace `chartAITierScore()` with `chartSessionOutcome()` stacked bar (lines 4992–5015)
   5. Update call site (line 5202)
 - **Result:** AI Agent tab now shows a stacked bar (Wins/Deaths/Abandoned per day) instead of the flat zero-line chart. Live data from `daily-timeseries` fetch auto-populates on refresh.
+- **Color update:** Wins changed from magenta → green (GRN) for clearer win/death contrast. ✅
 
 ---
 

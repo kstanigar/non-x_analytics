@@ -155,33 +155,18 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ### Added: June 11, 2026 (Dashboard Polish)
 
-- [ ] **Remove Quad Shot from Powerup Chart** ⭐ READY TO IMPLEMENT
+- [x] **Remove Quad Shot from Powerup Chart** ✅ COMPLETE
+  - **Completed:** June 11, 2026
   - **Estimate:** 10 min
-  - **Priority:** HIGH — Quad Shot removed from game; empty bar misleads readers
   - **Files:** `live.html` only (8 targeted changes)
-  - **Changes (exact lines):**
-    1. Line 1986 — remove `'quad_shot'` from data dictionary values cell
-    2. Line 2306 — remove `'Quad Shot'` from `DATA.powerups.labels`
-    3. Lines 2307–2309 — remove 4th element from `green`/`red`/`purple` mock arrays
-    4. Line 2311 — remove 4th `0` from `byPlatform.desktop` and `byPlatform.mobile`
-    5. Lines 2748–2758 — remove `quad_shot: 0` from all 5 parser objects
-    6. Line 2764 — update comment removing `'quad_shot'`
-    7. Lines 2788–2789 — remove `'Quad Shot'` from `powerupLabels`, `'quad_shot'` from `powerupKeys`
-    8. Lines 2810–2816 + 4335–4339 — remove 4th element from fallback arrays; `[0,0,0,0]` → `[0,0,0]`
+  - **Result:** Powerup chart shows Health, Double Laser, Shield only — Quad Shot bar removed ✅
   - **Note:** Triple Shot not yet tracked in GA4 — add when game update ships
 
-- [ ] **Wire Statistical Significance Table to Live Sessions** ⭐ READY TO IMPLEMENT
+- [x] **Wire Statistical Significance Table to Live Sessions** ✅ COMPLETE
+  - **Completed:** June 11, 2026
   - **Estimate:** 10 min
-  - **Priority:** HIGH — currently shows mock session counts (1,449 / 1,392 / 1,389 / 1,452)
-  - **Files:** `live.html` lines 4759–4778 (1 block replacement)
-  - **Fix:** Replace hardcoded values with `DATA.abMusic.A/B.sessions` and `DATA.abMovement.A/B.sessions`
-  - **Status logic (dynamic):**
-    - `min(nA, nB) >= 1000` → ✓ Significant (green)
-    - `min(nA, nB) >= 100`  → Emerging (yellow)
-    - `min(nA, nB) < 100`   → ⚠ Insufficient (red)
-  - **Recommendation logic:** `>= 100` per group → show existing recommendation; else → "Gather more data"
-  - **Live result:** Both rows will correctly show `⚠ Insufficient` (Music min=39, Movement min=19)
-  - **Dependencies:** None — `DATA.abMusic/abMovement.sessions` already live
+  - **Files:** `live.html` lines 4759–4778
+  - **Result:** Table shows live session counts (Music: 73/40, Movement: 19/94); both rows display `⚠ Insufficient` with "Gather more data" recommendation ✅
 
 - [x] **Replace Tier vs Final Score Chart → Session Outcome Breakdown** ✅ COMPLETE
   - **Estimate:** 15 min
