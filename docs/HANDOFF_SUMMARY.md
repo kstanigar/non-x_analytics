@@ -10,7 +10,7 @@
 
 ## June 11, 2026 - Deploy Plan: AWS Standing Tiger + GitHub Pages CI/CD
 
-**Status:** Workflows created ✅ — Ready to execute
+**Status:** GitHub Pages CI/CD complete ✅ — Lambda deploy next
 
 ### Architecture (Final Decision)
 - **Staging:** `staging` branch → GitHub Actions → GitHub Pages `/staging/` subfolder
@@ -39,12 +39,17 @@ Work on main → merge to staging → push staging → QA
 QA passes → merge to main → push main → production auto-deploys in ~30s
 ```
 
-### Next Steps to Execute
-1. Repo Settings → Actions → read/write permissions
-2. Repo Settings → Pages → source: `gh-pages` branch
-3. Create `staging` branch and push
-4. Deploy Lambda to Standing Tiger AWS account
-5. Update `API_CONFIG.baseURL` + `ALLOWED_ORIGIN` → commit → push
+### Completed
+- Repo Settings → Actions → read/write permissions ✅
+- Repo Settings → Pages → source: `gh-pages` branch ✅
+- `staging` branch created and pushed ✅
+- Both workflows fired successfully ✅
+- Staging URL live: `https://kstanigar.github.io/non-x_analytics/staging/` ✅
+- Production URL live: `https://kstanigar.github.io/non-x_analytics/` ✅
+
+### Next Steps
+- Deploy Lambda to Standing Tiger AWS account
+- Update `API_CONFIG.baseURL` + `ALLOWED_ORIGIN` → commit → push
 
 ### Full checklist in PRIORITIES.md → "Deploy to AWS Standing Tiger Account + GitHub Pages CI/CD"
 

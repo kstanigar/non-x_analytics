@@ -205,6 +205,12 @@ Tasks organized by date added (newest first). Tasks include planning details, in
     - Update `ALLOWED_ORIGIN` to Standing Tiger domain
 
 - [ ] **Deploy to AWS Standing Tiger Account + GitHub Pages CI/CD**
+  - **GitHub Pages CI/CD:** ✅ COMPLETE (June 11, 2026)
+    - `staging` branch created ✅
+    - Both workflow files live and firing ✅
+    - Staging URL: `https://kstanigar.github.io/non-x_analytics/staging/` ✅
+    - Production URL: `https://kstanigar.github.io/non-x_analytics/` ✅
+  - **Remaining: AWS Lambda deploy (see checklist below)**
   - **Estimate:** 2–3 hours total
   - **Priority:** HIGH — production deployment
   - **Architecture (final decision):**
