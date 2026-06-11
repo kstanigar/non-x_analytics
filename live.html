@@ -1733,11 +1733,11 @@
           <div class="chart-note">Combined tier × movement multipliers (0.50× to 2.19×)</div>
         </div>
         <div class="card">
-          <div class="card-title"><span class="dot ylw"></span> Tier vs Final Score</div>
+          <div class="card-title"><span class="dot ylw"></span> Session Outcome Breakdown</div>
           <div class="chart-wrap">
-            <canvas id="chart-ai-tier-score"></canvas>
+            <canvas id="chart-session-outcome"></canvas>
           </div>
-          <div class="chart-note">Average final scores by tier (validates multiplier balance)</div>
+          <div class="chart-note">Win / Death / Abandoned sessions per day (stacked)</div>
         </div>
       </div>
 
@@ -2296,6 +2296,7 @@
           labels: ['Feb 25', 'Feb 26', 'Feb 27', 'Feb 28', 'Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7', 'Mar 8', 'Mar 9', 'Mar 10'],
           plays: [28, 41, 55, 38, 62, 79, 91, 104, 88, 73, 95, 118, 107, 132],
           wins: [2, 3, 4, 3, 5, 7, 8, 9, 7, 5, 8, 10, 9, 11],
+          deaths: [14, 22, 28, 19, 33, 43, 49, 55, 46, 37, 51, 63, 58, 72],  // mock; replaced by live data
           survival: [110, 118, 125, 122, 134, 140, 145, 148, 143, 138, 147, 152, 149, 155],
         },
         deviceMix: { desktop: 54, mobile: 46 },
@@ -2547,9 +2548,10 @@
               return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             });
 
-            // Extract plays (game_start) and wins (player_won) per day
+            // Extract plays, wins, deaths per day for outcome breakdown chart
             const plays = dates.map(d => dateMap[d]['game_start'] || 0);
             const wins = dates.map(d => dateMap[d]['player_won'] || 0);
+            const deaths = dates.map(d => dateMap[d]['player_death'] || 0);  // feeds stacked outcome chart
 
             // Survival time placeholder (keep mock data for now)
             const survival = dates.map((d, i) => {
@@ -2559,7 +2561,7 @@
             });
 
             return {
-              daily: { labels, plays, wins, survival }
+              daily: { labels, plays, wins, deaths, survival }
             };
 
           } catch (error) {
@@ -4989,26 +4991,27 @@
         });
       }
 
-      function chartAITierScore() {
-        const d = DATA.aiAgent.tierScores;
-        const _ex_chart = Chart.getChart('chart-ai-tier-score'); if (_ex_chart) _ex_chart.destroy();
-        new Chart(document.getElementById('chart-ai-tier-score'), {
-          type: 'line',
+      function chartSessionOutcome() {
+        const d = DATA.daily;
+        const _ex_chart = Chart.getChart('chart-session-outcome'); if (_ex_chart) _ex_chart.destroy();
+        // abandoned = game_start - player_won - player_death per day; clamp to 0 for rounding edge cases
+        const abandoned = (d.plays || []).map((p, i) => Math.max(0, p - (d.wins[i] || 0) - (d.deaths[i] || 0)));
+        new Chart(document.getElementById('chart-session-outcome'), {
+          type: 'bar',
           data: {
             labels: d.labels,
-            datasets: [{
-              label: 'Avg Final Score',
-              data: d.avgScores,
-              backgroundColor: YEL + '33',
-              borderColor: YEL,
-              borderWidth: 2,
-              fill: true,
-              tension: 0.3
-            }]
+            datasets: [
+              { label: 'Wins',      data: d.wins,              backgroundColor: MAG + '99', borderColor: MAG, borderWidth: 1 },
+              { label: 'Deaths',    data: d.deaths || [],      backgroundColor: RED + '99', borderColor: RED, borderWidth: 1 },
+              { label: 'Abandoned', data: abandoned,           backgroundColor: YEL + '55', borderColor: YEL, borderWidth: 1 },
+            ]
           },
           options: {
             responsive: true, maintainAspectRatio: false,
-            scales: gridOpts(),
+            scales: {
+              x: { ...gridOpts().x, stacked: true },
+              y: { ...gridOpts().y, stacked: true }
+            },
             plugins: { legend: { labels: { font: { size: getLegendFontSize() }, color: 'rgba(200,232,255,0.5)', boxWidth: 12 } } }
           }
         });
@@ -5199,7 +5202,7 @@
         chartAITierDist();
         chartAITierFlow();
         chartAIScoreMult();
-        chartAITierScore();
+        chartSessionOutcome();
         chartAIDeathTriggers();
         buildAITierTable();
       }

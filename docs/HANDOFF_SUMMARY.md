@@ -8,6 +8,33 @@
 
 ---
 
+## June 11, 2026 - Dashboard Polish: Session Outcome Breakdown Chart
+
+**Status:** Complete ✅ — June 11, 2026
+
+### Plan: Replace Tier vs Final Score Chart
+- **Decision:** Replace flat-line chart (all zeros, `final_score` not in GA4) with Session Outcome Breakdown stacked bar
+- **Chart:** Win / Death / Abandoned sessions per day — uses existing `daily-timeseries` data, no new Lambda needed
+- **5 changes to `live.html`:**
+  1. Add `deaths` mock array to `DATA.daily` (line ~2299)
+  2. Extract `player_death` per day in timeseries parser (line ~2552); add to return object
+  3. HTML: rename card title/canvas/note (lines 1735–1741)
+  4. Replace `chartAITierScore()` with `chartSessionOutcome()` stacked bar (lines 4992–5015)
+  5. Update call site (line 5202)
+- **Result:** AI Agent tab now shows a stacked bar (Wins/Deaths/Abandoned per day) instead of the flat zero-line chart. Live data from `daily-timeseries` fetch auto-populates on refresh.
+
+---
+
+## June 11, 2026 - Dashboard Polish: Quad Shot + Significance Table
+
+**Status:** Complete ✅ — Committed June 11, 2026 (hash: 33849e0)
+
+### Issues Fixed:
+1. **Powerup chart — Quad Shot empty bar** — `quad_shot` events never fire (powerup removed from game). Removed from all 8 locations in live.html (data dict, mock arrays, parser objects, labels/keys, fallbacks, chart defaults).
+2. **Statistical Significance table — not live** — replaced hardcoded mock counts with `sigStatus()` dynamic function reading `DATA.abMusic.A/B.sessions` + `DATA.abMovement.A/B.sessions`. Both rows now correctly show `⚠ Insufficient` with live data (Music min=39, Movement min=19).
+
+---
+
 ## June 11, 2026 - Phase 7 LT-3: Movement A/B Test (Live)
 
 **Session Duration:** ~1 hour

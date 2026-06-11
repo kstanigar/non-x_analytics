@@ -153,6 +153,54 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ---
 
+### Added: June 11, 2026 (Dashboard Polish)
+
+- [ ] **Remove Quad Shot from Powerup Chart** ⭐ READY TO IMPLEMENT
+  - **Estimate:** 10 min
+  - **Priority:** HIGH — Quad Shot removed from game; empty bar misleads readers
+  - **Files:** `live.html` only (8 targeted changes)
+  - **Changes (exact lines):**
+    1. Line 1986 — remove `'quad_shot'` from data dictionary values cell
+    2. Line 2306 — remove `'Quad Shot'` from `DATA.powerups.labels`
+    3. Lines 2307–2309 — remove 4th element from `green`/`red`/`purple` mock arrays
+    4. Line 2311 — remove 4th `0` from `byPlatform.desktop` and `byPlatform.mobile`
+    5. Lines 2748–2758 — remove `quad_shot: 0` from all 5 parser objects
+    6. Line 2764 — update comment removing `'quad_shot'`
+    7. Lines 2788–2789 — remove `'Quad Shot'` from `powerupLabels`, `'quad_shot'` from `powerupKeys`
+    8. Lines 2810–2816 + 4335–4339 — remove 4th element from fallback arrays; `[0,0,0,0]` → `[0,0,0]`
+  - **Note:** Triple Shot not yet tracked in GA4 — add when game update ships
+
+- [ ] **Wire Statistical Significance Table to Live Sessions** ⭐ READY TO IMPLEMENT
+  - **Estimate:** 10 min
+  - **Priority:** HIGH — currently shows mock session counts (1,449 / 1,392 / 1,389 / 1,452)
+  - **Files:** `live.html` lines 4759–4778 (1 block replacement)
+  - **Fix:** Replace hardcoded values with `DATA.abMusic.A/B.sessions` and `DATA.abMovement.A/B.sessions`
+  - **Status logic (dynamic):**
+    - `min(nA, nB) >= 1000` → ✓ Significant (green)
+    - `min(nA, nB) >= 100`  → Emerging (yellow)
+    - `min(nA, nB) < 100`   → ⚠ Insufficient (red)
+  - **Recommendation logic:** `>= 100` per group → show existing recommendation; else → "Gather more data"
+  - **Live result:** Both rows will correctly show `⚠ Insufficient` (Music min=39, Movement min=19)
+  - **Dependencies:** None — `DATA.abMusic/abMovement.sessions` already live
+
+- [x] **Replace Tier vs Final Score Chart → Session Outcome Breakdown** ✅ COMPLETE
+  - **Estimate:** 15 min
+  - **Priority:** MEDIUM — chart currently shows flat line (all zeros); `final_score` dim not tracked in GA4
+  - **Decision:** Replace with Session Outcome Breakdown — stacked bar (Win / Death / Abandoned per day)
+  - **Why this replacement:** Uses existing `daily-timeseries` data — no new Lambda; `abandoned = game_start - player_won - player_death`
+  - **Files:** `live.html` only — 5 changes
+  - **Changes (exact):**
+    1. Lines 2295–2300 — Add `deaths: [...]` mock array to `DATA.daily`
+    2. Lines 2550–2562 — Extract `deaths` (player_death) per day in timeseries parser; add to return object
+    3. Lines 1735–1741 — HTML: rename card title, canvas ID (`chart-session-outcome`), chart note
+    4. Lines 4992–5015 — Replace `chartAITierScore()` with `chartSessionOutcome()` (stacked bar using `DATA.daily`)
+    5. Line 5202 — Update call site from `chartAITierScore()` to `chartSessionOutcome()`
+  - **Chart colors:** Wins=MAG, Deaths=RED, Abandoned=YEL (stacked)
+  - **Edge case:** `abandoned` clamped to 0 (Math.max) to handle timing edge cases
+  - **Dependencies:** None — `DATA.daily` already populated by timeseries fetch
+
+---
+
 ### Added: June 10, 2026 (Pre-Launch Checklist)
 
 - [ ] **Final Security Audit** ⛔ REQUIRED BEFORE DEPLOY
