@@ -8,30 +8,24 @@
 
 ---
 
-## June 11, 2026 - Deploy Plan: AWS Standing Tiger + GitHub Pages CI/CD
+## June 11, 2026 - Full Deploy: AWS Lambda + GitHub Pages CI/CD
 
-**Status:** GitHub Pages CI/CD complete ✅ — Lambda deploy next
+**Status:** Complete ✅ — June 11, 2026
 
-### Architecture (Final Decision)
-- **Staging:** `staging` branch → GitHub Actions → GitHub Pages `/staging/` subfolder
-- **Production:** `main` branch → GitHub Actions → GitHub Pages root `/`
-- **Lambda API:** Deployed manually to AWS Standing Tiger (separate from dashboard HTML)
-- **Why GitHub Pages for both:** Free, no AWS credentials in GitHub, custom domain via CNAME supported. S3 is overkill for a static read-only dashboard.
+### What Was Deployed
+- **GitHub Pages CI/CD** — two GitHub Actions workflows live and firing
+  - `staging` branch → `https://kstanigar.github.io/non-x_analytics/staging/`
+  - `main` branch → `https://kstanigar.github.io/non-x_analytics/`
+- **Lambda** — `non-x-analytics-api` updated with all security hardening
+  - `ALLOWED_ORIGIN` locked to `https://kstanigar.github.io`
+  - Input validation, generic error response deployed
+  - All 4 smoke tests pass ✅
+- **CloudWatch** — log retention set to 14 days ✅
 
-### Workflow Files Created
-- `.github/workflows/deploy-staging.yml` ✅
-- `.github/workflows/deploy-production.yml` ✅
-
-### URLs After Deploy
-- Staging: `https://kstanigar.github.io/non-x_analytics/staging/`
-- Production: `https://kstanigar.github.io/non-x_analytics/` (or custom domain)
-
-### Custom Domain Setup (when ready)
-1. DNS → add CNAME record: `analytics` → `kstanigar.github.io`
-2. Repo → Settings → Pages → Custom domain → enter domain → Save
-3. Repo → Settings → Variables → `CUSTOM_DOMAIN` = `analytics.yourgame.com`
-4. Wait for DNS propagation → enable Enforce HTTPS
-5. Update `ALLOWED_ORIGIN` in `api/index.js` to custom domain → re-upload Lambda
+### Architecture
+- Staging: `staging` branch → GitHub Actions → GitHub Pages `/staging/`
+- Production: `main` branch → GitHub Actions → GitHub Pages root `/`
+- Lambda API: same AWS account, manually updated via zip upload
 
 ### Day-to-Day Workflow
 ```
@@ -39,19 +33,12 @@ Work on main → merge to staging → push staging → QA
 QA passes → merge to main → push main → production auto-deploys in ~30s
 ```
 
-### Completed
-- Repo Settings → Actions → read/write permissions ✅
-- Repo Settings → Pages → source: `gh-pages` branch ✅
-- `staging` branch created and pushed ✅
-- Both workflows fired successfully ✅
-- Staging URL live: `https://kstanigar.github.io/non-x_analytics/staging/` ✅
-- Production URL live: `https://kstanigar.github.io/non-x_analytics/` ✅
-
-### Next Steps
-- Deploy Lambda to Standing Tiger AWS account
-- Update `API_CONFIG.baseURL` + `ALLOWED_ORIGIN` → commit → push
-
-### Full checklist in PRIORITIES.md → "Deploy to AWS Standing Tiger Account + GitHub Pages CI/CD"
+### Custom Domain Setup (when ready)
+1. DNS → add CNAME record: `analytics` → `kstanigar.github.io`
+2. Repo → Settings → Pages → Custom domain → enter domain → Save
+3. Repo → Settings → Variables → `CUSTOM_DOMAIN` = `analytics.yourgame.com`
+4. Wait for DNS propagation → enable Enforce HTTPS
+5. Update `ALLOWED_ORIGIN` in `api/index.js` to custom domain → re-zip → re-upload Lambda
 
 ---
 

@@ -204,13 +204,17 @@ Tasks organized by date added (newest first). Tasks include planning details, in
     - CloudWatch log retention → 14 days
     - Update `ALLOWED_ORIGIN` to Standing Tiger domain
 
-- [ ] **Deploy to AWS Standing Tiger Account + GitHub Pages CI/CD**
-  - **GitHub Pages CI/CD:** ✅ COMPLETE (June 11, 2026)
-    - `staging` branch created ✅
-    - Both workflow files live and firing ✅
-    - Staging URL: `https://kstanigar.github.io/non-x_analytics/staging/` ✅
-    - Production URL: `https://kstanigar.github.io/non-x_analytics/` ✅
-  - **Remaining: AWS Lambda deploy (see checklist below)**
+- [x] **Deploy to AWS Standing Tiger Account + GitHub Pages CI/CD** ✅ COMPLETE
+  - **Completed:** June 11, 2026
+  - **GitHub Pages CI/CD:** ✅
+    - `staging` branch → auto-deploys to `https://kstanigar.github.io/non-x_analytics/staging/`
+    - `main` branch → auto-deploys to `https://kstanigar.github.io/non-x_analytics/`
+  - **Lambda:** ✅
+    - `non-x-analytics-api` updated with `ALLOWED_ORIGIN = 'https://kstanigar.github.io'`
+    - Input validation, generic error response, all security fixes deployed
+    - All 4 smoke tests pass (standard, platform-split, invalid subType → 400, invalid dateRange → 400)
+  - **CloudWatch:** ✅ Log retention set to 14 days
+  - **Dependencies:** Final Security Audit complete ✅
   - **Estimate:** 2–3 hours total
   - **Priority:** HIGH — production deployment
   - **Architecture (final decision):**
