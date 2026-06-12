@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 10, 2026
+**Last Updated:** June 11, 2026
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced. Use hook to auto-move completed tasks from Pending to Completed section.
 
@@ -11,6 +11,31 @@
 ## 🎯 PENDING TASKS
 
 Tasks organized by date added (newest first). Tasks include planning details, inline comments needed, and code changes required.
+
+---
+
+### Added: June 11, 2026 (Pre-Blog Launch)
+
+- [ ] **API Gateway Response Caching** — implement before blog goes live
+  - **Estimate:** 30 min (AWS console only, no code changes)
+  - **Priority:** HIGH — required before affiliate marketing blog launches
+  - **Why:** Blog traffic means many visitors hitting the dashboard simultaneously. A 5–15 min cache means 100 concurrent visitors trigger 1 Lambda call instead of 100. Protects daily quota (1,000 calls/day) and reduces cost under real traffic.
+  - **Setup (AWS console):**
+    1. API Gateway → your API → Stages → prod → Settings tab
+    2. Enable "Enable API cache" — select cache size (0.5 GB is free tier / cheapest)
+    3. Set TTL: 300–900 seconds (5–15 min) — GA4 data doesn't change faster than this
+    4. Deploy the stage
+  - **Cost:** ~$0.02/hr for 0.5GB cache (~$14/month if always on) — only enable when blog is active
+  - **Alternative (free):** Lambda module-level in-memory cache with 10-min TTL — no AWS cost, resets on cold start. Good enough until real traffic justifies API Gateway cache.
+  - **Raise daily quota at same time:** API Gateway → Usage Plans → NON-X-Analytics-Rate-Limit → raise from 1,000 to 10,000/day
+  - **Dependencies:** Marketing blog launch date known
+
+- [ ] **MT-5: Tier vs Final Score Chart** — waiting on game-side changes in Xenon_3
+  - **Estimate:** 1–2 hours (once game change ships)
+  - **Priority:** MEDIUM — next Xenon_3 session
+  - **Blocked by:** Game needs to add `final_score` as event param on `player_won` → register as GA4 custom dim
+  - **No BigQuery needed** — standard Lambda query once dim is registered. Cost: $0.
+  - **Dashboard wiring:** Replace placeholder chart with `customEvent:final_score` × `customEvent:new_tier` scatter or bar
 
 ---
 
@@ -333,44 +358,19 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - [x] D: Lambda deploy procedure documented (see HANDOFF_SUMMARY)
 
 - [ ] **BigQuery Integration** — Avg Starting Tier + Avg Final Tier KPIs
-  - **Estimate:** 3–5 hours (setup + Lambda + dashboard wiring)
+  - **Estimate:** 3–5 hours (once pre-requisites complete)
   - **Priority:** MEDIUM — unlocks 2 KPIs that GA4 API cannot provide
-  - **Why BigQuery:** GA4 Data API aggregates across all events — it cannot find the first or last event within a session. BigQuery exports raw event-level data with timestamps, enabling session-level SQL queries.
-  - **Data lag:** 24–48 hours (daily export, not real-time)
-  - **Cost:** ~$0/month at indie game data volumes (~$5/TB scanned)
-  - **Setup steps (one-time):**
-    1. Enable GA4 BigQuery Export — GA4 Admin → BigQuery Linking → connect Standing Tiger GCP project (~5 min)
-    2. Create GCP service account with BigQuery Data Viewer + Job User roles
-    3. Add service account credentials to Lambda as env variable (same pattern as `GOOGLE_CREDENTIALS`)
-  - **Lambda:** New `subType=avg-tier` handler using `@google-cloud/bigquery` npm package
-  - **SQL queries:**
-    ```sql
-    -- Avg Starting Tier: old_tier from first ai_difficulty_adjusted per session
-    SELECT AVG(CAST(first_old_tier AS INT64)) FROM (
-      SELECT session_id,
-        FIRST_VALUE(params.value.string_value) OVER (
-          PARTITION BY session_id ORDER BY event_timestamp
-        ) AS first_old_tier
-      FROM events, UNNEST(event_params) AS params
-      WHERE event_name = 'ai_difficulty_adjusted' AND params.key = 'old_tier'
-    )
+  - **Full plan:** `docs/BigQuery_Integration_Plan.md`
+  - **Package:** `@google-cloud/bigquery@8.3.1` (confirmed stable June 11, 2026)
+  - **Status:** 🟡 PLANNED — pre-requisites pending (GA4 BigQuery Export not yet connected)
+  - **Pre-requisites (user — ~15 min in GCP/AWS console):**
+    1. GA4 Admin → BigQuery Linking → connect Standing Tiger GCP project
+    2. Create GCP service account (BigQuery Data Viewer + Job User roles), download JSON key
+    3. Add `BQ_CREDENTIALS` + `GCP_PROJECT_ID` env vars to Lambda
+  - **Resume here:** Once export is enabled and has 1 day of data, open `BigQuery_Integration_Plan.md` and implement Parts 1–3
+  - **Dependencies:** Standing Tiger AWS deploy ✅, GA4 BigQuery Export (pending)
 
-    -- Avg Final Tier: new_tier from last ai_difficulty_adjusted per session
-    SELECT AVG(CAST(last_new_tier AS INT64)) FROM (
-      SELECT session_id,
-        LAST_VALUE(params.value.string_value) OVER (
-          PARTITION BY session_id ORDER BY event_timestamp
-          ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-        ) AS last_new_tier
-      FROM events, UNNEST(event_params) AS params
-      WHERE event_name = 'ai_difficulty_adjusted' AND params.key = 'new_tier'
-    )
-    ```
-  - **Dashboard wiring:** `DATA.kpis.avgStartTier`, `DATA.kpis.avgFinalTier` → `#kpi-avg-start-tier`, `#kpi-avg-final-tier`
-  - **Security note (June 11, 2026):** Haiku agent research on 2026 BigQuery best practices needed before implementation — credential storage pattern, query cost controls, caching strategy. Planned as next research task.
-  - **Dependencies:** Standing Tiger AWS deploy complete ✅, GA4 BigQuery Export enabled
-
-- [ ] **New Engagement Metrics — 6 KPIs on Overview Page** ⚠️ CODE COMPLETE — DEPLOY PENDING
+- [x] **New Engagement Metrics — 6 KPIs on Overview Page** ✅ COMPLETE — June 11, 2026
   - **Estimate:** 3–4 hours total
   - **Decision (June 11, 2026):** Implement all 6 in a new "Player Behavior" row on the Overview page
   - **All 6 events already firing in GA4 — no game-side changes needed**
@@ -396,13 +396,13 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   |--------|------|---------|--------|
   | VALID_SUBTYPES whitelist | `api/index.js` | **15** | ✅ COMPLETE |
   | New Lambda handler | `api/index.js` | Before **311** | ✅ COMPLETE |
-  | HTML — new "Player Behavior" kpi-grid | `live.html` | After **1505** | ⏳ NEXT |
-  | DATA.kpis defaults | `live.html` | After **2295** | ⏳ Pending |
-  | `mapGA4ResponseToDATA()` return kpis | `live.html` | After **3228** | ⏳ Pending |
-  | `populateKPIs()` updates | `live.html` | After **4211** | ⏳ Pending |
+  | HTML — new "Player Behavior" kpi-grid | `live.html` | After **1505** | ✅ COMPLETE |
+  | DATA.kpis defaults | `live.html` | After **2295** | ✅ COMPLETE |
+  | `mapGA4ResponseToDATA()` return kpis | `live.html` | After **3228** | ✅ COMPLETE |
+  | `populateKPIs()` updates | `live.html` | After **4211** | ✅ COMPLETE |
 
   **Dependencies:** None
-  **Resume:** Deploy `api/index.js` to Lambda → test endpoint → commit → staging → main
+  **Verified:** Live on staging + production June 11, 2026. Endpoint returns 4 events. Sub-text counts showing green/yellow.
 
 - [ ] **KPI Tooltips — Hybrid Approach**
   - **Estimate:** 2–3 hours
