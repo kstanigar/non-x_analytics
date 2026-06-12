@@ -8,6 +8,45 @@
 
 ---
 
+## June 11, 2026 - Dashboard Polish (In Progress)
+
+**Status:** Complete ✅
+
+### Tasks
+- [x] A: Player Behavior sub-text counts (green/yellow, same as Top-Line KPIs) ✅
+- [x] B: Default data range → All-Time v4.3 (`live.html:1397`) ✅
+- [x] C: Remove stale banners (Connect GA4 insight-box, header subtitle, AI CSV toast) ✅
+- [x] D: Lambda deploy procedure documented ✅
+
+### Changes (live.html)
+- 5 `kpi-sub` IDs added to Player Behavior tiles
+- 5 `*Sub` defaults added to `DATA.kpis` and `mapGA4ResponseToDATA()` return block
+- `fetchEngagementData()` — generates green/yellow sub-text HTML with raw counts
+- `populateKPIs()` — 5 new `innerHTML` updates for sub-text
+- Default selector changed from `90day-43` → `alltime-43`; fallbacks updated (×6)
+- Removed `#overview-insight` "Connect your GA4" banner
+- Header subtitle: `GA4 + Looker Studio` → `GA4 · Lambda API`
+- AI Agent empty state: `Load AI Agent CSV...` → `No AI difficulty data available...`
+
+### Lambda Deploy Procedure (FINAL — June 11, 2026)
+**Do NOT use zip upload.** The Lambda handler is `index.handler` → root `index.js`.
+The zip structure (`lambda-package/index.js`) does not match — zip uploads deploy to the wrong path.
+
+**Correct procedure:**
+1. Open AWS Lambda → `non-x-analytics-api` → **Code** tab
+2. Click `index.js` in the file tree (root level, not inside lambda-package/)
+3. Select all → paste contents of `api/index.js` from repo
+4. Click **Deploy**
+
+### Stale Banners Found (Haiku agent, June 11, 2026)
+| Line | Issue | Fix |
+|------|-------|-----|
+| 1371 | Header subtitle: `GA4 + Looker Studio` | → `GA4 · Lambda API` |
+| 1541 | insight-box: "Connect your GA4 data source — sample data..." | Remove entirely |
+| 5127 | Toast: "Load AI Agent CSV to see tier performance metrics" | → reflect live data |
+
+---
+
 ## June 11, 2026 - Lambda Comment Cleanup
 
 **Status:** Complete ✅

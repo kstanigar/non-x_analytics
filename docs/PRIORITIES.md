@@ -326,6 +326,12 @@ Tasks organized by date added (newest first). Tasks include planning details, in
     - `populateKPIs()` shows/hides banner and populates `#completeness-pct` span
   - **Behavior:** Banner visible on Overview page when live data has <80% outcome coverage; hidden otherwise
 
+- [x] **Dashboard Polish — June 11, 2026** ✅ COMPLETE
+  - [x] A: Player Behavior sub-text counts (green/yellow colored raw counts under %)
+  - [x] B: Default data range → `alltime-43` (All-Time Version 4.3)
+  - [x] C: Remove stale banners (insight-box, header subtitle `GA4 + Looker Studio`, AI CSV toast)
+  - [x] D: Lambda deploy procedure documented (see HANDOFF_SUMMARY)
+
 - [ ] **BigQuery Integration** — Avg Starting Tier + Avg Final Tier KPIs
   - **Estimate:** 3–5 hours (setup + Lambda + dashboard wiring)
   - **Priority:** MEDIUM — unlocks 2 KPIs that GA4 API cannot provide
