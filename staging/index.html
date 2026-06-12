@@ -1368,7 +1368,7 @@
     <header>
       <div class="logo-block">
         <h1>NON-X</h1>
-        <p>Analytics Command Center &nbsp;·&nbsp; GA4 + Looker Studio</p>
+        <p>Analytics Command Center &nbsp;·&nbsp; GA4 · Lambda API</p>
       </div>
       <div class="header-meta">
         <div>Measurement ID <span>G-9ECFZ9JBE5</span></div>
@@ -1394,8 +1394,8 @@
         <!-- DEFAULT CHANGED: 7day → 90day (June 9, 2026) for better data visibility -->
         <option value="7day-43">Last 7 Days - Version 4.3 (Current)</option>
         <option value="30day-43">Last 30 Days - Version 4.3 (Current)</option>
-        <option value="90day-43" selected>Last 90 Days - Version 4.3 (Current)</option>
-        <option value="alltime-43">All Time - Version 4.3 (Current)</option>
+        <option value="90day-43">Last 90 Days - Version 4.3 (Current)</option>
+        <option value="alltime-43" selected>All Time - Version 4.3 (Current)</option>
 
         <!-- All Versions -->
         <option value="7day-all">Last 7 Days - All Versions</option>
@@ -1509,27 +1509,27 @@
         <div class="kpi yel">
           <div class="kpi-label">Scorecard View Rate</div>
           <div class="kpi-value" id="kpi-scorecard-rate">—</div>
-          <div class="kpi-sub">scorecard_viewed / game_start</div>
+          <div class="kpi-sub" id="kpi-scorecard-sub">scorecard_viewed / game_start</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Music Toggle Rate</div>
           <div class="kpi-value" id="kpi-music-rate">—</div>
-          <div class="kpi-sub">music_toggled / game_start</div>
+          <div class="kpi-sub" id="kpi-music-sub">music_toggled / game_start</div>
         </div>
         <div class="kpi red">
           <div class="kpi-label">Leave Game Rate</div>
           <div class="kpi-value" id="kpi-leave-rate">—</div>
-          <div class="kpi-sub">leave_game / game_start</div>
+          <div class="kpi-sub" id="kpi-leave-sub">leave_game / game_start</div>
         </div>
         <div class="kpi grn">
           <div class="kpi-label">Boss Reach Rate</div>
           <div class="kpi-value" id="kpi-boss-reach-rate">—</div>
-          <div class="kpi-sub">boss_attempt / game_start</div>
+          <div class="kpi-sub" id="kpi-boss-reach-sub">boss_attempt / game_start</div>
         </div>
         <div class="kpi mag">
           <div class="kpi-label">Survey Response Rate</div>
           <div class="kpi-value" id="kpi-survey-rate">—</div>
-          <div class="kpi-sub">survey_submitted / game_start</div>
+          <div class="kpi-sub" id="kpi-survey-sub">survey_submitted / game_start</div>
         </div>
       </div>
 
@@ -1537,10 +1537,6 @@
         ⚠️ <strong>Data Completeness:</strong> Only <span id="completeness-pct">—</span>% of sessions have a recorded outcome. Version 4.3 data includes test sessions from development.
       </div>
 
-      <div class="insight-box" id="overview-insight">
-        <strong>📡 Connect your GA4 data source</strong> — This dashboard uses sample data. To populate with real data,
-        connect GA4 via the Looker Studio guide (tab 6) and export event metrics to replace the placeholder values.
-      </div>
 
       <div class="chart-grid cols-12">
         <div class="card">
@@ -2332,6 +2328,11 @@
           leaveRate: '—',
           bossReachRate: '—',
           surveyRate: '—',
+          scorecardSub: 'scorecard_viewed / game_start',
+          musicSub: 'music_toggled / game_start',
+          leaveSub: 'leave_game / game_start',
+          bossReachSub: 'boss_attempt / game_start',
+          surveySub: 'survey_submitted / game_start',
         },
         daily: {
           labels: ['Feb 25', 'Feb 26', 'Feb 27', 'Feb 28', 'Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7', 'Mar 8', 'Mar 9', 'Mar 10'],
@@ -3273,6 +3274,11 @@
             leaveRate: '—',
             bossReachRate: '—',
             surveyRate: '—',
+            scorecardSub: 'scorecard_viewed / game_start',
+            musicSub: 'music_toggled / game_start',
+            leaveSub: 'leave_game / game_start',
+            bossReachSub: 'boss_attempt / game_start',
+            surveySub: 'survey_submitted / game_start',
           },
           reportType,
           rowCount: response.rowCount || response.rows.length,
@@ -3291,9 +3297,9 @@
        * @returns {Promise<Object>} GA4 response or error
        */
       async function fetchGA4Data(type = 'standard') {
-        // Get selected data range from combined dropdown (default changed to 90day-43 on June 9, 2026)
+        // Get selected data range from combined dropdown
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
 
         // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
         const [dateRange, versionShort] = selectedValue.split('-');
@@ -3338,9 +3344,9 @@
        * @returns {Promise<Object>} { success, data, error }
        */
       async function fetchPlatformSplitData() {
-        // Get selected data range from combined dropdown (default changed to 90day-43 on June 9, 2026)
+        // Get selected data range from combined dropdown
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
 
         // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
         const [dateRange, versionShort] = selectedValue.split('-');
@@ -3389,9 +3395,9 @@
        * @returns {Promise<Object>} { success, data, error }
        */
       async function fetchDailyTimeseriesData() {
-        // Get selected data range from combined dropdown (default changed to 90day-43 on June 9, 2026)
+        // Get selected data range from combined dropdown
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
 
         // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
         const [dateRange, versionShort] = selectedValue.split('-');
@@ -3432,9 +3438,9 @@
        * @returns {Promise<Object>} { success, data, error }
        */
       async function fetchBossAnalysisData() {
-        // Get selected data range from combined dropdown (default changed to 90day-43 on June 9, 2026)
+        // Get selected data range from combined dropdown
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
 
         // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
         const [dateRange, versionShort] = selectedValue.split('-');
@@ -3477,7 +3483,7 @@
       async function fetchSurvivalTimeData() {
         const dataRangeSelect = document.getElementById('data-range-select');
         // DEFAULT: 90day-43 (changed from 7day-43 on June 9, 2026)
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
 
         // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
         const [dateRange, versionShort] = selectedValue.split('-');
@@ -3513,7 +3519,7 @@
       async function fetchPowerupAnalysisData() {
         // Get selected data range from combined dropdown (default: 90day-43)
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
 
         // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
         const [dateRange, versionShort] = selectedValue.split('-');
@@ -3550,7 +3556,7 @@
       async function fetchProgressionAnalysisData() {
         // Get selected data range from combined dropdown (default: 90day-43)
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
 
         // Parse combined value (e.g., "7day-43" → dateRange="7day", version="4.3")
         const [dateRange, versionShort] = selectedValue.split('-');
@@ -3587,7 +3593,7 @@
 
       async function fetchAIAnalysisData() {
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
 
         const [dateRange, versionShort] = selectedValue.split('-');
         const version = versionShort === '43' ? '4.3' :
@@ -3621,7 +3627,7 @@
 
       async function fetchDeathTriggersData() {
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
         const [dateRange, versionShort] = selectedValue.split('-');
         const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=death-triggers&version=${version}&dateRange=${dateRange}`;
@@ -3645,7 +3651,7 @@
 
       async function fetchNewUserPctData() {
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
         const [dateRange, versionShort] = selectedValue.split('-');
         const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=new-user-pct&version=${version}&dateRange=${dateRange}`;
@@ -3669,7 +3675,7 @@
 
       async function fetchReplayRateData() {
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
         const [dateRange, versionShort] = selectedValue.split('-');
         const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=replay-rate&version=${version}&dateRange=${dateRange}`;
@@ -3693,7 +3699,7 @@
 
       async function fetchMusicABData() {
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
         const [dateRange, versionShort] = selectedValue.split('-');
         const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=music-ab&version=${version}&dateRange=${dateRange}`;
@@ -3717,7 +3723,7 @@
 
       async function fetchMusicFunnelData() {
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
         const [dateRange, versionShort] = selectedValue.split('-');
         const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=music-funnel&version=${version}&dateRange=${dateRange}`;
@@ -3741,7 +3747,7 @@
 
       async function fetchMovementABData() {
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
         const [dateRange, versionShort] = selectedValue.split('-');
         const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=movement-ab&version=${version}&dateRange=${dateRange}`;
@@ -3764,7 +3770,7 @@
 
       async function fetchEngagementData() {
         const dataRangeSelect = document.getElementById('data-range-select');
-        const selectedValue = dataRangeSelect ? dataRangeSelect.value : '90day-43';
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
         const [dateRange, versionShort] = selectedValue.split('-');
         const version = versionShort === '43' ? '4.3' : versionShort === 'all' ? 'all' : '4.3';
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=engagement-events&version=${version}&dateRange=${dateRange}`;
@@ -4164,10 +4170,18 @@
             DATA.kpis.musicRate     = (counts.music_toggled    / gameStarts * 100).toFixed(1) + '%';
             DATA.kpis.leaveRate     = (counts.leave_game       / gameStarts * 100).toFixed(1) + '%';
             DATA.kpis.surveyRate    = (counts.survey_submitted / gameStarts * 100).toFixed(1) + '%';
+            DATA.kpis.scorecardSub  = `<span style="color:var(--green)">${counts.scorecard_viewed}&nbsp;viewed</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
+            DATA.kpis.musicSub      = `<span style="color:var(--green)">${counts.music_toggled}&nbsp;toggled</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
+            DATA.kpis.leaveSub      = `<span style="color:var(--green)">${counts.leave_game}&nbsp;left</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
+            DATA.kpis.surveySub     = `<span style="color:var(--green)">${counts.survey_submitted}&nbsp;submitted</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
           }
-          DATA.kpis.bossReachRate = DATA.bossAnalysis?.boss1?.overall?.attempts > 0
-            ? (DATA.bossAnalysis.boss1.overall.attempts / gameStarts * 100).toFixed(1) + '%'
+          const bossAttempts = DATA.bossAnalysis?.boss1?.overall?.attempts || 0;
+          DATA.kpis.bossReachRate = bossAttempts > 0 && gameStarts > 0
+            ? (bossAttempts / gameStarts * 100).toFixed(1) + '%'
             : '—';
+          DATA.kpis.bossReachSub = bossAttempts > 0 && gameStarts > 0
+            ? `<span style="color:var(--green)">${bossAttempts}&nbsp;attempts</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`
+            : 'boss_attempt / game_start';
           populateKPIs(DATA.kpis);
         } else {
           console.warn('Engagement-events fetch failed:', engagementResult.error);
@@ -4314,6 +4328,11 @@
         document.getElementById('kpi-leave-rate').textContent      = k.leaveRate;
         document.getElementById('kpi-boss-reach-rate').textContent = k.bossReachRate;
         document.getElementById('kpi-survey-rate').textContent     = k.surveyRate;
+        document.getElementById('kpi-scorecard-sub').innerHTML     = k.scorecardSub;
+        document.getElementById('kpi-music-sub').innerHTML         = k.musicSub;
+        document.getElementById('kpi-leave-sub').innerHTML         = k.leaveSub;
+        document.getElementById('kpi-boss-reach-sub').innerHTML    = k.bossReachSub;
+        document.getElementById('kpi-survey-sub').innerHTML        = k.surveySub;
       }
 
       // ── Chart defaults ─────────────────────────────────────────────────
@@ -5124,7 +5143,7 @@
         const metrics = DATA.aiAgent.tierMetrics;
 
         if (!metrics.length) {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;opacity:0.5">Load AI Agent CSV to see tier performance metrics</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;opacity:0.5">No AI difficulty data available for this version and date range.</td></tr>';
           return;
         }
 
