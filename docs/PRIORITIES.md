@@ -16,18 +16,42 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ### Added: June 11, 2026 (Pre-Blog Launch)
 
-- [ ] **API Gateway Response Caching** — implement before blog goes live
+- [x] **API Gateway Response Caching** ✅ COMPLETE — June 12, 2026
   - **Estimate:** 30 min (AWS console only, no code changes)
   - **Priority:** HIGH — required before affiliate marketing blog launches
-  - **Why:** Blog traffic means many visitors hitting the dashboard simultaneously. A 5–15 min cache means 100 concurrent visitors trigger 1 Lambda call instead of 100. Protects daily quota (1,000 calls/day) and reduces cost under real traffic.
-  - **Setup (AWS console):**
-    1. API Gateway → your API → Stages → prod → Settings tab
-    2. Enable "Enable API cache" — select cache size (0.5 GB is free tier / cheapest)
-    3. Set TTL: 300–900 seconds (5–15 min) — GA4 data doesn't change faster than this
-    4. Deploy the stage
-  - **Cost:** ~$0.02/hr for 0.5GB cache (~$14/month if always on) — only enable when blog is active
-  - **Alternative (free):** Lambda module-level in-memory cache with 10-min TTL — no AWS cost, resets on cold start. Good enough until real traffic justifies API Gateway cache.
-  - **Raise daily quota at same time:** API Gateway → Usage Plans → NON-X-Analytics-Rate-Limit → raise from 1,000 to 10,000/day
+  - **Why:** Blog traffic means many visitors hitting the dashboard simultaneously. A 5–10 min cache means 100 concurrent visitors trigger 1 Lambda call instead of 100. Protects daily quota (1,000 calls/day) and reduces cost under real traffic.
+
+  **Research findings (Haiku agent, June 12, 2026):**
+
+  - **Cache size:** 0.5 GB — correct for low-to-medium traffic (100–500 req/day). Next tier (1.6 GB) unnecessary.
+  - **TTL:** 300–600 seconds (5–10 min) — recommended for GA4 analytics data. 300s = good freshness, minimal staleness risk.
+  - **Level:** Stage-level (enable once, all GETs inherit) with no method overrides needed for this API.
+  - **Lambda bypass:** Cache hit = NO Lambda invocation = no Lambda cost. CloudWatch `CacheHitCount` / `CacheMissCount` confirm.
+  - **Cost:** ~$0.02/GB/hr (~$14/month for 0.5GB always-on). NOT free tier — paid only. Enable when blog goes live, disable between campaigns if cost is a concern.
+  - **HTTP vs REST:** HTTP APIs do NOT support caching. This project uses REST API — caching is available. ✅
+  - **Manual invalidation:** AWS Console → Stages → prod → flush cache. Or client sends `Cache-Control: max-age=0` header (requires `execute-api:InvalidateCache` IAM permission).
+
+  **⚠️ CRITICAL GOTCHA — Cache Key Parameters:**
+  Query string params are NOT included in the cache key by default. Without declaring them, `?dateRange=7day` and `?dateRange=30day` return the SAME cached response.
+  Must declare ALL query params as cache key parameters:
+  - `type`
+  - `subType`
+  - `version`
+  - `dateRange`
+
+  **Setup (AWS console — exact steps):**
+  1. API Gateway → `6waopo3jh1` → Stages → `prod` → Settings tab
+  2. Enable "Enable API cache" → Cache size: **0.5 GB** → TTL: **300 seconds**
+  3. Click **Save Changes** (stage-level cache now active)
+  4. Go to Resources → `/analytics` → GET → Method Request → URL Query String Parameters
+  5. For each param (`type`, `subType`, `version`, `dateRange`): check **"Caching"** checkbox
+  6. Redeploy the stage: Actions → Deploy API → prod
+  7. Verify in CloudWatch: `CacheHitCount` appears after second identical request
+
+  **Raise daily quota at same time:** API Gateway → Usage Plans → NON-X-Analytics-Rate-Limit → raise from 1,000 to 10,000/day
+
+  **Alternative (free):** Lambda module-level in-memory cache — no AWS cost, zero Lambda bypass (Lambda still invoked on every hit). Valid for non-critical use but doesn't protect quota under traffic spike.
+
   - **Dependencies:** Marketing blog launch date known
 
 - [ ] **MT-5: Tier vs Final Score Chart** — waiting on game-side changes in Xenon_3

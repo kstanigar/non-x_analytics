@@ -8,6 +8,48 @@
 
 ---
 
+## June 12, 2026 - API Gateway Response Caching
+
+**Status:** In Progress — Step 1 complete, Step 2 next
+
+### Step 1 — Stage-Level Cache ✅ COMPLETE
+- API Gateway → `6waopo3jh1` → Stages → prod → Edit stage
+- Provision API cache: **Active**
+- Default method-level caching: **Active**
+- Cache capacity: **0.5 GB**
+- TTL: **300 seconds**
+- Encrypt cache data: Inactive
+- Per-key cache invalidation: Inactive
+- Stage description added: "Production stage — NON-X Analytics API. Serves GA4 analytics data to the NON-X game dashboard. Response caching enabled (0.5 GB, 300s TTL). Rate limited: 10 req/s, 10,000 req/day."
+- Cache cluster status: Create in progress (provisioning)
+
+### Step 2 — Cache Key Parameters (query strings) ✅ COMPLETE
+- Added all 4 params to GET /analytics Method Request
+- `type`: Required ✅, Caching ✅
+- `subType`: Required ❌, Caching ✅
+- `version`: Required ✅, Caching ✅
+- `dateRange`: Required ❌, Caching ✅
+
+### Step 3 — Redeploy stage ✅ COMPLETE
+- Deployed to prod — June 12, 2026, 04:06 UTC-05:00
+- Cache cluster: Provisioned ✅
+- Default method-level caching: Active ✅
+- Deployment description: "Enable response caching (0.5 GB, 300s TTL) + cache key params: type, subType, version, dateRange"
+
+### Step 4 — Verify (CloudWatch CacheHitCount) ✅ COMPLETE
+- Tested June 12, 2026 ~04:16–04:18 UTC
+- Refresh 1 (04:16): cache miss — Lambda invoked, new log appeared
+- Refresh 2 (04:18, 10s later): cache hit — no new log, Lambda bypassed ✅
+- TTL behaviour confirmed: cache expires every 300s, then re-populates on next request
+
+### Step 5 — Raise daily quota 1,000 → 10,000 ✅ COMPLETE
+- Usage plan: NON-X-Analytics-Rate-Limit
+- Quota: 1,000 → 10,000 requests per day
+- Description updated: "Rate limiting for live analytics dashboard API - 10 req/sec, 10000 req/day"
+- Effective immediately — June 12, 2026, 04:23 UTC-05:00
+
+---
+
 ## June 12, 2026 - Dashboard Styling Fixes
 
 **Status:** Complete ✅ — committed `5c90a98`, pushed to staging + main
