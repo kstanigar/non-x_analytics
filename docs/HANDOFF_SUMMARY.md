@@ -8,6 +8,19 @@
 
 ---
 
+## June 12, 2026 - Dashboard Styling Fixes
+
+**Status:** Complete ✅ — committed `5c90a98`, pushed to staging + main
+
+### Changes (live.html — 5 edits)
+- Funnel drop text: `var(--red)` → `var(--yellow)` (line 454)
+- Music OFF funnel chart color: `MAG` → `YEL` (line 5277)
+- Music OFF conversion table column: `MAG` → `YEL` (line 4502)
+- Platform table Avg Survival delta: `sec` → `min` (line 4986)
+- Platform table Boss defeat rates: added `%` suffix; delta `pp` follows automatically (lines 4964–4966)
+
+---
+
 ## June 12, 2026 - BigQuery Pre-Requisites (In Progress)
 
 **Status:** ✅ ALL 3 COMPLETE — June 12, 2026

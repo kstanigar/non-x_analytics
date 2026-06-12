@@ -180,27 +180,15 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ### Added: June 12, 2026 (Dashboard Styling + Text Fixes)
 
-- [ ] **Dashboard Styling + Text Fixes** — 3 targeted changes, live.html only
-  - **Estimate:** 30–45 min
-  - **Priority:** MEDIUM — visual polish before blog launch
-
-  **Change 1 — Funnel tab: drop text color red → yellow**
-  - "▼ X% drop here" labels are currently red
-  - Change to yellow (match dashboard accent color)
-  - Find: CSS class or inline style on drop-off labels in `chartFunnel()` or funnel HTML
-
-  **Change 2 — Music Funnel tab: Music OFF color → yellow**
-  - Music OFF funnel chart bars: currently magenta/pink → change to yellow
-  - Music OFF column in Conversion Rates Table: text currently magenta → change to yellow
-  - Find: `music-funnel` chart color config + table cell color in `live.html`
-
-  **Change 3 — Platform Breakdown table: 3 text fixes**
-  - Avg Survival delta: currently shows seconds (e.g. "3.1 sec") → change to minutes format (e.g. "3m 6s")
-  - Boss 1 Defeat % + Boss 2 Defeat % cells: missing `%` suffix → add it
-  - Delta column values: missing `pp` suffix → add it (e.g. "22.5" → "22.5pp")
-  - Find: `buildPlatformTable()` in `live.html`
-
-  **Dependencies:** None
+- [x] **Dashboard Styling + Text Fixes** ✅ COMPLETE — June 12, 2026
+  - **Time Invested:** ~15 min (5 targeted edits, live.html only)
+  - **Commit:** `5c90a98`
+  - **Changes applied:**
+    - Funnel drop text: `var(--red)` → `var(--yellow)` (`live.html:454`)
+    - Music OFF funnel chart: `MAG` → `YEL` (`live.html:5277`)
+    - Music OFF table column: `MAG` → `YEL` (`live.html:4502`)
+    - Platform table Avg Survival delta: `sec` → `min` (`live.html:4986`)
+    - Platform table Boss defeat rates: added `%` suffix + `pp` delta auto-follows (`live.html:4964–4966`)
 
 ---
 
