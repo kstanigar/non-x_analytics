@@ -451,7 +451,7 @@
     .funnel-drop {
       font-family: var(--mono);
       font-size: 0.6rem;
-      color: var(--red);
+      color: var(--yellow);
       margin-top: 3px;
       padding-left: 4px;
     }
@@ -4499,7 +4499,7 @@
       <td>${r.from} → ${r.to}</td>
       <td>${r.overall}</td>
       <td style="color:${CYAN}">${r.on}</td>
-      <td style="color:${MAG}">${r.off}</td>
+      <td style="color:${YEL}">${r.off}</td>
       <td style="color:${GRN}">${r.delta}</td>
     </tr>`;
         });
@@ -4961,9 +4961,9 @@
           { label: 'Play-Again Rate', desk: d.desktop.replay, mob: d.mobile.replay, higherBetter: true },
           { label: 'Avg Level', desk: d.desktop.avgLevel, mob: d.mobile.avgLevel, higherBetter: true },
           { label: 'Leaderboard Rate', desk: d.desktop.lbRate, mob: d.mobile.lbRate, higherBetter: true },
-          { label: 'Boss 1 Defeat %', desk: d.desktop.boss1, mob: d.mobile.boss1, higherBetter: true },
-          { label: 'Boss 2 Defeat %', desk: d.desktop.boss2, mob: d.mobile.boss2, higherBetter: true },
-          { label: 'Boss 3 Defeat %', desk: d.desktop.boss3, mob: d.mobile.boss3, higherBetter: true },
+          { label: 'Boss 1 Defeat %', desk: d.desktop.boss1 != null ? `${d.desktop.boss1}%` : '—', mob: d.mobile.boss1 != null ? `${d.mobile.boss1}%` : '—', higherBetter: true },
+          { label: 'Boss 2 Defeat %', desk: d.desktop.boss2 != null ? `${d.desktop.boss2}%` : '—', mob: d.mobile.boss2 != null ? `${d.mobile.boss2}%` : '—', higherBetter: true },
+          { label: 'Boss 3 Defeat %', desk: d.desktop.boss3 != null ? `${d.desktop.boss3}%` : '—', mob: d.mobile.boss3 != null ? `${d.mobile.boss3}%` : '—', higherBetter: true },
         ];
         const tbody = document.getElementById('platform-table');
         tbody.innerHTML = ''; // Clear existing rows before rebuilding
@@ -4983,7 +4983,7 @@
 
           // Format delta with appropriate units (pp for percentage points, × for multipliers)
           const deltaDisplay = tie ? '—' :
-            m.unit === 'min' ? `${delta} sec` :
+            m.unit === 'min' ? `${delta} min` :
               String(m.desk).includes('%') ? `${delta}pp` :
                 String(m.desk).includes('×') ? `${delta}×` :
                   delta;
@@ -5274,7 +5274,7 @@
         // Funnel tab
         renderFunnel('funnel-main', DATA.funnel, CYAN);
         renderFunnel('funnel-music-on', DATA.funnelMusicOn, CYAN);
-        renderFunnel('funnel-music-off', DATA.funnelMusicOff, MAG);
+        renderFunnel('funnel-music-off', DATA.funnelMusicOff, YEL);
         buildFunnelTable();
         chartDropoff();
 
