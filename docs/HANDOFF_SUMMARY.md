@@ -8,9 +8,9 @@
 
 ---
 
-## June 11, 2026 - Dashboard Polish (In Progress)
+## June 11, 2026 - Dashboard Polish
 
-**Status:** Complete ✅
+**Status:** Complete ✅ — Verified on staging June 11, 2026
 
 ### Tasks
 - [x] A: Player Behavior sub-text counts (green/yellow, same as Top-Line KPIs) ✅
