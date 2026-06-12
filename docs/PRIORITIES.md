@@ -178,6 +178,32 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ---
 
+### Added: June 12, 2026 (Dashboard Styling + Text Fixes)
+
+- [ ] **Dashboard Styling + Text Fixes** — 3 targeted changes, live.html only
+  - **Estimate:** 30–45 min
+  - **Priority:** MEDIUM — visual polish before blog launch
+
+  **Change 1 — Funnel tab: drop text color red → yellow**
+  - "▼ X% drop here" labels are currently red
+  - Change to yellow (match dashboard accent color)
+  - Find: CSS class or inline style on drop-off labels in `chartFunnel()` or funnel HTML
+
+  **Change 2 — Music Funnel tab: Music OFF color → yellow**
+  - Music OFF funnel chart bars: currently magenta/pink → change to yellow
+  - Music OFF column in Conversion Rates Table: text currently magenta → change to yellow
+  - Find: `music-funnel` chart color config + table cell color in `live.html`
+
+  **Change 3 — Platform Breakdown table: 3 text fixes**
+  - Avg Survival delta: currently shows seconds (e.g. "3.1 sec") → change to minutes format (e.g. "3m 6s")
+  - Boss 1 Defeat % + Boss 2 Defeat % cells: missing `%` suffix → add it
+  - Delta column values: missing `pp` suffix → add it (e.g. "22.5" → "22.5pp")
+  - Find: `buildPlatformTable()` in `live.html`
+
+  **Dependencies:** None
+
+---
+
 ### Added: June 11, 2026 (Dashboard Polish)
 
 - [x] **Remove Quad Shot from Powerup Chart** ✅ COMPLETE
@@ -362,11 +388,11 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Priority:** MEDIUM — unlocks 2 KPIs that GA4 API cannot provide
   - **Full plan:** `docs/BigQuery_Integration_Plan.md`
   - **Package:** `@google-cloud/bigquery@8.3.1` (confirmed stable June 11, 2026)
-  - **Status:** 🟡 PLANNED — pre-requisites pending (GA4 BigQuery Export not yet connected)
-  - **Pre-requisites (user — ~15 min in GCP/AWS console):**
-    1. GA4 Admin → BigQuery Linking → connect Standing Tiger GCP project
-    2. Create GCP service account (BigQuery Data Viewer + Job User roles), download JSON key
-    3. Add `BQ_CREDENTIALS` + `GCP_PROJECT_ID` env vars to Lambda
+  - **Status:** 🟢 PRE-REQUISITES COMPLETE — awaiting first export data (~June 13–14, 2026)
+  - **Pre-requisites (user — completed June 12, 2026):**
+    1. ✅ GA4 BigQuery Export linked — `non-x-analytics-server`, daily export
+    2. ✅ `dashboard-reader` service account — BigQuery Data Viewer + Job User roles added
+    3. ✅ Lambda env vars — `GCP_PROJECT_ID` added; `GOOGLE_CREDENTIALS` reused for BigQuery
   - **Resume here:** Once export is enabled and has 1 day of data, open `BigQuery_Integration_Plan.md` and implement Parts 1–3
   - **Dependencies:** Standing Tiger AWS deploy ✅, GA4 BigQuery Export (pending)
 

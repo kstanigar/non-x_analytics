@@ -2,9 +2,35 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 11, 2026
+**Last Updated:** June 12, 2026
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
+
+---
+
+## June 12, 2026 - BigQuery Pre-Requisites (In Progress)
+
+**Status:** ✅ ALL 3 COMPLETE — June 12, 2026
+
+### Pre-Requisite 1 — GA4 BigQuery Export ✅ COMPLETE
+- Project: `NON-X Analytics Server` (`non-x-analytics-server`, project number: 29583691508)
+- Daily export ON | Streaming OFF | User data OFF | 1 stream selected
+- Data will appear in BigQuery within 24–48h (~June 13–14, 2026)
+
+### Pre-Requisite 2 — GCP Service Account ✅ COMPLETE
+- Reused existing `dashboard-reader@non-x-analytics-server.iam.gserviceaccount.com`
+- Added roles: `BigQuery Data Viewer` + `BigQuery Job User`
+- No new JSON key needed — existing `GOOGLE_CREDENTIALS` reused
+
+### Pre-Requisite 3 — Lambda Env Vars ✅ COMPLETE
+- `GCP_PROJECT_ID` = `non-x-analytics-server` added to Lambda
+- `GOOGLE_CREDENTIALS` already present — reused for BigQuery client
+- Note: `BQ_CREDENTIALS` NOT added — Lambda 4KB env var limit hit with duplicate JSON key
+- Fix applied in plan: BigQuery client uses `process.env.GOOGLE_CREDENTIALS` instead
+
+### Next Step
+- Wait 24–48h for first BigQuery export data (~June 13–14)
+- Then implement Parts 1–3 from `docs/BigQuery_Integration_Plan.md`
 
 ---
 

@@ -3,28 +3,29 @@
 **Purpose:** Implementation plan for Avg Starting Tier + Avg Final Tier KPIs using BigQuery session-level SQL.
 
 **Created:** June 11, 2026
-**Status:** 🟡 PLANNED — awaiting GA4 BigQuery Export connection
+**Status:** 🟢 PRE-REQUISITES COMPLETE (June 12, 2026) — awaiting first BigQuery export data (~June 13–14)
 **Estimated time:** 3–5 hours (once pre-requisites are complete)
 
 ---
 
 ## Pre-requisites (GCP/AWS console — user completes before coding)
 
-**Status: ⏳ PENDING — follow up after compact**
+**Status: 3/3 complete ✅**
 
-1. **Enable GA4 BigQuery Export**
-   - GA4 Admin → BigQuery Linking → connect Standing Tiger GCP project
-   - Select daily export, same project as GA4 property
-   - Data appears within 24–48h after enabling
+1. **Enable GA4 BigQuery Export** ✅ COMPLETE — June 12, 2026
+   - Project: `NON-X Analytics Server` (`non-x-analytics-server`)
+   - Daily export ON, Streaming OFF, User data OFF
+   - 1 stream selected (Non-X web stream)
 
-2. **Create GCP service account**
-   - GCP Console → IAM → Service Accounts → Create
-   - Roles: `BigQuery Data Viewer` + `BigQuery Job User`
-   - Download JSON key file
+2. **GCP Service Account roles** ✅ COMPLETE — June 12, 2026
+   - Reused existing `dashboard-reader@non-x-analytics-server.iam.gserviceaccount.com`
+   - Added: `BigQuery Data Viewer` + `BigQuery Job User` roles
+   - Same JSON key reused (no new key needed)
 
-3. **Add Lambda env vars** (Lambda console → Configuration → Environment variables)
-   - `BQ_CREDENTIALS` — paste full JSON key file contents as a string
-   - `GCP_PROJECT_ID` — GCP project ID (e.g. `standing-tiger-analytics`)
+3. **Lambda env vars** ✅ COMPLETE — June 12, 2026
+   - `GCP_PROJECT_ID` = `non-x-analytics-server` added
+   - `GOOGLE_CREDENTIALS` already present — reused for BigQuery (same service account)
+   - Note: Do NOT add separate `BQ_CREDENTIALS` — Lambda 4KB limit exceeded with duplicate JSON
 
 ---
 
@@ -67,7 +68,7 @@ const getBigQueryClient = () => {
         const { BigQuery } = require('@google-cloud/bigquery');
         bigqueryClient = new BigQuery({
             projectId: process.env.GCP_PROJECT_ID,
-            credentials: JSON.parse(process.env.BQ_CREDENTIALS)
+            credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS) // reuse existing creds — same service account
         });
     }
     return bigqueryClient;
