@@ -54,16 +54,12 @@ The Data Dictionary has 40+ entries. Adding `⊞` icons via HTML edits to each i
 ## Change 1 — CSS: card glow animation (1 edit)
 
 **File:** `live.html`  
-**Line:** 1464  
+**Line:** 1465 (current, after prior edits)
+
+> **June 13, 2026 update:** Changed from `box-shadow` outline glow to `background-color` cyan semi-transparent overlay. `.kpi` already has `position: relative; overflow: hidden` — background-color animates directly on the tile. No pseudo-elements or `--glow-color` needed. Ends at `rgba(0,255,255,0)` (fully transparent) so `forwards` fill-mode leaves the element visually unchanged after animation completes.
 
 **Exact before:**
 ```css
-    .dict-highlight { animation: cs-flash 5s ease-out forwards; }
-```
-
-**Exact after:**
-```css
-    .dict-highlight { animation: cs-flash 5s ease-out forwards; }
     @keyframes card-glow {
       0%   { box-shadow: 0 0 0 2px var(--glow-color), 0 0 12px var(--glow-color); }
       25%  { box-shadow: 0 0 0 1px var(--glow-color), 0 0 4px var(--glow-color); }
@@ -74,6 +70,48 @@ The Data Dictionary has 40+ entries. Adding `⊞` icons via HTML edits to each i
     /* --glow-color is set inline by JS before this class is added,
        allowing per-element color without multiple @keyframes definitions */
     .card-glow { animation: card-glow 5s ease-out forwards; }
+```
+
+**Exact after:**
+```css
+    @keyframes card-glow {
+      0%   { background-color: rgba(0,255,255,0.18); }
+      25%  { background-color: rgba(0,255,255,0.06); }
+      50%  { background-color: rgba(0,255,255,0.18); }
+      75%  { background-color: rgba(0,255,255,0.06); }
+      100% { background-color: rgba(0,255,255,0); }
+    }
+    /* Cyan semi-transparent overlay — pulses 2x then fades over 5s.
+       HUMAN: Adjust rgba alpha (0.18) to make overlay stronger or subtler. */
+    .card-glow { animation: card-glow 5s ease-out forwards; }
+```
+
+---
+
+## Change 2 (overlay update) — JS: remove --glow-color from triggerGlow (1 edit)
+
+**File:** `live.html`  
+**Line:** ~6153
+
+**Exact before:**
+```javascript
+        function triggerGlow(el) {
+          var target = el.closest('.kpi') || el.closest('.card') || el;
+          target.style.setProperty('--glow-color', glowColor(el));
+          target.classList.remove('card-glow');
+          void target.offsetWidth;
+          target.classList.add('card-glow');
+        }
+```
+
+**Exact after:**
+```javascript
+        function triggerGlow(el) {
+          var target = el.closest('.kpi') || el.closest('.card') || el;
+          target.classList.remove('card-glow');
+          void target.offsetWidth;
+          target.classList.add('card-glow');
+        }
 ```
 
 ---

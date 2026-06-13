@@ -1463,14 +1463,14 @@
     .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); border-left: 2px solid transparent; padding-left: 0; }
     .dict-highlight { animation: cs-flash 5s ease-out forwards; }
     @keyframes card-glow {
-      0%   { box-shadow: 0 0 0 2px var(--glow-color), 0 0 12px var(--glow-color); }
-      25%  { box-shadow: 0 0 0 1px var(--glow-color), 0 0 4px var(--glow-color); }
-      50%  { box-shadow: 0 0 0 2px var(--glow-color), 0 0 12px var(--glow-color); }
-      75%  { box-shadow: 0 0 0 1px var(--glow-color), 0 0 4px var(--glow-color); }
-      100% { box-shadow: none; }
+      0%   { background-color: rgba(0,255,255,0.18); }
+      25%  { background-color: rgba(0,255,255,0.06); }
+      50%  { background-color: rgba(0,255,255,0.18); }
+      75%  { background-color: rgba(0,255,255,0.06); }
+      100% { background-color: rgba(0,255,255,0); }
     }
-    /* --glow-color is set inline by JS before this class is added,
-       allowing per-element color without multiple @keyframes definitions */
+    /* Cyan semi-transparent overlay — pulses 2x then fades over 5s.
+       HUMAN: Adjust rgba alpha (0.18) to make overlay stronger or subtler. */
     .card-glow { animation: card-glow 5s ease-out forwards; }
     .dict-entry:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
     .dict-entry-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -6152,7 +6152,6 @@
         // classList.remove + offsetWidth forces a reflow so re-clicking restarts the animation.
         function triggerGlow(el) {
           var target = el.closest('.kpi') || el.closest('.card') || el;
-          target.style.setProperty('--glow-color', glowColor(el));
           target.classList.remove('card-glow');
           void target.offsetWidth;
           target.classList.add('card-glow');
