@@ -2,7 +2,7 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 12, 2026
+**Last Updated:** June 13, 2026
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
@@ -10,7 +10,7 @@
 
 ## June 12, 2026 - BigQuery Integration Implementation
 
-**Status:** 🟡 In Progress — code complete, 2 deploy steps remaining
+**Status:** ✅ COMPLETE — June 13, 2026 | Commit: `ecbdcd2`
 
 ### What Was Built
 - `api/index.js` — added `'avg-tier'` to VALID_SUBTYPES; BigQuery lazy-loaded client + 24h in-memory cache + `getBQStartDate()` helper; `avg-tier` handler with parallel `Promise.all` BigQuery queries

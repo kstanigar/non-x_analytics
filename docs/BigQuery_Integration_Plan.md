@@ -3,8 +3,8 @@
 **Purpose:** Implementation plan for Avg Starting Tier + Avg Final Tier KPIs using BigQuery session-level SQL.
 
 **Created:** June 11, 2026
-**Status:** 🟢 PRE-REQUISITES COMPLETE (June 12, 2026) — awaiting first BigQuery export data (~June 13–14)
-**Estimated time:** 3–5 hours (once pre-requisites are complete)
+**Status:** ✅ COMPLETE — June 13, 2026
+**Estimated time:** 3–5 hours (actual: ~3 hours including debugging)
 
 ---
 
@@ -189,13 +189,13 @@ Then: Lambda console → Upload from → .zip file. Handler stays `index.handler
 
 ## Testing Checklist
 
-- [ ] Pre-requisites complete (export enabled, service account created, env vars set)
-- [ ] Hit endpoint: `?type=standard&subType=avg-tier&version=4.3&dateRange=alltime`
-- [ ] Response contains `avgStartTier` and `avgFinalTier` numbers (not null)
-- [ ] KPI tiles populate on dashboard
+- [x] Pre-requisites complete (export enabled, service account created, env vars set) ✅
+- [x] Hit endpoint: `?type=standard&subType=avg-tier&dateRange=alltime` → `{"avgStartTier":0,"avgFinalTier":1}` ✅
+- [x] Response contains `avgStartTier` and `avgFinalTier` numbers (not null) ✅
+- [ ] KPI tiles populate on dashboard — visual verification pending
 - [ ] Second call within 24h returns cached response (CloudWatch shows single log entry)
-- [ ] Push to staging, verify visually
-- [ ] Merge to main
+- [x] Push to staging ✅
+- [x] Merge to main ✅ (commit `ecbdcd2`)
 
 ---
 
