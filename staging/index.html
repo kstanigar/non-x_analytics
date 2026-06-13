@@ -1403,7 +1403,15 @@
       gap: 14px;
       margin-bottom: 12px;
       align-items: flex-start;
+      border-left: 2px solid transparent;
+      padding-left: 0;
     }
+    @keyframes cs-flash {
+      0%   { background: rgba(0,230,230,0.12); border-left-color: var(--cyan); padding-left: 8px; }
+      80%  { background: rgba(0,230,230,0.05); border-left-color: var(--cyan); padding-left: 8px; }
+      100% { background: transparent; border-left-color: transparent; padding-left: 0; }
+    }
+    .cs-highlight { animation: cs-flash 1.8s ease-out forwards; }
     .case-study-stat {
       color: var(--cyan);
       font-family: var(--mono);
@@ -1449,7 +1457,8 @@
     .dict-header.open .dict-arrow { transform: rotate(90deg); }
     .dict-body { display: none; padding: 20px; border-top: 1px solid var(--border); }
     .dict-body.open { display: block; }
-    .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); }
+    .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); border-left: 2px solid transparent; padding-left: 0; }
+    .dict-highlight { animation: cs-flash 1.8s ease-out forwards; }
     .dict-entry:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
     .dict-entry-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .dict-entry h4 { color: var(--magenta); font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
@@ -6036,11 +6045,17 @@
                     toggleDict(bodyId);
                     setTimeout(function() {
                       anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      anchor.classList.remove('dict-highlight');
+                      void anchor.offsetWidth;
+                      anchor.classList.add('dict-highlight');
                     }, 150);
                     return;
                   }
                 }
                 anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                anchor.classList.remove('dict-highlight');
+                void anchor.offsetWidth;
+                anchor.classList.add('dict-highlight');
               }
             }, 80);
           }
@@ -6050,7 +6065,12 @@
             switchTab('case-study');
             setTimeout(function() {
               var el = document.getElementById(caseLink.dataset.case);
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                el.classList.remove('cs-highlight');
+                void el.offsetWidth;
+                el.classList.add('cs-highlight');
+              }
             }, 80);
           }
         });
