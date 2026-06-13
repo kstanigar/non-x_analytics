@@ -663,3 +663,154 @@ All 4 targets are `<div class="case-study-finding">` inside the "Key Findings" s
 - [x] Click ⓘ on Avg Start Tier → `ai` accordion expands, scrolls to `dict-avg-start-tier` ✅
 - [x] Click ⓘ on Desktop Win Rate → `platform` accordion expands, scrolls to `dict-platform-kpis` ✅
 - [x] Icon visually recognizable as standard info icon on dark background ✅
+
+---
+
+## Tier 3 Enhancement — Case Study Finding Highlight (June 13, 2026)
+
+**Problem:** Clicking a Tier 3 ⓘ icon opens the Case Study tab and scrolls to the right section, but the user lands on a wall of text with no visual cue indicating which row to read.
+
+**Solution:** Flash a `.cs-highlight` CSS animation on the target `.case-study-finding` div — cyan left border + faint background pulse that fades out over 1.5s. Draws the eye to the specific finding without permanently altering the layout.
+
+---
+
+### Change 1 — CSS animation (1 edit)
+
+**File:** `live.html`  
+**Lines:** 1401–1406  
+**Exact before:**
+```css
+    .case-study-finding {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+```
+**Exact after:**
+```css
+    .case-study-finding {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+      border-left: 2px solid transparent;
+      padding-left: 0;
+    }
+    @keyframes cs-flash {
+      0%   { background: rgba(0,230,230,0.12); border-left-color: var(--cyan); padding-left: 8px; }
+      80%  { background: rgba(0,230,230,0.05); border-left-color: var(--cyan); padding-left: 8px; }
+      100% { background: transparent; border-left-color: transparent; padding-left: 0; }
+    }
+    .cs-highlight { animation: cs-flash 1.8s ease-out forwards; }
+```
+
+---
+
+### Change 2 — JS: add highlight after scroll for Case Study (1 edit)
+
+**File:** `live.html`  
+**Lines:** 6047–6055 (`data-case` handler)  
+**Exact before:**
+```javascript
+          var caseLink = e.target.closest('[data-case]');
+          if (caseLink) {
+            e.stopPropagation();
+            switchTab('case-study');
+            setTimeout(function() {
+              var el = document.getElementById(caseLink.dataset.case);
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+          }
+```
+**Exact after:**
+```javascript
+          var caseLink = e.target.closest('[data-case]');
+          if (caseLink) {
+            e.stopPropagation();
+            switchTab('case-study');
+            setTimeout(function() {
+              var el = document.getElementById(caseLink.dataset.case);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                el.classList.remove('cs-highlight');
+                void el.offsetWidth;
+                el.classList.add('cs-highlight');
+              }
+            }, 80);
+          }
+```
+*`void el.offsetWidth` forces a reflow so re-clicking the same icon restarts the animation cleanly.*
+
+---
+
+---
+
+### Change 3 — CSS for dict-entry highlight (1 edit)
+
+**File:** `live.html`  
+**Line:** 1452  
+**Exact before:**
+```css
+    .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); }
+```
+**Exact after:**
+```css
+    .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); border-left: 2px solid transparent; padding-left: 0; }
+    .dict-highlight { animation: cs-flash 1.8s ease-out forwards; }
+```
+*Reuses `cs-flash` keyframes defined in Change 1 — no duplication.*
+
+---
+
+### Change 4 — JS: highlight dict-entry after scroll (1 edit, 2 call sites)
+
+**File:** `live.html`  
+**Lines:** 6035–6043 (`data-dict` handler — accordion-open path + fallback path)  
+**Exact before:**
+```javascript
+                  if (hdr && !hdr.classList.contains('open')) {
+                    toggleDict(bodyId);
+                    setTimeout(function() {
+                      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 150);
+                    return;
+                  }
+                }
+                anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+```
+**Exact after:**
+```javascript
+                  if (hdr && !hdr.classList.contains('open')) {
+                    toggleDict(bodyId);
+                    setTimeout(function() {
+                      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      anchor.classList.remove('dict-highlight');
+                      void anchor.offsetWidth;
+                      anchor.classList.add('dict-highlight');
+                    }, 150);
+                    return;
+                  }
+                }
+                anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                anchor.classList.remove('dict-highlight');
+                void anchor.offsetWidth;
+                anchor.classList.add('dict-highlight');
+```
+
+---
+
+### Task List
+
+- [ ] Change 1: `live.html:1401–1406` — Add `border-left: transparent` + `@keyframes cs-flash` + `.cs-highlight` to `.case-study-finding`
+- [ ] Change 2: `live.html:6047–6055` — Update `data-case` handler to add/remove `.cs-highlight` after scroll
+- [ ] Change 3: `live.html:1452` — Extend `.dict-entry` with `border-left: transparent` + add `.dict-highlight` rule
+- [ ] Change 4: `live.html:6035–6043` — Update `data-dict` handler to add/remove `.dict-highlight` at both scroll call sites
+
+### Testing
+
+- [ ] Click ⓘ (case) on Music A/B Split → "+21pp" finding flashes cyan, fades after ~1.8s
+- [ ] Click ⓘ (dict) on Win Rate → Data Dictionary entry flashes cyan, fades after ~1.8s
+- [ ] Click ⓘ (dict) on Win Rate when accordion already open → highlight still fires
+- [ ] Click ⓘ twice on same icon → animation restarts cleanly (no stuck state)
+- [ ] No permanent padding/border residue after animation completes
