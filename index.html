@@ -1354,6 +1354,91 @@
         display: flex;
       }
     }
+
+    /* ── CASE STUDY PAGE ─────────────────────────────────────────────── */
+    .case-study-grid {
+      display: grid;
+      grid-template-columns: 60fr 40fr;
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 0 48px;
+    }
+    .case-study-section {
+      margin-bottom: 28px;
+    }
+    .case-study-section h3 {
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(0,255,255,0.15);
+      padding-bottom: 8px;
+    }
+    .case-study-section p {
+      color: var(--text);
+      font-size: 0.82rem;
+      line-height: 1.75;
+      margin-bottom: 10px;
+    }
+    .case-study-section p em {
+      color: var(--cyan);
+      font-style: normal;
+    }
+    .case-study-section p strong {
+      color: var(--text);
+    }
+    .case-study-section code {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--cyan);
+      background: rgba(0,255,255,0.07);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .case-study-finding {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+    .case-study-stat {
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 1.05rem;
+      min-width: 72px;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+    .case-study-label {
+      color: var(--text);
+      font-size: 0.81rem;
+      line-height: 1.6;
+    }
+    .cs-tech-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.79rem;
+      gap: 12px;
+    }
+    .cs-tech-key {
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .cs-tech-val {
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      text-align: right;
+    }
+    @media (max-width: 768px) {
+      .case-study-grid { grid-template-columns: 1fr; gap: 0; }
+    }
   </style>
 </head>
 
@@ -1428,7 +1513,7 @@
       <div class="tab" onclick="switchTab('ai')">AI Agent</div>
       <div class="tab" onclick="switchTab('ab')">A/B Tests</div>
       <div class="tab" onclick="switchTab('platform')">Platform</div>
-      <div class="tab" onclick="switchTab('looker')">Looker Guide</div>
+      <div class="tab" onclick="switchTab('case-study')">Case Study</div>
     </nav>
 
     <!-- Mobile hamburger menu (visible only on mobile) -->
@@ -1451,7 +1536,7 @@
         <div class="tab" onclick="switchTab('ai'); closeMobileMenu()">🤖 AI Agent</div>
         <div class="tab" onclick="switchTab('ab'); closeMobileMenu()">🧪 A/B Tests</div>
         <div class="tab" onclick="switchTab('platform'); closeMobileMenu()">📱 Platform</div>
-        <div class="tab" onclick="switchTab('looker'); closeMobileMenu()">📋 Looker Guide</div>
+        <div class="tab" onclick="switchTab('case-study'); closeMobileMenu()">📋 Case Study</div>
       </nav>
     </div>
 
@@ -1921,347 +2006,123 @@
     </div>
 
     <!-- ════════════════════════════════════════
-       PAGE 6: LOOKER GUIDE
+       PAGE 6: CASE STUDY
   ═══════════════════════════════════════════ -->
-    <div class="page" id="page-looker">
+    <div class="page" id="page-case-study">
 
-      <div class="section-label">Looker Studio Setup Guide</div>
+      <div class="section-label">Case Study — NON-X Analytics</div>
 
-      <div class="guide-section">
-        <div class="card">
-          <div class="card-title"><span class="dot"></span> Step 1 — Register GA4 Custom Dimensions</div>
-          <div class="guide-desc" style="margin:12px 0 8px">
-            Go to <strong>GA4 Admin → Property → Custom Definitions → Custom Dimensions → Create</strong>. Register all
-            of these as event-scoped dimensions:
+      <div class="case-study-grid">
+
+        <!-- LEFT COLUMN — Casual / Narrative -->
+        <div class="case-study-left">
+
+          <div class="case-study-section">
+            <h3>About the Project</h3>
+            <p>NON-X is a browser-based action game featuring an adaptive AI difficulty system that adjusts between 7 tiers in real time based on player performance. This dashboard was built to answer one question: <em>is the game actually working as designed?</em></p>
+            <p>Rather than relying on gut feel, every meaningful player action — from powerup collection to boss attempts to AI tier changes — is tracked through 31 custom GA4 dimensions and aggregated via a serverless analytics pipeline built in 12 weeks.</p>
           </div>
-          <div class="table-wrapper" tabindex="0">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Parameter Name</th>
-                  <th>Scope</th>
-                  <th>Description</th>
-                  <th>Used In Events</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>ab_music_group</code></td>
-                  <td>Event</td>
-                  <td>Music A/B cohort — 'music_on' or 'music_off'</td>
-                  <td>All 16 events</td>
-                </tr>
-                <tr>
-                  <td><code>music_variant</code></td>
-                  <td>Event</td>
-                  <td>Actual music state at event time</td>
-                  <td>All in-game events</td>
-                </tr>
-                <tr>
-                  <td><code>platform</code></td>
-                  <td>Event</td>
-                  <td>'desktop' or 'mobile'</td>
-                  <td>All in-game events</td>
-                </tr>
-                <tr>
-                  <td><code>level_number</code></td>
-                  <td>Event</td>
-                  <td>Level reached (1–12)</td>
-                  <td>wave_reached</td>
-                </tr>
-                <tr>
-                  <td><code>phase</code></td>
-                  <td>Event</td>
-                  <td>'green' / 'red' / 'purple' difficulty phase</td>
-                  <td>wave_reached, player_death</td>
-                </tr>
-                <tr>
-                  <td><code>level_reached</code></td>
-                  <td>Event</td>
-                  <td>Highest level before death</td>
-                  <td>player_death</td>
-                </tr>
-                <tr>
-                  <td><code>boss_id</code></td>
-                  <td>Event</td>
-                  <td>Boss number: 1, 2, or 3</td>
-                  <td>boss_attempt, boss_defeated</td>
-                </tr>
-                <tr>
-                  <td><code>visit_count</code></td>
-                  <td>Event</td>
-                  <td>Lifetime visit number</td>
-                  <td>returning_user</td>
-                </tr>
-                <tr>
-                  <td><code>is_replay</code></td>
-                  <td>Event</td>
-                  <td>true = Play Again, false = fresh</td>
-                  <td>game_start</td>
-                </tr>
-                <tr>
-                  <td><code>games_played</code></td>
-                  <td>Event</td>
-                  <td>Lifetime game count at event time</td>
-                  <td>game_start, survey_submitted</td>
-                </tr>
-                <tr>
-                  <td><code>instagram_provided</code></td>
-                  <td>Event</td>
-                  <td>true/false — handle submitted</td>
-                  <td>leaderboard_submit</td>
-                </tr>
-                <tr>
-                  <td><code>powerup_type</code></td>
-                  <td>Event</td>
-                  <td>'health', 'double_laser', 'shield'</td>
-                  <td>powerup_collected</td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="guide-desc" style="margin-top:12px">
-              Also register these as <strong>Custom Metrics</strong> (numeric): <code>session_duration_seconds</code>,
-              <code>score</code>
+
+          <div class="case-study-section">
+            <h3>What We Measured</h3>
+            <p>31 custom GA4 event dimensions tracking every meaningful player action across two active A/B tests (music default, movement scheme), a 7-tier AI difficulty system, survival time, boss defeat rates, powerup usage, and wave progression. All of it funnels into a single serverless Lambda function that serves 15 endpoints.</p>
+          </div>
+
+          <div class="case-study-section">
+            <h3>Key Findings</h3>
+            <div class="case-study-finding">
+              <span class="case-study-stat">2×</span>
+              <span class="case-study-label">Mobile players survive twice as long on average (6:35 vs 3:34). Desktop players die quickly; mobile players play carefully.</span>
+            </div>
+            <div class="case-study-finding">
+              <span class="case-study-stat">+21pp</span>
+              <span class="case-study-label">Music OFF group wins more often (44% vs 23% win rate). Music OFF players also reach Boss 1 at a higher rate (64% vs 37%). Counterintuitive — under investigation.</span>
+            </div>
+            <div class="case-study-finding">
+              <span class="case-study-stat">75%</span>
+              <span class="case-study-label">Of all players are returning users, suggesting strong early retention despite a small overall sample size.</span>
+            </div>
+            <div class="case-study-finding">
+              <span class="case-study-stat">25 vs 3</span>
+              <span class="case-study-label">AI difficulty adjustments: 25 increases vs 3 decreases. The system is actively pushing players harder — it's working.</span>
+            </div>
+            <div class="case-study-finding">
+              <span class="case-study-stat">L1–L4</span>
+              <span class="case-study-label">Most deaths occur in the early Green phase, not at boss fights. The opening levels are where the game loses players.</span>
+            </div>
+            <div class="case-study-finding">
+              <span class="case-study-stat">5×</span>
+              <span class="case-study-label">Mobile players collect roughly 5× more powerups than desktop players — likely a touch-control advantage.</span>
             </div>
           </div>
+
+          <div class="case-study-section">
+            <h3>Design Decisions Made From Data</h3>
+            <p><strong>Early-level difficulty:</strong> Green phase death concentration (L1–L4) flagged as a tuning priority. Players are dropping out before the game's core mechanics are fully introduced.</p>
+            <p><strong>Music experiment:</strong> The Music OFF win rate advantage is directional but consistent enough to warrant investigation into whether background music affects player concentration.</p>
+            <p><strong>Movement A/B:</strong> Group assignment shows a 19 vs 93 session split — heavily imbalanced. Assignment logic is under review before reading results as significant.</p>
+            <p><strong>AI calibration confirmed:</strong> Data confirms the tier system is actively adjusting. The near-absence of downward adjustments suggests players consistently improve or the system weights increases more aggressively — a tuning question for the next build.</p>
+          </div>
+
+          <div class="case-study-section">
+            <h3>What's Next</h3>
+            <p>Session-level BigQuery analysis will add tier delta (how much the AI moves per session), win rate by starting tier, and cohort retention curves. A <code>final_score</code> tracking update in the game will unlock the Tier vs Final Score correlation chart — the last missing piece before the dashboard is 100% live data.</p>
+          </div>
+
         </div>
 
-        <div class="guide-section">
-          <div class="card">
-            <div class="card-title"><span class="dot yel"></span> Step 2 — Calculated Fields (Looker Studio Syntax)
-            </div>
-            <div class="guide-desc">Create these in your Looker Studio data source under <strong>Add a field →
-                Calculated field</strong>:</div>
+        <!-- RIGHT COLUMN — Technical -->
+        <div class="case-study-right">
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px">
-
-              <div>
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">
-                  PLAYS</div>
-                <div class="formula-block">SUM(CASE
-                  WHEN event_name = "game_start"
-                  THEN event_count
-                  ELSE 0
-                  END)</div>
-              </div>
-
-              <div>
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">
-                  WINS</div>
-                <div class="formula-block">SUM(CASE
-                  WHEN event_name = "player_won"
-                  THEN event_count
-                  ELSE 0
-                  END)</div>
-              </div>
-
-              <div>
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">
-                  DEATHS</div>
-                <div class="formula-block">SUM(CASE
-                  WHEN event_name = "player_death"
-                  THEN event_count
-                  ELSE 0
-                  END)</div>
-              </div>
-
-              <div>
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">
-                  WIN RATE</div>
-                <div class="formula-block">SAFE_DIVIDE(
-                  Wins,
-                  Plays
-                  )</div>
-              </div>
-
-              <div>
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">
-                  BOSS 1 DEFEATS</div>
-                <div class="formula-block">SUM(CASE
-                  WHEN event_name = "boss_defeated"
-                  AND boss_id = 1
-                  THEN event_count
-                  ELSE 0
-                  END)</div>
-              </div>
-
-              <div>
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">
-                  BOSS 1 CONVERSION</div>
-                <div class="formula-block">SAFE_DIVIDE(
-                  Boss1Defeats,
-                  Plays
-                  )</div>
-              </div>
-
-              <div>
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">
-                  BOSS 2→3 CONVERSION</div>
-                <div class="formula-block">SAFE_DIVIDE(
-                  Boss2Defeats,
-                  Boss1Defeats
-                  )</div>
-              </div>
-
-              <div>
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px">
-                  LEADERBOARD RATE</div>
-                <div class="formula-block">SAFE_DIVIDE(
-                  LeaderboardSubmits,
-                  Wins
-                  )</div>
-              </div>
-
-            </div>
+          <div class="case-study-section">
+            <h3>Stack</h3>
+            <div class="cs-tech-row"><span class="cs-tech-key">Frontend</span><span class="cs-tech-val">Vanilla JS · Chart.js 4.4.1</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Hosting</span><span class="cs-tech-val">GitHub Pages</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">CI/CD</span><span class="cs-tech-val">GitHub Actions</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Backend</span><span class="cs-tech-val">AWS Lambda (Node.js)</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">API Gateway</span><span class="cs-tech-val">AWS REST API</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Primary data</span><span class="cs-tech-val">Google Analytics 4 API</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Session data</span><span class="cs-tech-val">Google BigQuery</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Auth</span><span class="cs-tech-val">GCP Service Account</span></div>
           </div>
-        </div>
 
-        <div class="guide-section">
-          <div class="card">
-            <div class="card-title"><span class="dot grn"></span> Step 3 — Looker Studio Page Layout</div>
-            <div class="guide-desc" style="margin-bottom:14px">Build these 4 pages in Looker Studio. Add <strong>Date
-                Range</strong>, <strong>music_variant</strong>, and <strong>platform</strong> as page-level filters on
-              every page.</div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px">
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.12em;margin-bottom:10px">
-                  PAGE 1 — EXECUTIVE SUMMARY</div>
-                <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.8">
-                  Row A: Scorecards — Users · Sessions · Win Rate · Avg Survival · Leaderboard Rate<br>
-                  Row B: Line chart (daily) — Plays + Wins + Avg Survival<br>
-                  Row C: Donut — Device mix | Bar — music_variant split
-                </div>
-              </div>
-              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px">
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.12em;margin-bottom:10px">
-                  PAGE 2 — GAMEPLAY FUNNEL</div>
-                <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.8">
-                  Funnel: game_start → boss_1 → boss_2 → boss_3 → player_won<br>
-                  Side-by-side by music_variant<br>
-                  Conversion rate table per stage
-                </div>
-              </div>
-              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px">
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.12em;margin-bottom:10px">
-                  PAGE 3 — PROGRESSION DEPTH</div>
-                <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.8">
-                  Bar: Wave drop-off — level_reached × player_death count<br>
-                  Histogram: time_survived_sec distribution<br>
-                  Bar: Avg max level by music_variant + by platform
-                </div>
-              </div>
-              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:14px">
-                <div
-                  style="font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.12em;margin-bottom:10px">
-                  PAGE 4 — REPLAY + VALUE</div>
-                <div style="font-size:0.75rem;color:var(--text-dim);line-height:1.8">
-                  Scorecards: Attempts per User · % Returning · Avg Duration<br>
-                  Line: Attempts over time<br>
-                  Table: leaderboard_submit rate by variant + platform
-                </div>
-              </div>
-            </div>
+          <div class="case-study-section">
+            <h3>Scale</h3>
+            <div class="cs-tech-row"><span class="cs-tech-key">Dashboard code</span><span class="cs-tech-val">5,407 lines</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Lambda code</span><span class="cs-tech-val">438 lines</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">JS functions</span><span class="cs-tech-val">62</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">API endpoints</span><span class="cs-tech-val">15 (14 GA4 · 1 BigQuery)</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Custom GA4 dims</span><span class="cs-tech-val">31 registered</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Git commits</span><span class="cs-tech-val">78 (Mar–Jun 2026)</span></div>
+            <div class="cs-tech-row"><span class="cs-tech-key">Live data coverage</span><span class="cs-tech-val">~88%</span></div>
           </div>
-        </div>
 
-        <div class="guide-section">
-          <div class="card">
-            <div class="card-title"><span class="dot mag"></span> Step 4 — GA4 Explorations to Build</div>
-            <div class="table-wrapper" tabindex="0">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Exploration Name</th>
-                    <th>Type</th>
-                    <th>Event Sequence / Setup</th>
-                    <th>Answers</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Completion Funnel</td>
-                    <td>Funnel</td>
-                    <td>game_start → boss_attempt(1) → boss_defeated(1) → boss_defeated(2) → player_won</td>
-                    <td>Where do players drop off?</td>
-                  </tr>
-                  <tr>
-                    <td>Death Drop-off by Level</td>
-                    <td>Free Form</td>
-                    <td>Dim: level_reached · Metric: event_count(player_death) · Segment by phase</td>
-                    <td>Which levels are most lethal?</td>
-                  </tr>
-                  <tr>
-                    <td>Music A/B Impact</td>
-                    <td>Free Form</td>
-                    <td>Segment: ab_music_group · Metrics: win rate, session duration, replay rate</td>
-                    <td>Does music lift completion?</td>
-                  </tr>
-                  <tr>
-                    <td>Boss Kill Rate</td>
-                    <td>Free Form</td>
-                    <td>boss_attempt / boss_defeated per boss_id</td>
-                    <td>Are any bosses too hard?</td>
-                  </tr>
-                  <tr>
-                    <td>Powerup Correlation</td>
-                    <td>Free Form</td>
-                    <td>powerup_type × subsequent player_won rate</td>
-                    <td>Do shield collectors win more?</td>
-                  </tr>
-                  <tr>
-                    <td>Leaderboard Prominence</td>
-                    <td>Free Form</td>
-                    <td>menu_view → play_clicked conversion by ab group</td>
-                    <td>Does social proof increase play-through?</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div class="case-study-section">
+            <h3>Architecture</h3>
+            <p>A single Lambda function handles all 15 endpoints, routing by <code>?subType=</code> query parameter. GA4's Data API handles 14 endpoints — fast, cheap, pre-aggregated. BigQuery handles session-level joins the GA4 API cannot perform (e.g. first and last difficulty tier within a single session using FIRST_VALUE / LAST_VALUE window functions).</p>
+            <p>GitHub Actions runs two pipelines: pushes to <code>staging</code> auto-deploy to the staging URL; pushes to <code>main</code> deploy to production. No manual upload step.</p>
           </div>
-        </div>
 
-        <div class="guide-section">
-          <div class="card" style="border-color:rgba(255,215,0,0.3)">
-            <div class="card-title"><span class="dot yel"></span> Future: AI Adaptive Engine (v2)</div>
-            <div class="guide-desc" style="margin-bottom:12px">
-              Your spec already defines the full pipeline. Once baseline analytics confirm the music experiment, the
-              Claude API adaptive engine slots in cleanly. Key signals already being tracked:
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div style="font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);line-height:1.9">
-                ✦ <code>wave_reached</code> → skill fingerprint<br>
-                ✦ <code>boss_attempt</code> → aggression pattern<br>
-                ✦ <code>powerup_collected</code> → play style<br>
-                ✦ <code>session_duration_seconds</code> → engagement depth
-              </div>
-              <div style="font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);line-height:1.9">
-                ✦ <code>is_replay</code> → motivation signal<br>
-                ✦ <code>games_played</code> → session history<br>
-                ✦ <code>phase</code> → difficulty tier progress<br>
-                ✦ <code>score</code> → performance trajectory
-              </div>
-            </div>
-            <div class="insight-box" style="margin-top:14px">
-              <strong>Proxy:</strong> Use Netlify Functions for the Claude API call (free tier, ~0.0003¢/session).
-              Model: <code>claude-sonnet-4-6</code>. Profile stored in
-              <code>localStorage.nonx_difficulty_profile</code>.
-            </div>
+          <div class="case-study-section">
+            <h3>Query Design</h3>
+            <p>GA4 queries use up to 7 dimensions per request, version-filtered to <code>analytics_version = 4.3</code> on every call. BigQuery queries are partitioned by <code>ga_session_id</code> using window functions for true session-scoped aggregation.</p>
+            <p>A 500MB <code>maxBytesBilled</code> cap prevents runaway BigQuery costs. A 24-hour in-memory Lambda cache matches the daily export cadence — querying more frequently yields identical results.</p>
           </div>
-        </div>
 
-      </div><!-- /looker page -->
+          <div class="case-study-section">
+            <h3>Security</h3>
+            <p>CORS locked to the GitHub Pages origin. Input validation whitelist rejects unknown params with HTTP 400 before any GA4 query fires. Server errors log to CloudWatch only — clients receive a generic message with no internal detail. No credentials in source code.</p>
+          </div>
+
+          <div class="case-study-section">
+            <h3>Statistical Notes</h3>
+            <p>A/B sample sizes are small: Music (73 vs 39 sessions), Movement (19 vs 93 sessions). Results marked <em>⚠ Insufficient</em> on the A/B tab — directional signals, not statistically conclusive. BigQuery KPIs lag 24–48 hours behind real time due to daily export cadence.</p>
+          </div>
+
+        </div>
+      </div><!-- /case-study-grid -->
+
+    </div><!-- /case-study page -->
 
     </div><!-- /wrapper -->
 
@@ -5222,7 +5083,7 @@
           'ai': 'AI AGENT',
           'ab': 'A/B TESTS',
           'platform': 'PLATFORM',
-          'looker': 'LOOKER GUIDE'
+          'case-study': 'CASE STUDY'
         };
 
         const activeTabLabel = document.querySelector('.active-tab-name');
