@@ -1714,7 +1714,7 @@
       <!-- KPI Cards -->
       <div class="kpi-grid" style="margin-bottom:32px">
         <div class="kpi">
-          <div class="kpi-label">Avg Starting Tier</div>
+          <div class="kpi-label">Avg Start Tier</div>
           <div class="kpi-value" id="kpi-ai-avg-start">—</div>
           <div class="kpi-sub">First session</div>
         </div>
@@ -4211,9 +4211,9 @@
 
         const avgTierResult = await fetchAvgTierData();
         if (avgTierResult.success && avgTierResult.data) {
-          if (avgTierResult.data.avgStartTier !== null) DATA.kpis.avgStartTier = String(avgTierResult.data.avgStartTier);
-          if (avgTierResult.data.avgFinalTier  !== null) DATA.kpis.avgFinalTier  = String(avgTierResult.data.avgFinalTier);
-          populateKPIs(DATA.kpis);
+          if (avgTierResult.data.avgStartTier !== null) DATA.aiAgent.kpis.avgStartTier = String(avgTierResult.data.avgStartTier);
+          if (avgTierResult.data.avgFinalTier  !== null) DATA.aiAgent.kpis.avgFinalTier  = String(avgTierResult.data.avgFinalTier);
+          populateAIKPIs();
         } else {
           console.warn('Avg-tier fetch failed:', avgTierResult.error);
         }
