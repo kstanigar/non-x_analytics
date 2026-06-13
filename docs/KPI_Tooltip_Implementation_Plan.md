@@ -4,7 +4,8 @@
 
 **Created:** June 13, 2026  
 **Estimate:** 2–2.5 hours  
-**Status:** ✅ COMPLETE — June 13, 2026 | Commits: `6f5aaab`, `fa4cb69`, `a122be5`
+**Status:** 🔴 TWO BUGS PENDING — icon character + accordion not opening. See Fix 2 below.  
+**Shipped:** `6f5aaab`, `fa4cb69`, `a122be5`, `846299e`
 
 **Prerequisite:** Data Dictionary Tab 7 complete with all `id="dict-[metric]"` anchors ✅
 
@@ -462,4 +463,56 @@ Add to the chart card title or the container heading for each item.
 
 ---
 
-**User Approval Required Before Implementation**
+## 🔴 Fix 2 — Icon Character + Accordion Bug (June 13, 2026)
+
+**Status:** 📋 READY TO IMPLEMENT — user approved Option B + accordion fix
+
+### Bug 1 — ℹ icon not recognizable
+**Symptom:** The `ℹ` Unicode character is too small and not recognizable as an information icon against the dark background.  
+**Fix:** Replace `ℹ` with `ⓘ` (U+24D8 — circled lowercase i) in all 16 dict-link spans. No CSS changes needed.
+
+### Bug 2 — Accordion doesn't open on ℹ click
+**Symptom:** Clicking ℹ switches to the Data Dictionary tab and scrolls to the anchor, but the accordion section stays collapsed — the content is hidden.  
+**Root cause:** JS handler calls `document.getElementById('dict-hdr-' + sectionId)` where `sectionId` is a metric ID like `winrate`. But accordion headers use section-level IDs like `dict-hdr-topline` — there is no `dict-hdr-winrate`. The `toggleDict()` call silently fails.  
+**Fix:** After switching tab, find the `dict-[sectionId]` anchor element, traverse up to its parent `.dict-body`, extract the section ID from that element's `id`, then call `toggleDict()` on the section ID.
+
+---
+
+### Task List
+
+- [ ] **Task 1 — Replace ℹ → ⓘ in all 16 dict-link spans** (HTML, `replace_all`)
+  - Use Edit tool with `replace_all: true` to swap `>ℹ</span>` → `>ⓘ</span>` across entire file
+  - Affects lines: 1629, 1634, 1639, 1644, 1654, 1668, 1673, 1678, 1683, 1688, 1875, 1880, 1885, 1890, 2024, 2029
+
+- [ ] **Task 2 — Fix accordion open logic in JS** (lines 6029–6032)
+  - **Remove:** `var hdr = document.getElementById('dict-hdr-' + sectionId);` (line 6029)
+  - **Remove:** `if (hdr && !hdr.classList.contains('open')) toggleDict(sectionId);` (line 6030)
+  - **Replace:** `if (anchor) anchor.scrollIntoView(...)` block with traverse-and-open logic
+
+  **Before (lines 6029–6032):**
+  ```javascript
+  var hdr = document.getElementById('dict-hdr-' + sectionId);
+  if (hdr && !hdr.classList.contains('open')) toggleDict(sectionId);
+  var anchor = document.getElementById('dict-' + sectionId);
+  if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  ```
+
+  **After:**
+  ```javascript
+  var anchor = document.getElementById('dict-' + sectionId);
+  if (anchor) {
+    var body = anchor.closest('.dict-body');
+    if (body) {
+      var bodyId = body.id.replace('dict-body-', '');
+      var hdr = document.getElementById('dict-hdr-' + bodyId);
+      if (hdr && !hdr.classList.contains('open')) toggleDict(bodyId);
+    }
+    anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  ```
+
+### Testing After Fix
+- [ ] Click ⓘ on Win Rate → Data Dictionary tab opens, `topline` accordion expands, scrolls to `dict-winrate`
+- [ ] Click ⓘ on Avg Start Tier → `ai` accordion expands, scrolls to `dict-avg-start-tier`
+- [ ] Click ⓘ on Desktop Win Rate → `platform` accordion expands, scrolls to `dict-platform-kpis`
+- [ ] Icon visually recognizable as standard info icon on dark background
