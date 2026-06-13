@@ -6146,11 +6146,12 @@
           return 'var(--cyan)';
         }
 
-        // Applies the card-glow animation to the element (or its .card parent for canvases).
-        // --glow-color is set inline so one @keyframes handles all colors.
+        // Applies the card-glow animation to the element's visible container.
+        // KPI ids point to .kpi-value (inner div), not the outer .kpi tile — so we walk up
+        // to .kpi first. Chart ids point to <canvas> with no border, so we walk up to .card.
         // classList.remove + offsetWidth forces a reflow so re-clicking restarts the animation.
         function triggerGlow(el) {
-          var target = el.closest('.card') || el;
+          var target = el.closest('.kpi') || el.closest('.card') || el;
           target.style.setProperty('--glow-color', glowColor(el));
           target.classList.remove('card-glow');
           void target.offsetWidth;
@@ -6164,7 +6165,7 @@
           setTimeout(function() {
             var el = document.getElementById(elementId);
             if (!el) return;
-            var scrollTarget = el.closest('.card') || el;
+            var scrollTarget = el.closest('.kpi') || el.closest('.card') || el;
             scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
             triggerGlow(el);
           }, 80);
