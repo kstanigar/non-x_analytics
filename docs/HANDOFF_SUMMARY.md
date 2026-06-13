@@ -10,7 +10,17 @@
 
 ## June 13, 2026 - Back-link Feature Implementation + Bug Fix
 
-**Status:** ✅ COMPLETE | Commits: `5b86f7c` (initial), bug fix pending staging | Doc: `docs/Backlink_Feature_Plan.md`
+**Status:** ✅ COMPLETE | Commits: `5b86f7c` → `b3e7505` → `063e2bc` → `cd4a6c1` → `daf3a4a` (final) | Doc: `docs/Backlink_Feature_Plan.md`
+
+### What shipped
+- `⊞` icons injected into 22 Data Dictionary entries via JS lookup table at page load
+- `⊞` icons on 4 Case Study findings (HTML)
+- Clicking `⊞` navigates to correct tab, scrolls to element, pulses 5s cyan semi-transparent overlay
+- **Bugs fixed:**
+  - Glow was firing on inner `.kpi-value` div → fixed: `closest('.kpi') || closest('.card') || el`
+  - `cs-ab-findings` pointed to `chart-ab-split` (Overview tab, wrong tab) → fixed: `funnel-table` on Funnel tab
+  - `@keyframes card-glow` changed from `box-shadow` outline → `background-color` cyan overlay (`rgba(0,255,255,0.18)`)
+  - Case study text for A/B finding updated to reference Conversion Rates Table; stat changed `+21pp` → `+23pp`
 
 ### Bug Fixed: Glow Firing on Inner Value Box
 
