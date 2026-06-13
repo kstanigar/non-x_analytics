@@ -1403,7 +1403,18 @@
       gap: 14px;
       margin-bottom: 12px;
       align-items: flex-start;
+      border-left: 2px solid transparent;
+      padding-left: 0;
     }
+    @keyframes cs-flash {
+      0%   { background: rgba(255,215,0,0.18); border-left-color: var(--yellow); padding-left: 8px; }
+      20%  { background: rgba(255,215,0,0.05); border-left-color: var(--yellow); padding-left: 8px; }
+      40%  { background: rgba(255,215,0,0.18); border-left-color: var(--yellow); padding-left: 8px; }
+      60%  { background: rgba(255,215,0,0.05); border-left-color: var(--yellow); padding-left: 8px; }
+      80%  { background: rgba(255,215,0,0.12); border-left-color: var(--yellow); padding-left: 8px; }
+      100% { background: transparent; border-left-color: transparent; padding-left: 0; }
+    }
+    .cs-highlight { animation: cs-flash 5s ease-out forwards; }
     .case-study-stat {
       color: var(--cyan);
       font-family: var(--mono);
@@ -1449,7 +1460,8 @@
     .dict-header.open .dict-arrow { transform: rotate(90deg); }
     .dict-body { display: none; padding: 20px; border-top: 1px solid var(--border); }
     .dict-body.open { display: block; }
-    .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); }
+    .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); border-left: 2px solid transparent; padding-left: 0; }
+    .dict-highlight { animation: cs-flash 5s ease-out forwards; }
     .dict-entry:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
     .dict-entry-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .dict-entry h4 { color: var(--magenta); font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
@@ -1713,13 +1725,13 @@
 
       <div class="chart-grid cols-2">
         <div class="card">
-          <div class="card-title" data-tooltip="% of sessions assigned to each A/B group — Music ON vs OFF."><span class="dot yel"></span> Music A/B Split</div>
+          <div class="card-title" data-tooltip="% of sessions assigned to each A/B group — Music ON vs OFF."><span class="dot yel"></span> Music A/B Split <span class="dict-link" data-case="cs-ab-findings">ⓘ</span></div>
           <div class="chart-wrap short">
             <canvas id="chart-ab-split"></canvas>
           </div>
         </div>
         <div class="card">
-          <div class="card-title" data-tooltip="Powerup collections by type and phase (green / red / purple)."><span class="dot grn"></span> Powerup Collection by Phase</div>
+          <div class="card-title" data-tooltip="Powerup collections by type and phase (green / red / purple)."><span class="dot grn"></span> Powerup Collection by Phase <span class="dict-link" data-case="cs-powerup-findings">ⓘ</span></div>
           <div class="chart-wrap short">
             <canvas id="chart-powerup"></canvas>
           </div>
@@ -1743,7 +1755,7 @@
         <div class="card">
           <div class="card-title" data-tooltip="Deaths by level (L1–L12 + boss stages), color-coded by phase."
             style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-            <span><span class="dot yel"></span> Wave Drop-off (Deaths by Level)</span>
+            <span><span class="dot yel"></span> Wave Drop-off (Deaths by Level) <span class="dict-link" data-case="cs-death-findings">ⓘ</span></span>
             <div id="dropoff-toggle" style="display:flex;gap:4px;font-family:var(--mono);font-size:0.68rem">
               <button onclick="setDropoffPlatform('all')" id="dop-all" class="dop-btn dop-active">ALL</button>
               <button onclick="setDropoffPlatform('mobile')" id="dop-mobile" class="dop-btn">MOBILE</button>
@@ -1887,7 +1899,7 @@
           <div class="kpi-sub" id="kpi-ai-speed-lock-sub">Players who completed 1+ cycles</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Avg Tier Adjustments <span class="dict-link" data-dict="death-triggers">ⓘ</span></div>
+          <div class="kpi-label">Avg Tier Adjustments <span class="dict-link" data-dict="avg-adjustments">ⓘ</span> <span class="dict-link" data-case="cs-ai-findings">ⓘ</span></div>
           <div class="kpi-value" id="kpi-ai-avg-adjustments">—</div>
           <div class="kpi-sub">Per session</div>
         </div>
@@ -1976,7 +1988,7 @@
   ═══════════════════════════════════════════ -->
     <div class="page" id="page-ab">
 
-      <div class="section-label">A/B Test 1 — Music Default (ON vs OFF)</div>
+      <div class="section-label">A/B Test 1 — Music Default (ON vs OFF) <span class="dict-link" data-case="cs-ab-findings">ⓘ</span></div>
       <div class="ab-grid" id="ab-music-cards"></div>
 
       <div class="section-label">A/B Test 2 — Movement Scheme</div>
@@ -2107,7 +2119,7 @@
               <span class="case-study-stat">2×</span>
               <span class="case-study-label">Mobile players survive twice as long on average (6:35 vs 3:34). Desktop players die quickly; mobile players play carefully.</span>
             </div>
-            <div class="case-study-finding">
+            <div class="case-study-finding" id="cs-ab-findings">
               <span class="case-study-stat">+21pp</span>
               <span class="case-study-label">Music OFF group wins more often (44% vs 23% win rate). Music OFF players also reach Boss 1 at a higher rate (64% vs 37%). Counterintuitive — under investigation.</span>
             </div>
@@ -2115,15 +2127,15 @@
               <span class="case-study-stat">75%</span>
               <span class="case-study-label">Of all players are returning users, suggesting strong early retention despite a small overall sample size.</span>
             </div>
-            <div class="case-study-finding">
+            <div class="case-study-finding" id="cs-ai-findings">
               <span class="case-study-stat">25 vs 3</span>
               <span class="case-study-label">AI difficulty adjustments: 25 increases vs 3 decreases. The system is actively pushing players harder — it's working.</span>
             </div>
-            <div class="case-study-finding">
+            <div class="case-study-finding" id="cs-death-findings">
               <span class="case-study-stat">L1–L4</span>
               <span class="case-study-label">Most deaths occur in the early Green phase, not at boss fights. The opening levels are where the game loses players.</span>
             </div>
-            <div class="case-study-finding">
+            <div class="case-study-finding" id="cs-powerup-findings">
               <span class="case-study-stat">5×</span>
               <span class="case-study-label">Mobile players collect roughly 5× more powerups than desktop players — likely a touch-control advantage.</span>
             </div>
@@ -6036,11 +6048,31 @@
                     toggleDict(bodyId);
                     setTimeout(function() {
                       anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      anchor.classList.remove('dict-highlight');
+                      void anchor.offsetWidth;
+                      anchor.classList.add('dict-highlight');
                     }, 150);
                     return;
                   }
                 }
                 anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                anchor.classList.remove('dict-highlight');
+                void anchor.offsetWidth;
+                anchor.classList.add('dict-highlight');
+              }
+            }, 80);
+          }
+          var caseLink = e.target.closest('[data-case]');
+          if (caseLink) {
+            e.stopPropagation();
+            switchTab('case-study');
+            setTimeout(function() {
+              var el = document.getElementById(caseLink.dataset.case);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                el.classList.remove('cs-highlight');
+                void el.offsetWidth;
+                el.classList.add('cs-highlight');
               }
             }, 80);
           }
