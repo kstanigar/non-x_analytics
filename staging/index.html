@@ -1478,17 +1478,9 @@
       .dict-meta { grid-template-columns: 80px 1fr; }
       .dict-table th, .dict-table td { padding: 5px 7px; }
     }
-    /* KPI Tooltips — Tier 1 hover */
-    .kpi[data-tooltip],
-    .card-title[data-tooltip] { position: relative; }
-    .kpi[data-tooltip]:hover::after,
-    .kpi[data-tooltip].tooltip-visible::after,
-    .card-title[data-tooltip]:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
+    /* KPI Tooltips — Tier 1 floating tooltip (fixed position escapes overflow:hidden) */
+    #kpi-tooltip {
+      position: fixed;
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text-dim);
@@ -1499,9 +1491,11 @@
       white-space: normal;
       text-align: center;
       line-height: 1.4;
-      max-width: 260px;
-      z-index: 200;
+      max-width: 240px;
+      z-index: 9999;
       pointer-events: none;
+      transform: translateX(-50%);
+      display: none;
     }
     /* ℹ dict-link icon */
     .dict-link {
@@ -6000,25 +5994,44 @@
         header.classList.toggle('open');
         body.classList.toggle('open');
       }
-      // KPI Tooltips — Tier 2 (ℹ → Data Dictionary) + Tier 1 mobile tap
+      // KPI Tooltips — floating Tier 1 + Tier 2 ℹ → Data Dictionary
       (function() {
+        var tip = document.createElement('div');
+        tip.id = 'kpi-tooltip';
+        document.body.appendChild(tip);
+
+        function showTip(text, anchor) {
+          var r = anchor.getBoundingClientRect();
+          tip.textContent = text;
+          tip.style.left = (r.left + r.width / 2) + 'px';
+          tip.style.top  = (r.bottom + 8) + 'px';
+          tip.style.display = 'block';
+        }
+
+        function hideTip() { tip.style.display = 'none'; }
+
+        document.querySelectorAll('[data-tooltip]').forEach(function(el) {
+          el.addEventListener('mouseenter', function() { showTip(el.dataset.tooltip, el); });
+          el.addEventListener('mouseleave', hideTip);
+        });
+
+        window.addEventListener('scroll', hideTip, true);
+        window.addEventListener('resize', hideTip);
+
+        // Tier 2: ℹ → Data Dictionary anchor
         document.addEventListener('click', function(e) {
-          const dictLink = e.target.closest('[data-dict]');
+          var dictLink = e.target.closest('[data-dict]');
           if (dictLink) {
             e.stopPropagation();
-            const sectionId = dictLink.dataset.dict;
+            var sectionId = dictLink.dataset.dict;
             switchTab('data-dict');
             setTimeout(function() {
-              const hdr = document.getElementById('dict-hdr-' + sectionId);
+              var hdr = document.getElementById('dict-hdr-' + sectionId);
               if (hdr && !hdr.classList.contains('open')) toggleDict(sectionId);
-              const anchor = document.getElementById('dict-' + sectionId);
+              var anchor = document.getElementById('dict-' + sectionId);
               if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 80);
-            return;
           }
-          // Mobile tap: toggle Tier 1 tooltip visibility
-          const tooltipCard = e.target.closest('.kpi[data-tooltip]');
-          if (tooltipCard) tooltipCard.classList.toggle('tooltip-visible');
         });
       })();
     </script>
