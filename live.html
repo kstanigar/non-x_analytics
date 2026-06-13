@@ -1648,9 +1648,9 @@
           <div class="kpi-sub">All platforms</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">New vs Returning <span class="dict-link" data-dict="new-pct">ⓘ</span></div>
+          <div class="kpi-label">Returning Players <span class="dict-link" data-dict="new-pct">ⓘ</span></div>
           <div class="kpi-value" id="kpi-new-pct">—</div>
-          <div class="kpi-sub" id="kpi-new-pct-sub">% first-time players</div>
+          <div class="kpi-sub" id="kpi-new-pct-sub">% returning sessions</div>
         </div>
         <div class="kpi grn">
           <div class="kpi-label">Win Rate <span class="dict-link" data-dict="winrate">ⓘ</span></div>
@@ -3638,7 +3638,7 @@
             });
           }
           const returningCount = totalCount - newCount;
-          const pct = totalCount > 0 ? Math.round((newCount / totalCount) * 100) + '%' : '—';
+          const pct = totalCount > 0 ? Math.round((returningCount / totalCount) * 100) + '%' : '—';
           return { newPct: pct, newCount, returningCount, hasRealData: totalCount > 0 };
         }
 
@@ -4704,7 +4704,7 @@
           const nuData = mapGA4ResponseToDATA(newUserResult.data, 'new-user-pct');
           if (!nuData.error && nuData.hasRealData) {
             DATA.kpis.newPct    = nuData.newPct;
-            DATA.kpis.newPctSub = `<span style="color:var(--green)">${nuData.newCount}&nbsp;new</span> / <span style="color:#FFD700">${nuData.returningCount}&nbsp;returning</span>`;
+            DATA.kpis.newPctSub = `<span style="color:#FFD700">${nuData.newCount}&nbsp;new</span> / <span style="color:var(--green)">${nuData.returningCount}&nbsp;returning</span>`;
           } else {
             console.warn('New-user-pct parsing failed or no data, using mock value');
           }
