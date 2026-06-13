@@ -445,7 +445,7 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 - [x] **KPI Tooltips — Hybrid Approach** ✅ COMPLETE — June 13, 2026
   - **Estimate:** 2–3 hours (actual: ~2 hours + bug fix)
-  - **Commits:** `6f5aaab` (initial), `fa4cb69` (overflow fix), `a122be5` (width fix)
+  - **Commits:** `6f5aaab` → `fa4cb69` → `a122be5` → `846299e` → `7cce483` → `f7043d0` (final)
   - **Approach:** Three-tier hybrid
     - **Tier 1** — JS floating `#kpi-tooltip` div (position:fixed, escapes overflow:hidden): 5 KPI tiles + 17 chart card-titles
     - **Tier 2** — ℹ icon → Data Dictionary accordion anchor: 16 KPI labels

@@ -8,6 +8,21 @@
 
 ---
 
+## June 13, 2026 - KPI Tooltips + Bug Fixes (Final)
+
+**Status:** ✅ COMPLETE | Final commit: `f7043d0` | Production live
+
+### Bug Fixes Applied After Initial Ship
+1. **Overflow clipping** — CSS `::after` clipped by `.kpi { overflow: hidden }` → replaced with floating `<div id="kpi-tooltip">` using `getBoundingClientRect()` + `position: fixed` (`fa4cb69`)
+2. **Tooltip too wide** — `max-width: 240px` → `140px` for consistent square shape (`a122be5`)
+3. **Icon invisible** — `var(--cyan-dim)` at 55% opacity → `var(--cyan)` at 85% opacity (`846299e`)
+4. **Icon character** — `ℹ` → `ⓘ` (U+24D8 circled-i, standard info icon) across all 16 spans (`7cce483`)
+5. **Accordion not opening** — JS looked for `dict-hdr-winrate` (doesn't exist); fixed to traverse anchor's parent `.dict-body`, extract section ID, call `toggleDict()` on section (`7cce483`)
+6. **Accordion scroll timing** — `scrollIntoView` fired before browser repaint after `toggleDict`; wrapped in nested `setTimeout(150ms)` (`f7043d0`)
+7. **Icon size** — `0.68rem` → `0.8rem` for better visibility (`f7043d0`)
+
+---
+
 ## June 13, 2026 - KPI Tooltips + Documentation
 
 **Status:** ✅ COMPLETE | Commits: `6f5aaab`, `fa4cb69`, `a122be5` | Production: `a122be5`
