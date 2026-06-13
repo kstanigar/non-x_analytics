@@ -395,7 +395,7 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - [x] C: Remove stale banners (insight-box, header subtitle `GA4 + Looker Studio`, AI CSV toast)
   - [x] D: Lambda deploy procedure documented (see HANDOFF_SUMMARY)
 
-- [ ] **BigQuery Integration** — Avg Starting Tier + Avg Final Tier KPIs
+- [x] **BigQuery Integration** ✅ COMPLETE — June 12, 2026
   - **Estimate:** 3–5 hours (once pre-requisites complete)
   - **Priority:** MEDIUM — unlocks 2 KPIs that GA4 API cannot provide
   - **Full plan:** `docs/BigQuery_Integration_Plan.md`

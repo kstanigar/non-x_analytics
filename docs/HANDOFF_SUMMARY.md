@@ -8,6 +8,40 @@
 
 ---
 
+## June 12, 2026 - BigQuery Integration Implementation
+
+**Status:** 🟡 In Progress — code complete, 2 deploy steps remaining
+
+### What Was Built
+- `api/index.js` — added `'avg-tier'` to VALID_SUBTYPES; BigQuery lazy-loaded client + 24h in-memory cache + `getBQStartDate()` helper; `avg-tier` handler with parallel `Promise.all` BigQuery queries
+- `live.html` — added `fetchAvgTierData()` function (AbortSignal.timeout pattern); integration call in `loadAndRenderGA4Data()` after engagement block; KPI tiles/defaults/populateKPIs already wired from prior session
+- Lambda zip built: `/tmp/function.zip` (7.6MB, 130 packages, includes `@google-cloud/bigquery@8.3.1`)
+- Lambda deployed via zip upload ✅
+
+### Bug Found: Dataset ID Mismatch
+- **Error:** `Dataset non-x-analytics-server:analytics_525680332 was not found in location US`
+- **Root cause:** `GA4_PROPERTY_ID` env var = `525680332` but actual BigQuery dataset = `analytics_525680032` (digits differ at position 7: `332` vs `032`)
+- **Fix applied to `api/index.js`:** `const datasetId = process.env.BQ_DATASET_ID || \`analytics_${propertyId}\``
+- **Fix needed in Lambda:** Add env var `BQ_DATASET_ID = analytics_525680032`
+- **Then:** Redeploy updated `api/index.js` via paste-into-editor (no new packages — no zip needed)
+
+### Completed Steps
+1. ✅ Lambda env var `BQ_DATASET_ID = analytics_525680032` added
+2. ✅ `api/index.js` redeployed via paste-in-editor
+3. ✅ Endpoint tested: `?type=standard&subType=avg-tier&dateRange=alltime` → `{"avgStartTier":0,"avgFinalTier":1}`
+4. ⬜ Verify KPI tiles populate on dashboard (next step)
+
+**Status:** 🟢 COMPLETE — BigQuery returning live data
+
+### SQL Used (verified correct schema)
+- `ga_session_id` → `int_value` (not string_value)
+- `old_tier` / `new_tier` → `string_value`
+- FIRST_VALUE for start tier, LAST_VALUE with full frame for final tier
+- DISTINCT to avoid window function row duplication
+- 500MB `maxBytesBilled` safety cap
+
+---
+
 ## June 12, 2026 - BigQuery Export Data Confirmed
 
 **Status:** ✅ Data landed — BigQuery integration UNBLOCKED

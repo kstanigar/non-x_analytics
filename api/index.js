@@ -11,8 +11,34 @@ const ALLOWED_ORIGIN = 'https://kstanigar.github.io';
 
 // Input validation whitelists — reject unknown values before hitting GA4
 const VALID_TYPES      = ['standard', 'realtime'];
-const VALID_SUBTYPES   = ['platform-split','daily-timeseries','boss-analysis','survival-time','powerup-analysis','progression-analysis','ai-analysis','death-triggers','new-user-pct','replay-rate','music-ab','music-funnel','movement-ab','engagement-events'];
+const VALID_SUBTYPES   = ['platform-split','daily-timeseries','boss-analysis','survival-time','powerup-analysis','progression-analysis','ai-analysis','death-triggers','new-user-pct','replay-rate','music-ab','music-funnel','movement-ab','engagement-events','avg-tier'];
 const VALID_DATE_RANGES = ['7day','30day','90day','alltime'];
+
+// BigQuery client — lazy-loaded only when avg-tier handler is called
+let bigqueryClient = null;
+const getBigQueryClient = () => {
+    if (!bigqueryClient) {
+        const { BigQuery } = require('@google-cloud/bigquery');
+        bigqueryClient = new BigQuery({
+            projectId: process.env.GCP_PROJECT_ID,
+            credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS)
+        });
+    }
+    return bigqueryClient;
+};
+
+// 24h in-memory cache — matches BigQuery daily export cadence
+const tierCache = { data: null, timestamp: 0 };
+const TIER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Compute YYYYMMDD string for BigQuery _TABLE_SUFFIX filter
+const getBQStartDate = (param) => {
+    if (param === 'alltime') return '20260301';
+    const days = parseInt(param); // '7day' → 7, '30day' → 30, '90day' → 90
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return d.toISOString().slice(0, 10).replace(/-/g, '');
+};
 
 exports.handler = async (event) => {
     try {
@@ -293,6 +319,77 @@ exports.handler = async (event) => {
                 }
             };
             [response] = await analyticsDataClient.runReport(engagementRequest);
+
+        // eventName=ai_difficulty_adjusted: first old_tier + last new_tier per session (BigQuery)
+        } else if (requestType === 'standard' && subType === 'avg-tier') {
+            const now = Date.now();
+            if (tierCache.data && (now - tierCache.timestamp) < TIER_CACHE_TTL_MS) {
+                return {
+                    statusCode: 200,
+                    headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tierCache.data)
+                };
+            }
+            const bq = getBigQueryClient();
+            const datasetId = process.env.BQ_DATASET_ID || `analytics_${propertyId}`;
+            const bqStartDate = getBQStartDate(dateRangeParam);
+            const queryOpts = { maxBytesBilled: '500000000' }; // 500MB safety cap
+
+            const [[startRows], [endRows]] = await Promise.all([
+                bq.query({
+                    ...queryOpts,
+                    query: `
+                        SELECT ROUND(AVG(start_tier), 1) AS avg_start_tier
+                        FROM (
+                            SELECT DISTINCT user_pseudo_id,
+                                (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS session_id,
+                                FIRST_VALUE(
+                                    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'old_tier')
+                                ) OVER (
+                                    PARTITION BY user_pseudo_id,
+                                        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id')
+                                    ORDER BY event_timestamp ASC
+                                ) AS start_tier
+                            FROM \`${process.env.GCP_PROJECT_ID}.${datasetId}.events_*\`
+                            WHERE _TABLE_SUFFIX >= '${bqStartDate}'
+                                AND event_name = 'ai_difficulty_adjusted'
+                        )
+                    `
+                }),
+                bq.query({
+                    ...queryOpts,
+                    query: `
+                        SELECT ROUND(AVG(final_tier), 1) AS avg_final_tier
+                        FROM (
+                            SELECT DISTINCT user_pseudo_id,
+                                (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS session_id,
+                                LAST_VALUE(
+                                    (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'new_tier')
+                                ) OVER (
+                                    PARTITION BY user_pseudo_id,
+                                        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id')
+                                    ORDER BY event_timestamp ASC
+                                    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                                ) AS final_tier
+                            FROM \`${process.env.GCP_PROJECT_ID}.${datasetId}.events_*\`
+                            WHERE _TABLE_SUFFIX >= '${bqStartDate}'
+                                AND event_name = 'ai_difficulty_adjusted'
+                        )
+                    `
+                })
+            ]);
+
+            const result = {
+                avgStartTier: startRows[0]?.avg_start_tier ?? null,
+                avgFinalTier:  endRows[0]?.avg_final_tier  ?? null
+            };
+            tierCache.data = result;
+            tierCache.timestamp = now;
+            return {
+                statusCode: 200,
+                headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },
+                body: JSON.stringify(result)
+            };
 
         // real-time event data
         } else if (requestType === 'realtime') {
