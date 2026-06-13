@@ -1462,6 +1462,16 @@
     .dict-body.open { display: block; }
     .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); border-left: 2px solid transparent; padding-left: 0; }
     .dict-highlight { animation: cs-flash 5s ease-out forwards; }
+    @keyframes card-glow {
+      0%   { box-shadow: 0 0 0 2px var(--glow-color), 0 0 12px var(--glow-color); }
+      25%  { box-shadow: 0 0 0 1px var(--glow-color), 0 0 4px var(--glow-color); }
+      50%  { box-shadow: 0 0 0 2px var(--glow-color), 0 0 12px var(--glow-color); }
+      75%  { box-shadow: 0 0 0 1px var(--glow-color), 0 0 4px var(--glow-color); }
+      100% { box-shadow: none; }
+    }
+    /* --glow-color is set inline by JS before this class is added,
+       allowing per-element color without multiple @keyframes definitions */
+    .card-glow { animation: card-glow 5s ease-out forwards; }
     .dict-entry:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
     .dict-entry-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .dict-entry h4 { color: var(--magenta); font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
@@ -2122,6 +2132,7 @@
             <div class="case-study-finding" id="cs-ab-findings">
               <span class="case-study-stat">+21pp</span>
               <span class="case-study-label">Music OFF group wins more often (44% vs 23% win rate). Music OFF players also reach Boss 1 at a higher rate (64% vs 37%). Counterintuitive — under investigation.</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-ab-findings" title="View on dashboard">⊞</span>
             </div>
             <div class="case-study-finding">
               <span class="case-study-stat">75%</span>
@@ -2130,14 +2141,17 @@
             <div class="case-study-finding" id="cs-ai-findings">
               <span class="case-study-stat">25 vs 3</span>
               <span class="case-study-label">AI difficulty adjustments: 25 increases vs 3 decreases. The system is actively pushing players harder — it's working.</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-ai-findings" title="View on dashboard">⊞</span>
             </div>
             <div class="case-study-finding" id="cs-death-findings">
               <span class="case-study-stat">L1–L4</span>
               <span class="case-study-label">Most deaths occur in the early Green phase, not at boss fights. The opening levels are where the game loses players.</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-death-findings" title="View on dashboard">⊞</span>
             </div>
             <div class="case-study-finding" id="cs-powerup-findings">
               <span class="case-study-stat">5×</span>
               <span class="case-study-label">Mobile players collect roughly 5× more powerups than desktop players — likely a touch-control advantage.</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-powerup-findings" title="View on dashboard">⊞</span>
             </div>
           </div>
 
@@ -6075,6 +6089,117 @@
                 el.classList.add('cs-highlight');
               }
             }, 80);
+          }
+        });
+      })();
+
+      // ── Back-links: Data Dict / Case Study → Dashboard card glow ─────────
+      // HUMAN: To change the back-link icon, update BACKLINK_ICON below.
+      // Current: ⊞ (U+229E squared plus). Other options: ↗ ⤴ → ⊹
+      (function() {
+        var BACKLINK_ICON = '⊞';
+
+        // Lookup table: dict-entry id → { tab name, dashboard element id }
+        // HUMAN: Add new entries here as new Data Dictionary sections are created.
+        // Format: 'dict-[id]': { tab: '[switchTab string]', id: '[element id]' }
+        var BACKLINK_MAP = {
+          'dict-sessions':        { tab: 'overview',  id: 'kpi-sessions' },
+          'dict-new-pct':         { tab: 'overview',  id: 'kpi-new-pct' },
+          'dict-winrate':         { tab: 'overview',  id: 'kpi-winrate' },
+          'dict-deathrate':       { tab: 'overview',  id: 'kpi-deathrate' },
+          'dict-replay':          { tab: 'overview',  id: 'kpi-replay' },
+          'dict-survival':        { tab: 'overview',  id: 'kpi-survival' },
+          'dict-lbrate':          { tab: 'overview',  id: 'kpi-lb-rate' },
+          'dict-avglevel':        { tab: 'overview',  id: 'kpi-avg-level' },
+          'dict-scorecard-rate':  { tab: 'overview',  id: 'kpi-scorecard-rate' },
+          'dict-music-rate':      { tab: 'overview',  id: 'kpi-music-rate' },
+          'dict-leave-rate':      { tab: 'overview',  id: 'kpi-leave-rate' },
+          'dict-boss-reach':      { tab: 'overview',  id: 'kpi-boss-reach-rate' },
+          'dict-survey-rate':     { tab: 'overview',  id: 'kpi-survey-rate' },
+          'dict-speedlock':       { tab: 'ai',        id: 'kpi-ai-speed-lock' },
+          'dict-avg-start-tier':  { tab: 'ai',        id: 'kpi-ai-avg-start' },
+          'dict-avg-final-tier':  { tab: 'ai',        id: 'kpi-ai-avg-final' },
+          'dict-avg-adjustments': { tab: 'ai',        id: 'kpi-ai-avg-adjustments' },
+          'dict-ai-tier-dist':    { tab: 'ai',        id: 'chart-ai-tier-dist' },
+          'dict-tier-flow':       { tab: 'ai',        id: 'chart-ai-tier-flow' },
+          'dict-score-mult':      { tab: 'ai',        id: 'chart-ai-score-mult' },
+          'dict-death-triggers':  { tab: 'ai',        id: 'chart-ai-death-triggers' },
+          'dict-platform-kpis':   { tab: 'platform',  id: 'kpi-desk-win' }
+        };
+
+        // Lookup table: case-study finding id → { tab name, dashboard element id }
+        // HUMAN: Add new entries here if more Case Study findings are added.
+        var CS_BACKLINK_MAP = {
+          'cs-ab-findings':      { tab: 'ab',       id: 'chart-ab-split' },
+          'cs-ai-findings':      { tab: 'ai',       id: 'kpi-ai-avg-adjustments' },
+          'cs-death-findings':   { tab: 'funnel',   id: 'chart-dropdoff' },
+          'cs-powerup-findings': { tab: 'overview', id: 'chart-powerup' }
+        };
+
+        // Reads color class from a .kpi element to match the glow to the tile's accent color.
+        // Falls back to --cyan for plain tiles and all .card chart wrappers (no color class).
+        function glowColor(el) {
+          if (el.classList.contains('grn')) return 'var(--green)';
+          if (el.classList.contains('yel')) return 'var(--yellow)';
+          if (el.classList.contains('red')) return 'var(--red)';
+          if (el.classList.contains('mag')) return 'var(--magenta)';
+          return 'var(--cyan)';
+        }
+
+        // Applies the card-glow animation to the element (or its .card parent for canvases).
+        // --glow-color is set inline so one @keyframes handles all colors.
+        // classList.remove + offsetWidth forces a reflow so re-clicking restarts the animation.
+        function triggerGlow(el) {
+          var target = el.closest('.card') || el;
+          target.style.setProperty('--glow-color', glowColor(el));
+          target.classList.remove('card-glow');
+          void target.offsetWidth;
+          target.classList.add('card-glow');
+        }
+
+        // Switches tab, waits 80ms for render, then scrolls and glows the target element.
+        // block: 'center' keeps the card visually centered rather than snapping to top edge.
+        function navigateAndGlow(tab, elementId) {
+          switchTab(tab);
+          setTimeout(function() {
+            var el = document.getElementById(elementId);
+            if (!el) return;
+            var scrollTarget = el.closest('.card') || el;
+            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            triggerGlow(el);
+          }, 80);
+        }
+
+        // Inject ⊞ icons into every Data Dictionary entry that has a BACKLINK_MAP entry.
+        // Done at page load so HTML stays clean — no 40+ individual HTML edits needed.
+        // HUMAN: If a ⊞ icon is missing from a dict entry, add its dict-id to BACKLINK_MAP above.
+        Object.keys(BACKLINK_MAP).forEach(function(dictId) {
+          var entry = document.getElementById(dictId);
+          if (!entry) return;
+          var titleRow = entry.querySelector('.dict-entry-title');
+          if (!titleRow) return;
+          var icon = document.createElement('span');
+          icon.className = 'dict-link backlink-icon';
+          icon.textContent = BACKLINK_ICON;
+          icon.title = 'View on dashboard';
+          icon.dataset.backlink = dictId;
+          titleRow.appendChild(icon);
+        });
+
+        // Single delegated click handler for all back-link icons (Data Dict + Case Study).
+        // Uses closest() so clicks on icon children are still captured correctly.
+        document.addEventListener('click', function(e) {
+          var bl = e.target.closest('[data-backlink]');
+          if (bl) {
+            e.stopPropagation();
+            var entry = BACKLINK_MAP[bl.dataset.backlink];
+            if (entry) navigateAndGlow(entry.tab, entry.id);
+          }
+          var csBl = e.target.closest('[data-cs-backlink]');
+          if (csBl) {
+            e.stopPropagation();
+            var csEntry = CS_BACKLINK_MAP[csBl.dataset.csBacklink];
+            if (csEntry) navigateAndGlow(csEntry.tab, csEntry.id);
           }
         });
       })();
