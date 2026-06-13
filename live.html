@@ -3263,17 +3263,17 @@
               // Desktop metrics
               const desktopAttempts = boss.desktop.attempts;
               const desktopDefeats = boss.desktop.defeats;
-              const desktopRate = desktopAttempts > 0 ? (desktopDefeats / desktopAttempts * 100).toFixed(1) : '0.0';
+              const desktopRate = desktopAttempts > 0 ? (desktopDefeats / desktopAttempts * 100).toFixed(0) : '0';
 
               // Mobile metrics
               const mobileAttempts = boss.mobile.attempts;
               const mobileDefeats = boss.mobile.defeats;
-              const mobileRate = mobileAttempts > 0 ? (mobileDefeats / mobileAttempts * 100).toFixed(1) : '0.0';
+              const mobileRate = mobileAttempts > 0 ? (mobileDefeats / mobileAttempts * 100).toFixed(0) : '0';
 
               // Overall metrics (desktop + mobile)
               const totalAttempts = desktopAttempts + mobileAttempts;
               const totalDefeats = desktopDefeats + mobileDefeats;
-              const overallRate = totalAttempts > 0 ? (totalDefeats / totalAttempts * 100).toFixed(1) : '0.0';
+              const overallRate = totalAttempts > 0 ? (totalDefeats / totalAttempts * 100).toFixed(0) : '0';
 
               // Attempt-to-defeat ratio (for chart)
               const attemptsPerDefeat = totalDefeats > 0 ? (totalAttempts / totalDefeats).toFixed(1) : null;
@@ -3359,8 +3359,8 @@
 
             const survivalDist = {
               labels: buckets.map(b => b.label),
-              desktop: buckets.map(b => desktopTotal > 0 ? (b.desktop / desktopTotal * 100).toFixed(1) : '0.0'),
-              mobile: buckets.map(b => mobileTotal > 0 ? (b.mobile / mobileTotal * 100).toFixed(1) : '0.0')
+              desktop: buckets.map(b => desktopTotal > 0 ? (b.desktop / desktopTotal * 100).toFixed(0) : '0'),
+              mobile: buckets.map(b => mobileTotal > 0 ? (b.mobile / mobileTotal * 100).toFixed(0) : '0')
             };
 
             // Calculate average survival time (formatted as MM:SS)
@@ -3372,7 +3372,7 @@
               : 0;
 
             const formatMinutes = (seconds) => {
-              return (seconds / 60).toFixed(1) + 'm';
+              return (seconds / 60).toFixed(0) + 'm';
             };
 
             const avgSurvival = {
@@ -3519,9 +3519,9 @@
               levelMobile,
               hasRealData: Object.keys(levelDeaths).length > 0, // true only if death rows returned
               avgLevel: {
-                overall: countAll  > 0 ? (sumAll  / countAll).toFixed(1)  : '—',
-                desktop: countDesk > 0 ? (sumDesk / countDesk).toFixed(1) : '—',
-                mobile:  countMob  > 0 ? (sumMob  / countMob).toFixed(1)  : '—',
+                overall: countAll  > 0 ? (sumAll  / countAll).toFixed(0)  : '—',
+                desktop: countDesk > 0 ? (sumDesk / countDesk).toFixed(0) : '—',
+                mobile:  countMob  > 0 ? (sumMob  / countMob).toFixed(0)  : '—',
               },
             }
           };
@@ -3583,7 +3583,7 @@
           const tierLabels = ['-3', '-2', '-1', '0', '1', '2', '3'];
           const tierDistArray = tierLabels.map(t => tierDistCounts[t] || 0);
           const speedLockRate = totalAdjustments > 0
-            ? (speedLockCount / totalAdjustments * 100).toFixed(1) + '%'
+            ? (speedLockCount / totalAdjustments * 100).toFixed(0) + '%'
             : '—';
 
           return {
@@ -3831,7 +3831,7 @@
         const leaderboardSubmit = eventCounts['leaderboard_submit'] || 0;
 
         const winRate = gameStarts > 0
-          ? ((playerWon / gameStarts) * 100).toFixed(1) + '%'
+          ? ((playerWon / gameStarts) * 100).toFixed(0) + '%'
           : '0%';
 
         // Calculate death rate only from games with recorded outcomes
@@ -3839,7 +3839,7 @@
         // Fixed: Only count completed games (won + death) to get accurate mortality rate
         const completedGames = playerWon + playerDeath;
         const deathRate = completedGames > 0
-          ? ((playerDeath / completedGames) * 100).toFixed(1) + '%'
+          ? ((playerDeath / completedGames) * 100).toFixed(0) + '%'
           : '0%';
 
         const completeness = gameStarts > 0 ? (completedGames / gameStarts) * 100 : 100;
@@ -4480,7 +4480,7 @@
             desktop: {
               sessions: pd.desktop.sessions,
               winRate: pd.desktop.gameStarts > 0
-                ? ((pd.desktop.playerWon / pd.desktop.gameStarts) * 100).toFixed(1) + '%'
+                ? ((pd.desktop.playerWon / pd.desktop.gameStarts) * 100).toFixed(0) + '%'
                 : '0%',
               // Note: Additional KPIs (survival, replay, avgLevel, lbRate, boss rates) require more API dimensions
               // For now, these will remain with mock data until Phase 6A Tasks 6-7 complete
@@ -4497,7 +4497,7 @@
             mobile: {
               sessions: pd.mobile.sessions,
               winRate: pd.mobile.gameStarts > 0
-                ? ((pd.mobile.playerWon / pd.mobile.gameStarts) * 100).toFixed(1) + '%'
+                ? ((pd.mobile.playerWon / pd.mobile.gameStarts) * 100).toFixed(0) + '%'
                 : '0%',
               survival: DATA.platform.mobile.survival,
               replay: DATA.platform.mobile.replay,
@@ -4797,10 +4797,10 @@
             if (counts.hasOwnProperty(name)) counts[name] = parseInt(row.metricValues?.[0]?.value || 0);
           });
           if (gameStarts > 0) {
-            DATA.kpis.scorecardRate = (counts.scorecard_viewed / gameStarts * 100).toFixed(1) + '%';
-            DATA.kpis.musicRate     = (counts.music_toggled    / gameStarts * 100).toFixed(1) + '%';
-            DATA.kpis.leaveRate     = (counts.leave_game       / gameStarts * 100).toFixed(1) + '%';
-            DATA.kpis.surveyRate    = (counts.survey_submitted / gameStarts * 100).toFixed(1) + '%';
+            DATA.kpis.scorecardRate = (counts.scorecard_viewed / gameStarts * 100).toFixed(0) + '%';
+            DATA.kpis.musicRate     = (counts.music_toggled    / gameStarts * 100).toFixed(0) + '%';
+            DATA.kpis.leaveRate     = (counts.leave_game       / gameStarts * 100).toFixed(0) + '%';
+            DATA.kpis.surveyRate    = (counts.survey_submitted / gameStarts * 100).toFixed(0) + '%';
             DATA.kpis.scorecardSub  = `<span style="color:var(--green)">${counts.scorecard_viewed}&nbsp;viewed</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
             DATA.kpis.musicSub      = `<span style="color:var(--green)">${counts.music_toggled}&nbsp;toggled</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
             DATA.kpis.leaveSub      = `<span style="color:var(--green)">${counts.leave_game}&nbsp;left</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
@@ -4808,7 +4808,7 @@
           }
           const bossAttempts = DATA.bossAnalysis?.boss1?.overall?.attempts || 0;
           DATA.kpis.bossReachRate = bossAttempts > 0 && gameStarts > 0
-            ? (bossAttempts / gameStarts * 100).toFixed(1) + '%'
+            ? (bossAttempts / gameStarts * 100).toFixed(0) + '%'
             : '—';
           DATA.kpis.bossReachSub = bossAttempts > 0 && gameStarts > 0
             ? `<span style="color:var(--green)">${bossAttempts}&nbsp;attempts</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`
@@ -4958,7 +4958,7 @@
         document.getElementById('kpi-mob-level').textContent = k.mobLevel;
         const banner = document.getElementById('completeness-banner');
         if (k.completeness < 80) {
-          document.getElementById('completeness-pct').textContent = k.completeness.toFixed(1);
+          document.getElementById('completeness-pct').textContent = k.completeness.toFixed(0);
           banner.style.display = '';
         } else {
           banner.style.display = 'none';
@@ -5111,23 +5111,23 @@
         // Dynamic conversion rates from live DATA.funnel, DATA.funnelMusicOn, DATA.funnelMusicOff
         const conversions = DATA.funnel.slice(1).map((stage, i) => {
           const prev = DATA.funnel[i];
-          const rate = prev.n > 0 ? ((stage.n / prev.n) * 100).toFixed(1) + '%' : '—';
+          const rate = prev.n > 0 ? ((stage.n / prev.n) * 100).toFixed(0) + '%' : '—';
 
           // Music ON rate from DATA.funnelMusicOn (live after music-funnel fetch)
           const onStage  = DATA.funnelMusicOn?.[i + 1];
           const onPrev   = DATA.funnelMusicOn?.[i];
-          const onRate   = (onPrev?.n > 0 && onStage) ? ((onStage.n / onPrev.n) * 100).toFixed(1) + '%' : '—';
+          const onRate   = (onPrev?.n > 0 && onStage) ? ((onStage.n / onPrev.n) * 100).toFixed(0) + '%' : '—';
 
           // Music OFF rate from DATA.funnelMusicOff (live after music-funnel fetch)
           const offStage = DATA.funnelMusicOff?.[i + 1];
           const offPrev  = DATA.funnelMusicOff?.[i];
-          const offRate  = (offPrev?.n > 0 && offStage) ? ((offStage.n / offPrev.n) * 100).toFixed(1) + '%' : '—';
+          const offRate  = (offPrev?.n > 0 && offStage) ? ((offStage.n / offPrev.n) * 100).toFixed(0) + '%' : '—';
 
           // Delta in percentage points (positive = ON better, negative = OFF better)
           const onNum  = parseFloat(onRate);
           const offNum = parseFloat(offRate);
           const delta  = (!isNaN(onNum) && !isNaN(offNum))
-            ? (onNum - offNum >= 0 ? '+' : '') + (onNum - offNum).toFixed(1) + 'pp'
+            ? (onNum - offNum >= 0 ? '+' : '') + (onNum - offNum).toFixed(0) + 'pp'
             : '—';
 
           return { from: prev.name, to: stage.name, overall: rate, on: onRate, off: offRate, delta };
@@ -5227,7 +5227,7 @@
                     const lvlNum = lbl.replace('L', '');
                     const att = DATA.levelAttempts[lvlNum];
                     if (att && att > 0) {
-                      const pct = (raw / att * 100).toFixed(1);
+                      const pct = (raw / att * 100).toFixed(0);
                       const caveat = raw > att ? ' ⚠ deaths > attempts (multi-session replays)' : '';
                       return ` Deaths: ${raw} / ${att} attempts = ${pct}% death rate${caveat}`;
                     }
@@ -5619,7 +5619,7 @@
           const tie = deskVal === mobVal || (deskVal === 0 && mobVal === 0);
 
           // Calculate delta (absolute difference between platforms)
-          const delta = Math.abs(deskVal - mobVal).toFixed(1);
+          const delta = Math.abs(deskVal - mobVal).toFixed(0);
 
           // Format delta with appropriate units (pp for percentage points, × for multipliers)
           const deltaDisplay = tie ? '—' :
@@ -5794,7 +5794,7 @@
       <td>${m.speed.toFixed(1)}</td>
       <td>${m.mult.toFixed(2)}×</td>
       <td>${m.players}</td>
-      <td>${m.avgLevel.toFixed(1)}</td>
+      <td>${m.avgLevel.toFixed(0)}</td>
       <td>${m.winRate}</td>
       <td>${m.avgTime}</td>
     </tr>
