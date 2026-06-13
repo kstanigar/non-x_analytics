@@ -113,6 +113,16 @@
       line-height: 1;
     }
 
+    .logo-block h1 a {
+      color: inherit;
+      text-decoration: none;
+      transition: opacity 0.15s ease;
+    }
+
+    .logo-block h1 a:hover {
+      opacity: 0.75;
+    }
+
     .logo-block p {
       font-family: var(--mono);
       font-size: 0.75rem;
@@ -827,6 +837,27 @@
       transform: translateY(0);
     }
 
+    .play-btn {
+      display: inline-block;
+      margin-top: 12px;
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 7px 18px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .play-btn:hover {
+      background: rgba(0, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+
     /* ── Version Filter ── */
     .version-filter {
       display: flex;
@@ -1047,9 +1078,9 @@
     }
 
     /* ─────────────────────────────────────────────────
-     MOBILE RESPONSIVE (<479px)
+     MOBILE RESPONSIVE (<900px)
      ───────────────────────────────────────────────── */
-    @media (max-width: 479px) {
+    @media (max-width: 900px) {
 
       /* Chart containers - scale naturally with maintainAspectRatio:false */
       .chart-wrap canvas {
@@ -1345,7 +1376,7 @@
     }
 
     /* Desktop styles - ensure mobile elements hidden */
-    @media (min-width: 480px) {
+    @media (min-width: 901px) {
       .mobile-nav-wrapper {
         display: none;
       }
@@ -1462,6 +1493,16 @@
     .dict-body.open { display: block; }
     .dict-entry { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(0,255,255,0.06); border-left: 2px solid transparent; padding-left: 0; }
     .dict-highlight { animation: cs-flash 5s ease-out forwards; }
+    @keyframes card-glow {
+      0%   { background-color: rgba(0,255,255,0.18); }
+      25%  { background-color: rgba(0,255,255,0.06); }
+      50%  { background-color: rgba(0,255,255,0.18); }
+      75%  { background-color: rgba(0,255,255,0.06); }
+      100% { background-color: rgba(0,255,255,0); }
+    }
+    /* Cyan semi-transparent overlay — pulses 2x then fades over 5s.
+       HUMAN: Adjust rgba alpha (0.18) to make overlay stronger or subtler. */
+    .card-glow { animation: card-glow 5s ease-out forwards; }
     .dict-entry:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
     .dict-entry-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .dict-entry h4 { color: var(--magenta); font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
@@ -1535,7 +1576,7 @@
     <!-- HEADER -->
     <header>
       <div class="logo-block">
-        <h1>NON-X</h1>
+        <h1><a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener">NON-X</a></h1>
         <p>Analytics Command Center &nbsp;·&nbsp; GA4 · Lambda API</p>
       </div>
       <div class="header-meta">
@@ -1638,9 +1679,9 @@
           <div class="kpi-sub">All platforms</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">New vs Returning <span class="dict-link" data-dict="new-pct">ⓘ</span></div>
+          <div class="kpi-label">Returning Players <span class="dict-link" data-dict="new-pct">ⓘ</span></div>
           <div class="kpi-value" id="kpi-new-pct">—</div>
-          <div class="kpi-sub" id="kpi-new-pct-sub">% first-time players</div>
+          <div class="kpi-sub" id="kpi-new-pct-sub">% returning sessions</div>
         </div>
         <div class="kpi grn">
           <div class="kpi-label">Win Rate <span class="dict-link" data-dict="winrate">ⓘ</span></div>
@@ -1899,9 +1940,9 @@
           <div class="kpi-sub" id="kpi-ai-speed-lock-sub">Players who completed 1+ cycles</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Avg Tier Adjustments <span class="dict-link" data-dict="avg-adjustments">ⓘ</span> <span class="dict-link" data-case="cs-ai-findings">ⓘ</span></div>
+          <div class="kpi-label">Total Tier Adjustments <span class="dict-link" data-dict="avg-adjustments">ⓘ</span> <span class="dict-link" data-case="cs-ai-findings">ⓘ</span></div>
           <div class="kpi-value" id="kpi-ai-avg-adjustments">—</div>
-          <div class="kpi-sub">Per session</div>
+          <div class="kpi-sub">Since Created</div>
         </div>
       </div>
 
@@ -2106,6 +2147,7 @@
             <h3>About the Project</h3>
             <p>NON-X is a browser-based action game featuring an adaptive AI difficulty system that adjusts between 7 tiers in real time based on player performance. This dashboard was built to answer one question: <em>is the game actually working as designed?</em></p>
             <p>Rather than relying on gut feel, every meaningful player action — from powerup collection to boss attempts to AI tier changes — is tracked through 31 custom GA4 dimensions and aggregated via a serverless analytics pipeline built in 12 weeks.</p>
+            <a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener" class="play-btn">▶ Play NON-X</a>
           </div>
 
           <div class="case-study-section">
@@ -2120,24 +2162,28 @@
               <span class="case-study-label">Mobile players survive twice as long on average (6:35 vs 3:34). Desktop players die quickly; mobile players play carefully.</span>
             </div>
             <div class="case-study-finding" id="cs-ab-findings">
-              <span class="case-study-stat">+21pp</span>
-              <span class="case-study-label">Music OFF group wins more often (44% vs 23% win rate). Music OFF players also reach Boss 1 at a higher rate (64% vs 37%). Counterintuitive — under investigation.</span>
+              <span class="case-study-stat">+23pp</span>
+              <span class="case-study-label">Music OFF players reach Boss 1 at nearly double the rate (61% vs 38%) and win more often (44% vs 23%). See the Conversion Rates Table for the full stage-by-stage funnel split by music group.</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-ab-findings" title="View on dashboard">⊞</span>
             </div>
             <div class="case-study-finding">
-              <span class="case-study-stat">75%</span>
+              <span class="case-study-stat">74%</span>
               <span class="case-study-label">Of all players are returning users, suggesting strong early retention despite a small overall sample size.</span>
             </div>
             <div class="case-study-finding" id="cs-ai-findings">
               <span class="case-study-stat">25 vs 3</span>
               <span class="case-study-label">AI difficulty adjustments: 25 increases vs 3 decreases. The system is actively pushing players harder — it's working.</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-ai-findings" title="View on dashboard">⊞</span>
             </div>
             <div class="case-study-finding" id="cs-death-findings">
               <span class="case-study-stat">L1–L4</span>
               <span class="case-study-label">Most deaths occur in the early Green phase, not at boss fights. The opening levels are where the game loses players.</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-death-findings" title="View on dashboard">⊞</span>
             </div>
             <div class="case-study-finding" id="cs-powerup-findings">
               <span class="case-study-stat">5×</span>
               <span class="case-study-label">Mobile players collect roughly 5× more powerups than desktop players — likely a touch-control advantage.</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-powerup-findings" title="View on dashboard">⊞</span>
             </div>
           </div>
 
@@ -2229,12 +2275,12 @@
             </div>
 
             <div class="dict-entry" id="dict-new-pct">
-              <div class="dict-entry-title"><h4>New vs Returning</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Returning Players</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">new game_starts / total game_starts × 100</dd>
+                <dt>Formula</dt><dd class="formula">returning game_starts / total game_starts × 100</dd>
                 <dt>Source</dt><dd>new-user-pct endpoint — filters <code>game_start</code>, groups by <code>newVsReturning</code></dd>
                 <dt>Format</dt><dd>XX% with sub-text: N new / N returning</dd>
-                <dt>Good value</dt><dd>Growing new % = marketing working. High returning % = strong retention.</dd>
+                <dt>Good value</dt><dd>High returning % = strong retention. New % visible in sub-text.</dd>
               </dl>
             </div>
 
@@ -3249,17 +3295,17 @@
               // Desktop metrics
               const desktopAttempts = boss.desktop.attempts;
               const desktopDefeats = boss.desktop.defeats;
-              const desktopRate = desktopAttempts > 0 ? (desktopDefeats / desktopAttempts * 100).toFixed(1) : '0.0';
+              const desktopRate = desktopAttempts > 0 ? (desktopDefeats / desktopAttempts * 100).toFixed(0) : '0';
 
               // Mobile metrics
               const mobileAttempts = boss.mobile.attempts;
               const mobileDefeats = boss.mobile.defeats;
-              const mobileRate = mobileAttempts > 0 ? (mobileDefeats / mobileAttempts * 100).toFixed(1) : '0.0';
+              const mobileRate = mobileAttempts > 0 ? (mobileDefeats / mobileAttempts * 100).toFixed(0) : '0';
 
               // Overall metrics (desktop + mobile)
               const totalAttempts = desktopAttempts + mobileAttempts;
               const totalDefeats = desktopDefeats + mobileDefeats;
-              const overallRate = totalAttempts > 0 ? (totalDefeats / totalAttempts * 100).toFixed(1) : '0.0';
+              const overallRate = totalAttempts > 0 ? (totalDefeats / totalAttempts * 100).toFixed(0) : '0';
 
               // Attempt-to-defeat ratio (for chart)
               const attemptsPerDefeat = totalDefeats > 0 ? (totalAttempts / totalDefeats).toFixed(1) : null;
@@ -3345,8 +3391,8 @@
 
             const survivalDist = {
               labels: buckets.map(b => b.label),
-              desktop: buckets.map(b => desktopTotal > 0 ? (b.desktop / desktopTotal * 100).toFixed(1) : '0.0'),
-              mobile: buckets.map(b => mobileTotal > 0 ? (b.mobile / mobileTotal * 100).toFixed(1) : '0.0')
+              desktop: buckets.map(b => desktopTotal > 0 ? (b.desktop / desktopTotal * 100).toFixed(0) : '0'),
+              mobile: buckets.map(b => mobileTotal > 0 ? (b.mobile / mobileTotal * 100).toFixed(0) : '0')
             };
 
             // Calculate average survival time (formatted as MM:SS)
@@ -3358,7 +3404,7 @@
               : 0;
 
             const formatMinutes = (seconds) => {
-              return (seconds / 60).toFixed(1) + 'm';
+              return (seconds / 60).toFixed(0) + 'm';
             };
 
             const avgSurvival = {
@@ -3505,9 +3551,9 @@
               levelMobile,
               hasRealData: Object.keys(levelDeaths).length > 0, // true only if death rows returned
               avgLevel: {
-                overall: countAll  > 0 ? (sumAll  / countAll).toFixed(1)  : '—',
-                desktop: countDesk > 0 ? (sumDesk / countDesk).toFixed(1) : '—',
-                mobile:  countMob  > 0 ? (sumMob  / countMob).toFixed(1)  : '—',
+                overall: countAll  > 0 ? (sumAll  / countAll).toFixed(0)  : '—',
+                desktop: countDesk > 0 ? (sumDesk / countDesk).toFixed(0) : '—',
+                mobile:  countMob  > 0 ? (sumMob  / countMob).toFixed(0)  : '—',
               },
             }
           };
@@ -3569,7 +3615,7 @@
           const tierLabels = ['-3', '-2', '-1', '0', '1', '2', '3'];
           const tierDistArray = tierLabels.map(t => tierDistCounts[t] || 0);
           const speedLockRate = totalAdjustments > 0
-            ? (speedLockCount / totalAdjustments * 100).toFixed(1) + '%'
+            ? (speedLockCount / totalAdjustments * 100).toFixed(0) + '%'
             : '—';
 
           return {
@@ -3624,7 +3670,7 @@
             });
           }
           const returningCount = totalCount - newCount;
-          const pct = totalCount > 0 ? Math.round((newCount / totalCount) * 100) + '%' : '—';
+          const pct = totalCount > 0 ? Math.round((returningCount / totalCount) * 100) + '%' : '—';
           return { newPct: pct, newCount, returningCount, hasRealData: totalCount > 0 };
         }
 
@@ -3817,7 +3863,7 @@
         const leaderboardSubmit = eventCounts['leaderboard_submit'] || 0;
 
         const winRate = gameStarts > 0
-          ? ((playerWon / gameStarts) * 100).toFixed(1) + '%'
+          ? ((playerWon / gameStarts) * 100).toFixed(0) + '%'
           : '0%';
 
         // Calculate death rate only from games with recorded outcomes
@@ -3825,7 +3871,7 @@
         // Fixed: Only count completed games (won + death) to get accurate mortality rate
         const completedGames = playerWon + playerDeath;
         const deathRate = completedGames > 0
-          ? ((playerDeath / completedGames) * 100).toFixed(1) + '%'
+          ? ((playerDeath / completedGames) * 100).toFixed(0) + '%'
           : '0%';
 
         const completeness = gameStarts > 0 ? (completedGames / gameStarts) * 100 : 100;
@@ -3839,7 +3885,7 @@
         }
 
         const lbRate = playerWon > 0
-          ? ((leaderboardSubmit / playerWon) * 100).toFixed(0) + '%'
+          ? (Math.min((leaderboardSubmit / playerWon) * 100, 100)).toFixed(0) + '%'
           : '0%';
 
         // ─── RETURN MAPPED DATA ───────────────────────────────────────
@@ -4466,7 +4512,7 @@
             desktop: {
               sessions: pd.desktop.sessions,
               winRate: pd.desktop.gameStarts > 0
-                ? ((pd.desktop.playerWon / pd.desktop.gameStarts) * 100).toFixed(1) + '%'
+                ? ((pd.desktop.playerWon / pd.desktop.gameStarts) * 100).toFixed(0) + '%'
                 : '0%',
               // Note: Additional KPIs (survival, replay, avgLevel, lbRate, boss rates) require more API dimensions
               // For now, these will remain with mock data until Phase 6A Tasks 6-7 complete
@@ -4483,7 +4529,7 @@
             mobile: {
               sessions: pd.mobile.sessions,
               winRate: pd.mobile.gameStarts > 0
-                ? ((pd.mobile.playerWon / pd.mobile.gameStarts) * 100).toFixed(1) + '%'
+                ? ((pd.mobile.playerWon / pd.mobile.gameStarts) * 100).toFixed(0) + '%'
                 : '0%',
               survival: DATA.platform.mobile.survival,
               replay: DATA.platform.mobile.replay,
@@ -4690,7 +4736,7 @@
           const nuData = mapGA4ResponseToDATA(newUserResult.data, 'new-user-pct');
           if (!nuData.error && nuData.hasRealData) {
             DATA.kpis.newPct    = nuData.newPct;
-            DATA.kpis.newPctSub = `<span style="color:var(--green)">${nuData.newCount}&nbsp;new</span> / <span style="color:#FFD700">${nuData.returningCount}&nbsp;returning</span>`;
+            DATA.kpis.newPctSub = `<span style="color:#FFD700">${nuData.newCount}&nbsp;new</span> / <span style="color:var(--green)">${nuData.returningCount}&nbsp;returning</span>`;
           } else {
             console.warn('New-user-pct parsing failed or no data, using mock value');
           }
@@ -4783,10 +4829,10 @@
             if (counts.hasOwnProperty(name)) counts[name] = parseInt(row.metricValues?.[0]?.value || 0);
           });
           if (gameStarts > 0) {
-            DATA.kpis.scorecardRate = (counts.scorecard_viewed / gameStarts * 100).toFixed(1) + '%';
-            DATA.kpis.musicRate     = (counts.music_toggled    / gameStarts * 100).toFixed(1) + '%';
-            DATA.kpis.leaveRate     = (counts.leave_game       / gameStarts * 100).toFixed(1) + '%';
-            DATA.kpis.surveyRate    = (counts.survey_submitted / gameStarts * 100).toFixed(1) + '%';
+            DATA.kpis.scorecardRate = (counts.scorecard_viewed / gameStarts * 100).toFixed(0) + '%';
+            DATA.kpis.musicRate     = (counts.music_toggled    / gameStarts * 100).toFixed(0) + '%';
+            DATA.kpis.leaveRate     = (counts.leave_game       / gameStarts * 100).toFixed(0) + '%';
+            DATA.kpis.surveyRate    = (counts.survey_submitted / gameStarts * 100).toFixed(0) + '%';
             DATA.kpis.scorecardSub  = `<span style="color:var(--green)">${counts.scorecard_viewed}&nbsp;viewed</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
             DATA.kpis.musicSub      = `<span style="color:var(--green)">${counts.music_toggled}&nbsp;toggled</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
             DATA.kpis.leaveSub      = `<span style="color:var(--green)">${counts.leave_game}&nbsp;left</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
@@ -4794,7 +4840,7 @@
           }
           const bossAttempts = DATA.bossAnalysis?.boss1?.overall?.attempts || 0;
           DATA.kpis.bossReachRate = bossAttempts > 0 && gameStarts > 0
-            ? (bossAttempts / gameStarts * 100).toFixed(1) + '%'
+            ? (bossAttempts / gameStarts * 100).toFixed(0) + '%'
             : '—';
           DATA.kpis.bossReachSub = bossAttempts > 0 && gameStarts > 0
             ? `<span style="color:var(--green)">${bossAttempts}&nbsp;attempts</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`
@@ -4944,7 +4990,7 @@
         document.getElementById('kpi-mob-level').textContent = k.mobLevel;
         const banner = document.getElementById('completeness-banner');
         if (k.completeness < 80) {
-          document.getElementById('completeness-pct').textContent = k.completeness.toFixed(1);
+          document.getElementById('completeness-pct').textContent = k.completeness.toFixed(0);
           banner.style.display = '';
         } else {
           banner.style.display = 'none';
@@ -5097,23 +5143,23 @@
         // Dynamic conversion rates from live DATA.funnel, DATA.funnelMusicOn, DATA.funnelMusicOff
         const conversions = DATA.funnel.slice(1).map((stage, i) => {
           const prev = DATA.funnel[i];
-          const rate = prev.n > 0 ? ((stage.n / prev.n) * 100).toFixed(1) + '%' : '—';
+          const rate = prev.n > 0 ? ((stage.n / prev.n) * 100).toFixed(0) + '%' : '—';
 
           // Music ON rate from DATA.funnelMusicOn (live after music-funnel fetch)
           const onStage  = DATA.funnelMusicOn?.[i + 1];
           const onPrev   = DATA.funnelMusicOn?.[i];
-          const onRate   = (onPrev?.n > 0 && onStage) ? ((onStage.n / onPrev.n) * 100).toFixed(1) + '%' : '—';
+          const onRate   = (onPrev?.n > 0 && onStage) ? ((onStage.n / onPrev.n) * 100).toFixed(0) + '%' : '—';
 
           // Music OFF rate from DATA.funnelMusicOff (live after music-funnel fetch)
           const offStage = DATA.funnelMusicOff?.[i + 1];
           const offPrev  = DATA.funnelMusicOff?.[i];
-          const offRate  = (offPrev?.n > 0 && offStage) ? ((offStage.n / offPrev.n) * 100).toFixed(1) + '%' : '—';
+          const offRate  = (offPrev?.n > 0 && offStage) ? ((offStage.n / offPrev.n) * 100).toFixed(0) + '%' : '—';
 
           // Delta in percentage points (positive = ON better, negative = OFF better)
           const onNum  = parseFloat(onRate);
           const offNum = parseFloat(offRate);
           const delta  = (!isNaN(onNum) && !isNaN(offNum))
-            ? (onNum - offNum >= 0 ? '+' : '') + (onNum - offNum).toFixed(1) + 'pp'
+            ? (onNum - offNum >= 0 ? '+' : '') + (onNum - offNum).toFixed(0) + 'pp'
             : '—';
 
           return { from: prev.name, to: stage.name, overall: rate, on: onRate, off: offRate, delta };
@@ -5213,7 +5259,7 @@
                     const lvlNum = lbl.replace('L', '');
                     const att = DATA.levelAttempts[lvlNum];
                     if (att && att > 0) {
-                      const pct = (raw / att * 100).toFixed(1);
+                      const pct = (raw / att * 100).toFixed(0);
                       const caveat = raw > att ? ' ⚠ deaths > attempts (multi-session replays)' : '';
                       return ` Deaths: ${raw} / ${att} attempts = ${pct}% death rate${caveat}`;
                     }
@@ -5605,7 +5651,7 @@
           const tie = deskVal === mobVal || (deskVal === 0 && mobVal === 0);
 
           // Calculate delta (absolute difference between platforms)
-          const delta = Math.abs(deskVal - mobVal).toFixed(1);
+          const delta = Math.abs(deskVal - mobVal).toFixed(0);
 
           // Format delta with appropriate units (pp for percentage points, × for multipliers)
           const deltaDisplay = tie ? '—' :
@@ -5780,7 +5826,7 @@
       <td>${m.speed.toFixed(1)}</td>
       <td>${m.mult.toFixed(2)}×</td>
       <td>${m.players}</td>
-      <td>${m.avgLevel.toFixed(1)}</td>
+      <td>${m.avgLevel.toFixed(0)}</td>
       <td>${m.winRate}</td>
       <td>${m.avgTime}</td>
     </tr>
@@ -6075,6 +6121,117 @@
                 el.classList.add('cs-highlight');
               }
             }, 80);
+          }
+        });
+      })();
+
+      // ── Back-links: Data Dict / Case Study → Dashboard card glow ─────────
+      // HUMAN: To change the back-link icon, update BACKLINK_ICON below.
+      // Current: ⊞ (U+229E squared plus). Other options: ↗ ⤴ → ⊹
+      (function() {
+        var BACKLINK_ICON = '⊞';
+
+        // Lookup table: dict-entry id → { tab name, dashboard element id }
+        // HUMAN: Add new entries here as new Data Dictionary sections are created.
+        // Format: 'dict-[id]': { tab: '[switchTab string]', id: '[element id]' }
+        var BACKLINK_MAP = {
+          'dict-sessions':        { tab: 'overview',  id: 'kpi-sessions' },
+          'dict-new-pct':         { tab: 'overview',  id: 'kpi-new-pct' },
+          'dict-winrate':         { tab: 'overview',  id: 'kpi-winrate' },
+          'dict-deathrate':       { tab: 'overview',  id: 'kpi-deathrate' },
+          'dict-replay':          { tab: 'overview',  id: 'kpi-replay' },
+          'dict-survival':        { tab: 'overview',  id: 'kpi-survival' },
+          'dict-lbrate':          { tab: 'overview',  id: 'kpi-lb-rate' },
+          'dict-avglevel':        { tab: 'overview',  id: 'kpi-avg-level' },
+          'dict-scorecard-rate':  { tab: 'overview',  id: 'kpi-scorecard-rate' },
+          'dict-music-rate':      { tab: 'overview',  id: 'kpi-music-rate' },
+          'dict-leave-rate':      { tab: 'overview',  id: 'kpi-leave-rate' },
+          'dict-boss-reach':      { tab: 'overview',  id: 'kpi-boss-reach-rate' },
+          'dict-survey-rate':     { tab: 'overview',  id: 'kpi-survey-rate' },
+          'dict-speedlock':       { tab: 'ai',        id: 'kpi-ai-speed-lock' },
+          'dict-avg-start-tier':  { tab: 'ai',        id: 'kpi-ai-avg-start' },
+          'dict-avg-final-tier':  { tab: 'ai',        id: 'kpi-ai-avg-final' },
+          'dict-avg-adjustments': { tab: 'ai',        id: 'kpi-ai-avg-adjustments' },
+          'dict-ai-tier-dist':    { tab: 'ai',        id: 'chart-ai-tier-dist' },
+          'dict-tier-flow':       { tab: 'ai',        id: 'chart-ai-tier-flow' },
+          'dict-score-mult':      { tab: 'ai',        id: 'chart-ai-score-mult' },
+          'dict-death-triggers':  { tab: 'ai',        id: 'chart-ai-death-triggers' },
+          'dict-platform-kpis':   { tab: 'platform',  id: 'kpi-desk-win' }
+        };
+
+        // Lookup table: case-study finding id → { tab name, dashboard element id }
+        // HUMAN: Add new entries here if more Case Study findings are added.
+        var CS_BACKLINK_MAP = {
+          'cs-ab-findings':      { tab: 'funnel',   id: 'funnel-table' },
+          'cs-ai-findings':      { tab: 'ai',       id: 'kpi-ai-avg-adjustments' },
+          'cs-death-findings':   { tab: 'funnel',   id: 'chart-dropdoff' },
+          'cs-powerup-findings': { tab: 'overview', id: 'chart-powerup' }
+        };
+
+        // Reads color class from a .kpi element to match the glow to the tile's accent color.
+        // Falls back to --cyan for plain tiles and all .card chart wrappers (no color class).
+        function glowColor(el) {
+          if (el.classList.contains('grn')) return 'var(--green)';
+          if (el.classList.contains('yel')) return 'var(--yellow)';
+          if (el.classList.contains('red')) return 'var(--red)';
+          if (el.classList.contains('mag')) return 'var(--magenta)';
+          return 'var(--cyan)';
+        }
+
+        // Applies the card-glow animation to the element's visible container.
+        // KPI ids point to .kpi-value (inner div), not the outer .kpi tile — so we walk up
+        // to .kpi first. Chart ids point to <canvas> with no border, so we walk up to .card.
+        // classList.remove + offsetWidth forces a reflow so re-clicking restarts the animation.
+        function triggerGlow(el) {
+          var target = el.closest('.kpi') || el.closest('.card') || el;
+          target.classList.remove('card-glow');
+          void target.offsetWidth;
+          target.classList.add('card-glow');
+        }
+
+        // Switches tab, waits 80ms for render, then scrolls and glows the target element.
+        // block: 'center' keeps the card visually centered rather than snapping to top edge.
+        function navigateAndGlow(tab, elementId) {
+          switchTab(tab);
+          setTimeout(function() {
+            var el = document.getElementById(elementId);
+            if (!el) return;
+            var scrollTarget = el.closest('.kpi') || el.closest('.card') || el;
+            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            triggerGlow(el);
+          }, 80);
+        }
+
+        // Inject ⊞ icons into every Data Dictionary entry that has a BACKLINK_MAP entry.
+        // Done at page load so HTML stays clean — no 40+ individual HTML edits needed.
+        // HUMAN: If a ⊞ icon is missing from a dict entry, add its dict-id to BACKLINK_MAP above.
+        Object.keys(BACKLINK_MAP).forEach(function(dictId) {
+          var entry = document.getElementById(dictId);
+          if (!entry) return;
+          var titleRow = entry.querySelector('.dict-entry-title');
+          if (!titleRow) return;
+          var icon = document.createElement('span');
+          icon.className = 'dict-link backlink-icon';
+          icon.textContent = BACKLINK_ICON;
+          icon.title = 'View on dashboard';
+          icon.dataset.backlink = dictId;
+          titleRow.appendChild(icon);
+        });
+
+        // Single delegated click handler for all back-link icons (Data Dict + Case Study).
+        // Uses closest() so clicks on icon children are still captured correctly.
+        document.addEventListener('click', function(e) {
+          var bl = e.target.closest('[data-backlink]');
+          if (bl) {
+            e.stopPropagation();
+            var entry = BACKLINK_MAP[bl.dataset.backlink];
+            if (entry) navigateAndGlow(entry.tab, entry.id);
+          }
+          var csBl = e.target.closest('[data-cs-backlink]');
+          if (csBl) {
+            e.stopPropagation();
+            var csEntry = CS_BACKLINK_MAP[csBl.dataset.csBacklink];
+            if (csEntry) navigateAndGlow(csEntry.tab, csEntry.id);
           }
         });
       })();
