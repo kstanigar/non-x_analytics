@@ -400,13 +400,14 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Priority:** MEDIUM — unlocks 2 KPIs that GA4 API cannot provide
   - **Full plan:** `docs/BigQuery_Integration_Plan.md`
   - **Package:** `@google-cloud/bigquery@8.3.1` (confirmed stable June 11, 2026)
-  - **Status:** 🟢 PRE-REQUISITES COMPLETE — awaiting first export data (~June 13–14, 2026)
+  - **Status:** 🟢 DATA CONFIRMED — ready to implement (verified June 12, 2026 11:01 PM)
   - **Pre-requisites (user — completed June 12, 2026):**
     1. ✅ GA4 BigQuery Export linked — `non-x-analytics-server`, daily export
     2. ✅ `dashboard-reader` service account — BigQuery Data Viewer + Job User roles added
     3. ✅ Lambda env vars — `GCP_PROJECT_ID` added; `GOOGLE_CREDENTIALS` reused for BigQuery
-  - **Resume here:** Once export is enabled and has 1 day of data, open `BigQuery_Integration_Plan.md` and implement Parts 1–3
-  - **Dependencies:** Standing Tiger AWS deploy ✅, GA4 BigQuery Export (pending)
+    4. ✅ First export data confirmed — `analytics_525680332.events_20260611` present in BigQuery
+  - **Resume here:** Open `BigQuery_Integration_Plan.md` and implement Parts 1–3
+  - **Dependencies:** All complete ✅
 
 - [x] **New Engagement Metrics — 6 KPIs on Overview Page** ✅ COMPLETE — June 11, 2026
   - **Estimate:** 3–4 hours total
