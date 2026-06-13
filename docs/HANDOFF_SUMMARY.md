@@ -8,6 +8,17 @@
 
 ---
 
+## June 13, 2026 - AI Agent KPI Label Updates
+
+**Status:** ✅ COMPLETE | Commit: `eca8478` | Production: pending merge
+
+### Changes
+- **KPI label:** `Avg Tier Adjustments` → `Total Tier Adjustments` (`live.html:1912`)
+- **KPI sub-text:** `Per session` → `Since Created` (`live.html:1914`)
+- **Why:** The value (28) is a cumulative total since launch, not a per-session average — labels now accurately reflect the data
+
+---
+
 ## June 13, 2026 - Back-link Feature Implementation + Bug Fix
 
 **Status:** ✅ COMPLETE | Commits: `5b86f7c` → `b3e7505` → `063e2bc` → `cd4a6c1` → `daf3a4a` (final) | Doc: `docs/Backlink_Feature_Plan.md`
