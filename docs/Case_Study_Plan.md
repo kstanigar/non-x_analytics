@@ -3,9 +3,26 @@
 **Purpose:** Tab 6 on the live dashboard. Replaces the Looker tab. Tells the story of the NON-X analytics build for two audiences simultaneously: casual readers (left column) and technical readers (right column).
 
 **Created:** June 13, 2026
-**Status:** 📋 READY TO IMPLEMENT
-**Estimated time:** 2–3 hours
-**File:** `live.html` — replace Looker tab content
+**Status:** ✅ COMPLETE — June 13, 2026 | Commit: `daf9a12`
+**File:** `live.html` — Tab 6, replaces Looker Guide
+
+---
+
+## ⚠️ Live Update Requirements
+
+The right-column **Scale** and **Key Findings** sections contain static numbers that must be updated when new work ships:
+
+| Trigger | Section to update | What to change |
+|---------|------------------|----------------|
+| New BigQuery metric added (MT-6) | Scale → API endpoints | `15` → new count |
+| New BigQuery metric added (MT-6) | Key Findings | Add new stat row if finding is significant |
+| Dashboard hits 100% live data | Scale → Live data coverage | `~88%` → `~100%` |
+| `final_score` ships + chart added | What's Next | Remove `final_score` sentence |
+| Tier Delta / Win-by-tier added | Key Findings | Add tier delta stat |
+| Sessions per User added | Key Findings | Add retention stat |
+| Line count grows significantly | Scale → Dashboard code | Update `5,407 lines` |
+
+**How to update:** Edit `live.html` lines ~2077–2123 (right column of case-study-grid). All content is static HTML — no fetch calls, no JS needed.
 
 ---
 
