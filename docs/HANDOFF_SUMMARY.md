@@ -8,6 +8,18 @@
 
 ---
 
+## June 13, 2026 - Back-link Feature Implementation + Bug Fix
+
+**Status:** ✅ COMPLETE | Commits: `5b86f7c` (initial), bug fix pending staging | Doc: `docs/Backlink_Feature_Plan.md`
+
+### Bug Fixed: Glow Firing on Inner Value Box
+
+**Root cause:** KPI element IDs (e.g. `kpi-survey-rate`) point to the `.kpi-value` inner div, not the outer `.kpi` tile container. `el.closest('.card')` returned null (KPI tiles have no `.card` parent), so `target` fell back to the inner div — causing `box-shadow` to render on the value box, not the tile outline.
+
+**Fix:** Changed `el.closest('.card') || el` → `el.closest('.kpi') || el.closest('.card') || el` in both `triggerGlow()` and `navigateAndGlow()`. Now resolves: `.kpi` tile (for KPI ids) → `.card` wrapper (for chart canvas ids) → element itself (fallback).
+
+---
+
 ## June 13, 2026 - Back-link Feature Planning
 
 **Status:** 📋 PLAN COMPLETE — ready to implement | Doc: `docs/Backlink_Feature_Plan.md`

@@ -318,6 +318,7 @@ The `⊞` icon is added as the last child inside each `case-study-finding` div, 
 | Glow fires on canvas (invisible) | `el.closest('.card')` returns null | Verify canvas is wrapped in a `.card` div |
 | Wrong tab opens | Tab string mismatch in BACKLINK_MAP | Check exact string used in nav `switchTab()` calls |
 | Animation doesn't restart on re-click | `void offsetWidth` missing | Present in `triggerGlow()` — verify not removed |
+| Glow fires on inner value box, not outer tile | KPI ids point to `.kpi-value` div, not `.kpi` container. `.closest('.card')` returns null so target falls back to the inner div. | **Fixed June 13, 2026** — changed `el.closest('.card') \|\| el` to `el.closest('.kpi') \|\| el.closest('.card') \|\| el` in both `triggerGlow()` and `navigateAndGlow()`. |
 
 ---
 
