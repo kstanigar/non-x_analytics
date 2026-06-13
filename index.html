@@ -545,7 +545,7 @@
     }
 
     .ab-metric-val.worse {
-      color: var(--red);
+      color: var(--yellow);
     }
 
     /* ── Boss meter ── */
@@ -4890,7 +4890,7 @@
           const n = Math.min(nA, nB);
           if (n >= 1000) return { text: '✓ Significant (n>1000)', color: GRN };
           if (n >= 100)  return { text: 'Emerging (n>100)',       color: YEL };
-          return           { text: `⚠ Insufficient (n=${n})`,    color: RED };
+          return           { text: `⚠ Insufficient (n=${n})`,    color: YEL };
         };
         const mSig  = sigStatus(DATA.abMusic.A.sessions,    DATA.abMusic.B.sessions);
         const mvSig = sigStatus(DATA.abMovement.A.sessions, DATA.abMovement.B.sessions);
