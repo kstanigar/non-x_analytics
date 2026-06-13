@@ -8,6 +8,14 @@
 
 ---
 
+## June 13, 2026 - KPI Label Rename
+
+**Status:** ✅ COMPLETE
+
+- Renamed KPI label: "Avg Starting Tier" → "Avg Start Tier" (`live.html:1717`)
+
+---
+
 ## June 13, 2026 - KPI Tile Bug Fix (avgStartTier / avgFinalTier)
 
 **Status:** ✅ FIXED
