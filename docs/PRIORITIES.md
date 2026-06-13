@@ -16,6 +16,11 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ### Added: June 13, 2026
 
+- [ ] **Documentation Cleanup** — NEXT
+  - **Plan:** Multi-agent Haiku research phase — agents read all docs in `docs/`, cross-reference with PRIORITIES.md and HANDOFF_SUMMARY.md, verify every `✅`/`[x]` entry is genuinely complete, then move verified items to `docs/archive/`
+  - **Agent phase:** Check if `docs/archive/` exists before creating
+  - **Dependencies:** None
+
 - [x] **Back-link Feature — Data Dict / Case Study → Dashboard Card Glow** ✅ COMPLETE — June 13, 2026
   - **Time Invested:** ~2 hours (implementation + 4 bug fixes)
   - **Final commit:** `daf3a4a`
@@ -762,47 +767,6 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ---
 
-### Added: June 7, 2026
-
-- [ ] **Git Commit Phase 5 Changes**
-  - **Estimate:** 10 minutes
-  - **Files to Commit:**
-    - `live.html` (death rate fix, event name fix, powerup fix)
-    - `index.html` (powerup fix)
-    - `api/index.js` (version filtering)
-    - `docs/Issues_And_Bugs.md`
-    - `docs/ISSUE-005_Fix_Documentation.md`
-    - `docs/Session_Summary_June8_2026.md`
-    - `docs/HANDOFF_SUMMARY.md`
-    - `docs/PRIORITIES.md`
-    - `docs/BLOG_NOTES.md`
-  - **Commit Message:**
-    ```
-    feat: Phase 5 data accuracy fixes and analytics enhancements
-
-    - Fix death rate calculation (ISSUE-001)
-    - Fix event name mismatch (ISSUE-004)
-    - Fix powerup phase data (ISSUE-005)
-    - Add version filtering to Lambda
-    - Add version dropdown to UI
-    - Create centralized issue tracker
-    - Update documentation structure
-    ```
-  - **Dependencies:** Complete testing after refresh
-
----
-
-### Added: April 27, 2026
-
-- [ ] **Create Pull Request for Phase 5**
-  - **Estimate:** 15 minutes
-  - **Branch:** `feature/phase4-live-dashboard`
-  - **Base:** `main`
-  - **PR Title:** "Phase 5: Analytics Version Filtering + Data Accuracy Fixes"
-  - **PR Body:** Reference Phase5 handoff summary and session summary
-  - **Dependencies:** Git commit complete
-
----
 
 ## ✅ COMPLETED TASKS
 

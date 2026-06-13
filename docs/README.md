@@ -1,34 +1,42 @@
 # NON-X Analytics
 
-Analytics infrastructure and dashboards for the NON-X space shooter game.
+Analytics infrastructure and live dashboard for the NON-X space shooter game.
 
 ## Files
 
-- `nonx-analytics-dashboard.html` - Interactive 6-tab analytics dashboard with CSV drag-and-drop loader
-- `NON-X_Analytics_Export_Guide.docx` - Full GA4 + Looker Studio setup guide
-- `NON-X_PAIM_Memory.md` - Project AI Model reference document (analytics + game dev)
-- `memory.md` - Project memory for continuity between AI sessions
+- `live.html` - Live analytics dashboard (GA4 API integration, 7 tabs, ~88% live data)
+- `api/index.js` - AWS Lambda handler (15 GA4 + BigQuery endpoints)
+- `NON-X_Analytics_Export_Guide.docx` - GA4 setup and export reference guide
 
 ## Analytics Infrastructure
 
-- **GA4 Property:** NON-X (ID: G-9ECFZ9JBE5)
-- **Current Version:** analytics_version 3.0
-- **Events Tracked:** 26 per game file (game.html + game_mobile.html)
-- **Dashboard Features:** Funnel analysis, boss analytics, A/B tests, platform comparison
+- **GA4 Property:** NON-X (ID: 525680332)
+- **Current Version:** analytics_version 4.3
+- **Events Tracked:** 18 event types, 31 custom dimensions
+- **Lambda API:** AWS (us-east-2) — `6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod`
+- **Hosting:** GitHub Pages — staging + production branches via GitHub Actions CI/CD
+- **BigQuery:** GA4 export linked (`non-x-analytics-server`, daily export)
 
-## Usage
+## Dashboard Tabs
 
-1. Export CSV from GA4
-2. Open `nonx-analytics-dashboard.html` in browser
-3. Drag-and-drop CSV files into dashboard
-4. Ctrl+S to save current week's data for delta calculations
+1. Overview — Top-line KPIs + daily timeseries
+2. Player Behavior — Engagement KPIs (scorecard, music, leave, boss reach, survey, returning)
+3. Boss Analysis — Attempts/defeats by boss and platform
+4. A/B Tests — Music and movement group comparisons + funnel table
+5. AI Agent — Tier distribution, flow chart, score multiplier, death triggers
+6. Case Study — Key findings and technical writeup
+7. Data Dictionary — Full metric definitions, formulas, and source mapping
 
-## Key Metrics
+## Key Metrics (~88% live)
 
-- Completion funnel (10 steps)
-- Boss kill rates
-- Platform comparison
-- Music A/B test results
-- Replay incentive performance
+- Session outcomes (win/death/abandoned)
+- Boss defeat rates by platform
+- Music and movement A/B test results
+- AI difficulty adjustment tracking
+- Avg start/final tier (BigQuery)
+- Returning vs new player rate
 
-For full details, see `NON-X_PAIM_Memory.md`.
+## Docs
+
+See `docs/` for planning docs, issue tracker, and session history.
+For full metric definitions see `docs/Data_Dictionary.md`.
