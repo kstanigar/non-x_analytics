@@ -8,6 +8,37 @@
 
 ---
 
+## June 13, 2026 - Session Summary
+
+**Status:** ✅ ALL COMPLETE | Commits: `6d17eae`, `f37f44f`, `850e8c7`
+
+### Completed This Session
+
+1. **BigQuery KPI tiles not populating (bug fix)**
+   - Root cause: Integration code wrote to `DATA.kpis` and called `populateKPIs()` — wrong namespace
+   - Fix: `DATA.kpis` → `DATA.aiAgent.kpis`, `populateKPIs()` → `populateAIKPIs()` (`live.html:4214–4216`)
+   - Tiles now show live BigQuery values: Avg Start Tier = 0, Avg Final Tier = 1 ✅
+
+2. **KPI label rename**
+   - "Avg Starting Tier" → "Avg Start Tier" (`live.html:1717`)
+
+3. **A/B tab — red text → yellow text**
+   - CSS `.ab-metric-val.worse`: `var(--red)` → `var(--yellow)` (`live.html:548`)
+   - JS `sigStatus()` Insufficient branch: `color: RED` → `color: YEL` (`live.html:4893`)
+   - Bug fix: `--yel` is not a defined CSS variable — corrected to `--yellow` (`live.html:548`)
+   - Border color (`live.html:479`) intentionally left unchanged per user decision
+
+4. **Memory: Hosting platform documented**
+   - Dashboard is on **GitHub Pages**, not Netlify
+   - Saved to `/memory/project_hosting.md`
+
+### Hosting Notes
+- Staging: `https://kstanigar.github.io/non-x_analytics/staging/`
+- Production: `https://kstanigar.github.io/non-x_analytics/`
+- Deploy lag = GitHub Pages rebuild time (~30–60s after push)
+
+---
+
 ## June 13, 2026 - KPI Label Rename
 
 **Status:** ✅ COMPLETE

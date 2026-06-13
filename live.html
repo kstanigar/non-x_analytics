@@ -1478,6 +1478,44 @@
       .dict-meta { grid-template-columns: 80px 1fr; }
       .dict-table th, .dict-table td { padding: 5px 7px; }
     }
+    /* KPI Tooltips — Tier 1 hover */
+    .kpi[data-tooltip],
+    .card-title[data-tooltip] { position: relative; }
+    .kpi[data-tooltip]:hover::after,
+    .kpi[data-tooltip].tooltip-visible::after,
+    .card-title[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.68rem;
+      font-family: var(--mono);
+      padding: 6px 10px;
+      border-radius: 3px;
+      white-space: normal;
+      text-align: center;
+      line-height: 1.4;
+      max-width: 260px;
+      z-index: 200;
+      pointer-events: none;
+    }
+    /* ℹ dict-link icon */
+    .dict-link {
+      display: inline-block;
+      margin-left: 5px;
+      color: var(--cyan-dim);
+      font-size: 0.68rem;
+      cursor: pointer;
+      user-select: none;
+      vertical-align: middle;
+      opacity: 0.55;
+      transition: opacity 0.15s;
+    }
+    .dict-link:hover { opacity: 1; color: var(--cyan); }
   </style>
 </head>
 
@@ -1588,42 +1626,42 @@
 
       <div class="section-label">Top-Line KPIs</div>
       <div class="kpi-grid">
-        <div class="kpi">
+        <div class="kpi" data-tooltip="Count of game_start events. One per play session across all platforms.">
           <div class="kpi-label">Total Sessions</div>
           <div class="kpi-value" id="kpi-sessions">—</div>
           <div class="kpi-sub">All platforms</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">New vs Returning</div>
+          <div class="kpi-label">New vs Returning <span class="dict-link" data-dict="new-pct">ℹ</span></div>
           <div class="kpi-value" id="kpi-new-pct">—</div>
           <div class="kpi-sub" id="kpi-new-pct-sub">% first-time players</div>
         </div>
         <div class="kpi grn">
-          <div class="kpi-label">Win Rate</div>
+          <div class="kpi-label">Win Rate <span class="dict-link" data-dict="winrate">ℹ</span></div>
           <div class="kpi-value" id="kpi-winrate">—</div>
           <div class="kpi-sub" id="kpi-winrate-sub">player_won / game_start</div>
         </div>
         <div class="kpi red">
-          <div class="kpi-label">Death Rate</div>
+          <div class="kpi-label">Death Rate <span class="dict-link" data-dict="deathrate">ℹ</span></div>
           <div class="kpi-value" id="kpi-deathrate">—</div>
           <div class="kpi-sub" id="kpi-deathrate-sub">player_death / completed games</div>
         </div>
         <div class="kpi yel">
-          <div class="kpi-label">Play-Again Rate</div>
+          <div class="kpi-label">Play-Again Rate <span class="dict-link" data-dict="replay">ℹ</span></div>
           <div class="kpi-value" id="kpi-replay">—</div>
           <div class="kpi-sub" id="kpi-replay-sub">game_start per user</div>
         </div>
-        <div class="kpi">
+        <div class="kpi" data-tooltip="Avg session length from game_start to outcome. Minutes per run.">
           <div class="kpi-label">Avg Survival</div>
           <div class="kpi-value" id="kpi-survival">—</div>
           <div class="kpi-sub">minutes per run</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">Leaderboard Rate</div>
+          <div class="kpi-label">Leaderboard Rate <span class="dict-link" data-dict="lbrate">ℹ</span></div>
           <div class="kpi-value" id="kpi-lb-rate">—</div>
           <div class="kpi-sub" id="kpi-lb-rate-sub">leaderboard_submit / win</div>
         </div>
-        <div class="kpi grn">
+        <div class="kpi grn" data-tooltip="Weighted avg level where players died. Scale: 1–12 levels + 3 boss stages.">
           <div class="kpi-label">Avg Level Reached</div>
           <div class="kpi-value" id="kpi-avg-level">—</div>
           <div class="kpi-sub">of 12 levels</div>
@@ -1633,27 +1671,27 @@
       <div class="section-label">Player Behavior</div>
       <div class="kpi-grid">
         <div class="kpi yel">
-          <div class="kpi-label">Scorecard View Rate</div>
+          <div class="kpi-label">Scorecard View Rate <span class="dict-link" data-dict="scorecard-rate">ℹ</span></div>
           <div class="kpi-value" id="kpi-scorecard-rate">—</div>
           <div class="kpi-sub" id="kpi-scorecard-sub">scorecard_viewed / game_start</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Music Toggle Rate</div>
+          <div class="kpi-label">Music Toggle Rate <span class="dict-link" data-dict="music-rate">ℹ</span></div>
           <div class="kpi-value" id="kpi-music-rate">—</div>
           <div class="kpi-sub" id="kpi-music-sub">music_toggled / game_start</div>
         </div>
         <div class="kpi red">
-          <div class="kpi-label">Leave Game Rate</div>
+          <div class="kpi-label">Leave Game Rate <span class="dict-link" data-dict="leave-rate">ℹ</span></div>
           <div class="kpi-value" id="kpi-leave-rate">—</div>
           <div class="kpi-sub" id="kpi-leave-sub">leave_game / game_start</div>
         </div>
         <div class="kpi grn">
-          <div class="kpi-label">Boss Reach Rate</div>
+          <div class="kpi-label">Boss Reach Rate <span class="dict-link" data-dict="boss-reach">ℹ</span></div>
           <div class="kpi-value" id="kpi-boss-reach-rate">—</div>
           <div class="kpi-sub" id="kpi-boss-reach-sub">boss_attempt / game_start</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">Survey Response Rate</div>
+          <div class="kpi-label">Survey Response Rate <span class="dict-link" data-dict="survey-rate">ℹ</span></div>
           <div class="kpi-value" id="kpi-survey-rate">—</div>
           <div class="kpi-sub" id="kpi-survey-sub">survey_submitted / game_start</div>
         </div>
@@ -1666,13 +1704,13 @@
 
       <div class="chart-grid cols-12">
         <div class="card">
-          <div class="card-title"><span class="dot"></span> Daily Plays & Wins</div>
+          <div class="card-title" data-tooltip="Magenta: daily game_start count. Cyan: daily player_won count."><span class="dot"></span> Daily Plays & Wins</div>
           <div class="chart-wrap">
             <canvas id="chart-daily"></canvas>
           </div>
         </div>
         <div class="card">
-          <div class="card-title"><span class="dot mag"></span> Device Mix</div>
+          <div class="card-title" data-tooltip="Sessions split: desktop % vs mobile %. Derived from GA4 deviceCategory."><span class="dot mag"></span> Device Mix</div>
           <div class="chart-wrap short">
             <canvas id="chart-device"></canvas>
           </div>
@@ -1681,13 +1719,13 @@
 
       <div class="chart-grid cols-2">
         <div class="card">
-          <div class="card-title"><span class="dot yel"></span> Music A/B Split</div>
+          <div class="card-title" data-tooltip="% of sessions assigned to each A/B group — Music ON vs OFF."><span class="dot yel"></span> Music A/B Split</div>
           <div class="chart-wrap short">
             <canvas id="chart-ab-split"></canvas>
           </div>
         </div>
         <div class="card">
-          <div class="card-title"><span class="dot grn"></span> Powerup Collection by Phase</div>
+          <div class="card-title" data-tooltip="Powerup collections by type and phase (green / red / purple)."><span class="dot grn"></span> Powerup Collection by Phase</div>
           <div class="chart-wrap short">
             <canvas id="chart-powerup"></canvas>
           </div>
@@ -1705,11 +1743,11 @@
 
       <div class="chart-grid cols-21">
         <div class="card">
-          <div class="card-title"><span class="dot"></span> Full Progression Funnel</div>
+          <div class="card-title" data-tooltip="8-stage session funnel: game_start → boss attempts/defeats → victory."><span class="dot"></span> Full Progression Funnel</div>
           <div class="funnel-wrap" id="funnel-main"></div>
         </div>
         <div class="card">
-          <div class="card-title"
+          <div class="card-title" data-tooltip="Deaths by level (L1–L12 + boss stages), color-coded by phase."
             style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
             <span><span class="dot yel"></span> Wave Drop-off (Deaths by Level)</span>
             <div id="dropoff-toggle" style="display:flex;gap:4px;font-family:var(--mono);font-size:0.68rem">
@@ -1748,11 +1786,11 @@
       <div class="section-label">Funnel by Music Variant</div>
       <div class="chart-grid cols-2">
         <div class="card">
-          <div class="card-title"><span class="dot"></span> Music ON — Funnel</div>
+          <div class="card-title" data-tooltip="Game progression funnel for Music ON sessions only."><span class="dot"></span> Music ON — Funnel</div>
           <div class="funnel-wrap" id="funnel-music-on"></div>
         </div>
         <div class="card">
-          <div class="card-title"><span class="dot mag"></span> Music OFF — Funnel</div>
+          <div class="card-title" data-tooltip="Game progression funnel for Music OFF sessions only."><span class="dot mag"></span> Music OFF — Funnel</div>
           <div class="funnel-wrap" id="funnel-music-off"></div>
         </div>
       </div>
@@ -1788,13 +1826,13 @@
       <div class="section-label" style="margin-top:28px">Boss Progression Depth</div>
       <div class="chart-grid cols-2">
         <div class="card">
-          <div class="card-title"><span class="dot red"></span> Attempt-to-Defeat Ratio by Boss</div>
+          <div class="card-title" data-tooltip="Grouped bar: attempts (grey) vs defeats (cyan) per boss."><span class="dot red"></span> Attempt-to-Defeat Ratio by Boss</div>
           <div class="chart-wrap">
             <canvas id="chart-boss-ratio"></canvas>
           </div>
         </div>
         <div class="card">
-          <div class="card-title"><span class="dot"></span> Boss Conversion by Platform</div>
+          <div class="card-title" data-tooltip="Boss defeat rate (%) by platform — desktop vs mobile per boss."><span class="dot"></span> Boss Conversion by Platform</div>
           <div class="chart-wrap">
             <canvas id="chart-boss-platform"></canvas>
           </div>
@@ -1840,22 +1878,22 @@
       <!-- KPI Cards -->
       <div class="kpi-grid" style="margin-bottom:32px">
         <div class="kpi">
-          <div class="kpi-label">Avg Start Tier</div>
+          <div class="kpi-label">Avg Start Tier <span class="dict-link" data-dict="avg-start-tier">ℹ</span></div>
           <div class="kpi-value" id="kpi-ai-avg-start">—</div>
           <div class="kpi-sub">First session</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Avg Final Tier</div>
+          <div class="kpi-label">Avg Final Tier <span class="dict-link" data-dict="avg-final-tier">ℹ</span></div>
           <div class="kpi-value" id="kpi-ai-avg-final">—</div>
           <div class="kpi-sub">At victory/death</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Speed Lock Rate</div>
+          <div class="kpi-label">Speed Lock Rate <span class="dict-link" data-dict="speedlock">ℹ</span></div>
           <div class="kpi-value" id="kpi-ai-speed-lock">—</div>
           <div class="kpi-sub" id="kpi-ai-speed-lock-sub">Players who completed 1+ cycles</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Avg Tier Adjustments</div>
+          <div class="kpi-label">Avg Tier Adjustments <span class="dict-link" data-dict="death-triggers">ℹ</span></div>
           <div class="kpi-value" id="kpi-ai-avg-adjustments">—</div>
           <div class="kpi-sub">Per session</div>
         </div>
@@ -1864,14 +1902,14 @@
       <!-- Tier Distribution -->
       <div class="chart-grid cols-2" style="margin-bottom:28px">
         <div class="card">
-          <div class="card-title"><span class="dot"></span> Player Distribution by Tier</div>
+          <div class="card-title" data-tooltip="Player count per difficulty tier — Tutorial (−3) to Master (+3)."><span class="dot"></span> Player Distribution by Tier</div>
           <div class="chart-wrap">
             <canvas id="chart-ai-tier-dist"></canvas>
           </div>
           <div class="chart-note">Shows final tier reached at session end (victory or death)</div>
         </div>
         <div class="card">
-          <div class="card-title"><span class="dot mag"></span> Tier Progression Flow</div>
+          <div class="card-title" data-tooltip="Count of AI tier increases vs decreases across all sessions."><span class="dot mag"></span> Tier Progression Flow</div>
           <div class="chart-wrap">
             <canvas id="chart-ai-tier-flow"></canvas>
           </div>
@@ -1883,14 +1921,14 @@
       <div class="section-label">Tier-Based Scoring Impact</div>
       <div class="chart-grid cols-2" style="margin-bottom:28px">
         <div class="card">
-          <div class="card-title"><span class="dot grn"></span> Score Multiplier Distribution</div>
+          <div class="card-title" data-tooltip="player_won events by score multiplier bucket (0.50× to 1.50×+)."><span class="dot grn"></span> Score Multiplier Distribution</div>
           <div class="chart-wrap">
             <canvas id="chart-ai-score-mult"></canvas>
           </div>
           <div class="chart-note">Combined tier × movement multipliers (0.50× to 2.19×)</div>
         </div>
         <div class="card">
-          <div class="card-title"><span class="dot ylw"></span> Session Outcome Breakdown</div>
+          <div class="card-title" data-tooltip="Daily stacked bar: wins (green) + deaths (red) + abandoned (yellow)."><span class="dot ylw"></span> Session Outcome Breakdown</div>
           <div class="chart-wrap">
             <canvas id="chart-session-outcome"></canvas>
           </div>
@@ -1901,7 +1939,7 @@
       <!-- Death Triggers -->
       <div class="section-label">Tier Adjustment Triggers</div>
       <div class="card" style="margin-bottom:28px">
-        <div class="card-title"><span class="dot red"></span> Death Triggers by Phase</div>
+        <div class="card-title" data-tooltip="Deaths by game phase (green/red/purple) that triggered a tier decrease."><span class="dot red"></span> Death Triggers by Phase</div>
         <div class="chart-wrap short">
           <canvas id="chart-ai-death-triggers"></canvas>
         </div>
@@ -1989,21 +2027,21 @@
       <div class="section-label">Desktop vs Mobile Comparison</div>
       <div class="kpi-grid">
         <div class="kpi">
-          <div class="kpi-label">Desktop Win Rate</div>
+          <div class="kpi-label">Desktop Win Rate <span class="dict-link" data-dict="platform-kpis">ℹ</span></div>
           <div class="kpi-value" id="kpi-desk-win">—</div>
           <div class="kpi-sub" id="kpi-desk-win-sub">player_won / game_start</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">Mobile Win Rate</div>
+          <div class="kpi-label">Mobile Win Rate <span class="dict-link" data-dict="platform-kpis">ℹ</span></div>
           <div class="kpi-value" id="kpi-mob-win">—</div>
           <div class="kpi-sub" id="kpi-mob-win-sub">player_won / game_start</div>
         </div>
-        <div class="kpi grn">
+        <div class="kpi grn" data-tooltip="Weighted avg death level for desktop players only. Deaths used, not wins.">
           <div class="kpi-label">Desktop Avg Level</div>
           <div class="kpi-value" id="kpi-desk-level">—</div>
           <div class="kpi-sub">of 12 levels</div>
         </div>
-        <div class="kpi yel">
+        <div class="kpi yel" data-tooltip="Weighted avg death level for mobile players only. Deaths used, not wins.">
           <div class="kpi-label">Mobile Avg Level</div>
           <div class="kpi-value" id="kpi-mob-level">—</div>
           <div class="kpi-sub">of 12 levels</div>
@@ -2012,13 +2050,13 @@
 
       <div class="chart-grid cols-2">
         <div class="card">
-          <div class="card-title"><span class="dot"></span> Completion Funnel — Desktop vs Mobile</div>
+          <div class="card-title" data-tooltip="% session completion at each funnel stage — desktop vs mobile."><span class="dot"></span> Completion Funnel — Desktop vs Mobile</div>
           <div class="chart-wrap">
             <canvas id="chart-platform-funnel"></canvas>
           </div>
         </div>
         <div class="card">
-          <div class="card-title"><span class="dot mag"></span> Survival Time Distribution</div>
+          <div class="card-title" data-tooltip="Duration buckets (0–0.5m to 8+m): % of sessions per bucket by platform."><span class="dot mag"></span> Survival Time Distribution</div>
           <div class="chart-wrap">
             <canvas id="chart-survival-dist"></canvas>
           </div>
@@ -5962,6 +6000,27 @@
         header.classList.toggle('open');
         body.classList.toggle('open');
       }
+      // KPI Tooltips — Tier 2 (ℹ → Data Dictionary) + Tier 1 mobile tap
+      (function() {
+        document.addEventListener('click', function(e) {
+          const dictLink = e.target.closest('[data-dict]');
+          if (dictLink) {
+            e.stopPropagation();
+            const sectionId = dictLink.dataset.dict;
+            switchTab('data-dict');
+            setTimeout(function() {
+              const hdr = document.getElementById('dict-hdr-' + sectionId);
+              if (hdr && !hdr.classList.contains('open')) toggleDict(sectionId);
+              const anchor = document.getElementById('dict-' + sectionId);
+              if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+            return;
+          }
+          // Mobile tap: toggle Tier 1 tooltip visibility
+          const tooltipCard = e.target.closest('.kpi[data-tooltip]');
+          if (tooltipCard) tooltipCard.classList.toggle('tooltip-visible');
+        });
+      })();
     </script>
 </body>
 

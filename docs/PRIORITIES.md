@@ -460,29 +460,20 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ### Added: June 8, 2026 (Phase 5 Completion)
 
-- [ ] **Case Study Page** (Tab 6 — replaces Looker tab)
+- [x] **Case Study Page** ✅ COMPLETE — June 13, 2026
   - **Estimate:** 2–3 hours
   - **Decision (June 11, 2026):** Case Study and Data Dictionary are NOW SEPARATE TABS — both are too dense to share a page
-  - **Location:** `live.html` — replace Looker tab content (lines ~1347–1575)
-  - **Layout:** Two-column
-    - Left (casual): Game overview, player behavior insights, key findings, design decisions made from data
-    - Right (technical): Analytics methodology, statistical significance notes, chart interpretation, version history
-  - **No sensitive info:** No API keys, Lambda URLs, or AWS infrastructure details
-  - **Dependencies:** New Engagement Metrics done (so findings are final before writing)
+  - **Location:** `live.html` — Tab 6, two-column layout (casual left / technical right)
+  - **Security cleanup applied:** Security section removed entirely; no attack surface mentions on public pages (`0e8c307`)
+  - **Dependencies:** New Engagement Metrics done ✅
 
-- [ ] **Data Dictionary Page** (new Tab 7)
-  - **Estimate:** 3–4 hours
-  - **Decision (June 11, 2026):** Separate tab — too dense to share with Case Study
-  - **Location:** `live.html` — add new tab button + new page `div` after the Case Study tab
-  - **Layout:** Accordion sections by category:
-    - Top-Line KPIs (formula, data source, what "good" looks like)
-    - Engagement KPIs (new 6 metrics)
-    - GA4 Events (all event names, when they fire, what params they carry)
-    - Custom Dimensions (all 31 registered dims, possible values, which queries use them)
-    - A/B Test Definitions (group assignments, metric definitions)
-    - Version Filtering (what v4.3 means, why it matters)
-  - **Anchor IDs:** Every section gets `id="dict-[metric]"` — used by KPI tooltip ℹ icons
-  - **Dependencies:** New Engagement Metrics done (so all KPIs are final before writing)
+- [x] **Data Dictionary Page** ✅ COMPLETE — June 13, 2026
+  - **Estimate:** 3–4 hours (actual: ~3 hours)
+  - **Location:** `live.html` — Tab 7, 10 accordion sections
+  - **Commit:** `d6f4346` (tab), `0ba60c9` (table scroll fix), `0e8c307` (security cleanup)
+  - **Sections:** Top-Line KPIs, Player Behavior KPIs, AI Agent KPIs, Platform, GA4 Events, GA4 Custom Dimensions, A/B Test Definitions, Version Filtering, Lambda Endpoints, BigQuery Backlog
+  - **Anchor IDs:** All `id="dict-[metric]"` live — used by KPI tooltip ℹ icons ✅
+  - **Source of truth:** `docs/Data_Dictionary.md` (internal, full implementation details)
 
 - [x] **Investigate ISSUE-002: Missing Outcome Events** ✅ RESOLVED June 11, 2026
   - **Root Cause:** Test/dev data pollution (AWS security testing + Xenon_3 dev setup during v4.3 window)
