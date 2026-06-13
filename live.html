@@ -2147,12 +2147,7 @@
           <div class="case-study-section">
             <h3>Query Design</h3>
             <p>GA4 queries use up to 7 dimensions per request, version-filtered to <code>analytics_version = 4.3</code> on every call. BigQuery queries are partitioned by <code>ga_session_id</code> using window functions for true session-scoped aggregation.</p>
-            <p>A 500MB <code>maxBytesBilled</code> cap prevents runaway BigQuery costs. A 24-hour in-memory Lambda cache matches the daily export cadence — querying more frequently yields identical results.</p>
-          </div>
-
-          <div class="case-study-section">
-            <h3>Security</h3>
-            <p>CORS locked to the GitHub Pages origin. Input validation whitelist rejects unknown params with HTTP 400 before any GA4 query fires. Server errors log to CloudWatch only — clients receive a generic message with no internal detail. No credentials in source code.</p>
+            <p>BigQuery queries are cost-optimized and cached — results update once per day to match the export cadence.</p>
           </div>
 
           <div class="case-study-section">
@@ -2346,8 +2341,7 @@
                 <dt>Source</dt><dd>avg-tier endpoint (BigQuery) — session-level window function on <code>ai_difficulty_adjusted</code></dd>
                 <dt>Format</dt><dd>Decimal (e.g. 0 = Normal tier)</dd>
                 <dt>Why BQ</dt><dd>GA4 API cannot join events within the same session. BigQuery window functions allow FIRST_VALUE per session before averaging.</dd>
-                <dt>Cache</dt><dd>24h TTL — matches BigQuery daily export cadence (24–48h lag)</dd>
-                <dt>Dataset</dt><dd><code>analytics_525680032</code> (note: differs from GA4 property ID 525680332)</dd>
+                <dt>Note</dt><dd>Results update once per day — querying more frequently returns the same cached value.</dd>
               </dl>
             </div>
 
@@ -2357,7 +2351,6 @@
                 <dt>Formula</dt><dd class="formula">avg( LAST_VALUE(new_tier ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) per ga_session_id )</dd>
                 <dt>Source</dt><dd>avg-tier endpoint (BigQuery) — same query as Avg Start Tier</dd>
                 <dt>Format</dt><dd>Decimal</dd>
-                <dt>Cache</dt><dd>24h TTL</dd>
               </dl>
             </div>
 
@@ -2783,7 +2776,7 @@
             </table>
             </div>
 
-            <p class="dict-section-note">Security: unknown subType values return HTTP 400. CORS locked to kstanigar.github.io. All BigQuery queries capped at 500MB maxBytesBilled.</p>
+            <p class="dict-section-note">All endpoints require <code>type=standard</code>. Invalid or missing parameters return an error response.</p>
 
           </div>
         </div>
@@ -2812,7 +2805,7 @@
             </table>
             </div>
 
-            <p class="dict-section-note">All future BigQuery queries use: dataset <code>analytics_525680032</code> · <code>maxBytesBilled: 500MB</code> · 24h cache TTL · <code>getBigQueryClient()</code> lazy-load pattern.</p>
+            <p class="dict-section-note">All future BigQuery metrics follow the same pattern as Avg Start/Final Tier — results update once per day to match the BigQuery export cadence.</p>
 
           </div>
         </div>
