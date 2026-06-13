@@ -2,11 +2,49 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 13, 2026
+**Last Updated:** June 13, 2026 (Session 2)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 13, 2026 - Game Links + Production Deploy
+
+**Status:** ✅ COMPLETE | Commit: `66fc1fe` | Production: ✅ live
+
+### Changes
+- **Heading anchor:** `<h1>NON-X</h1>` → `<h1><a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener">NON-X</a></h1>` (`live.html:1548`)
+- **CSS added:** `.logo-block h1 a` (color inherit, no underline, 0.15s opacity hover) (`live.html:~115`)
+- **Case Study CTA:** `▶ Play NON-X` button after "About the Project" paragraphs (`live.html:~2119`)
+- **CSS added:** `.play-btn` class — cyan border/text, mono font, hover lift — styled to match `.refresh-btn`
+- Pushed to staging then production
+
+---
+
+## June 13, 2026 - Hamburger Menu at 900px
+
+**Status:** ✅ COMPLETE | Commit: `5b777a5` | Production: ✅ live
+
+### Changes
+- `@media (max-width: 479px)` → `(max-width: 900px)` (`live.html:1052`) — shows hamburger on tablets
+- `@media (min-width: 480px)` → `(min-width: 901px)` (`live.html:1348`) — desktop nav threshold raised
+- Hamburger menu was already fully implemented; this was a CSS-only boundary change
+- No JS changes needed
+
+---
+
+## June 13, 2026 - Documentation Restructure
+
+**Status:** ✅ COMPLETE | Commit: `de71d11`
+
+### Changes
+- `docs/archive/PRIORITIES_ARCHIVE.md` created — 40+ historical completed tasks (March–June 2026)
+- `docs/archive/HANDOFF_ARCHIVE.md` created — 2,587 lines of prior session entries
+- PRIORITIES.md trimmed to last 10 completed tasks
+- HANDOFF_SUMMARY.md trimmed to last 10 session entries
+- Haiku agent verified all 4 files correct before commit
 
 ---
 
@@ -111,38 +149,3 @@
 
 ---
 
-## June 13, 2026 - KPI Tooltips + Documentation
-
-**Status:** ✅ COMPLETE | Commits: `6f5aaab`, `fa4cb69`, `a122be5`
-
-### Completed
-- PRIORITIES.md sync — Case Study + Data Dictionary marked complete
-- Haiku agent classified all 45 dashboard UI elements into 3 tooltip tiers
-- KPI Tooltips implemented — Tier 1 hover (5 KPIs + 17 charts) + Tier 2 ℹ icons (16 KPI labels)
-- Bug fixed — overflow clipping → floating `#kpi-tooltip` div, position:fixed
-
----
-
-## June 13, 2026 - Session Summary (BigQuery KPI Fix + UI Polish)
-
-**Status:** ✅ COMPLETE | Commits: `6d17eae`, `f37f44f`, `850e8c7`
-
-### Completed
-1. **BigQuery KPI tiles bug fix** — `DATA.kpis` → `DATA.aiAgent.kpis`, `populateKPIs()` → `populateAIKPIs()` (`live.html:4214–4216`)
-2. **KPI label rename** — "Avg Starting Tier" → "Avg Start Tier" (`live.html:1717`)
-3. **A/B tab — red text → yellow** — `var(--red)` → `var(--yellow)` (`live.html:548, 4893`)
-
-### Hosting Notes
-- Staging: `https://kstanigar.github.io/non-x_analytics/staging/`
-- Production: `https://kstanigar.github.io/non-x_analytics/`
-- Deploy lag: ~30–60s after push (GitHub Pages rebuild)
-
----
-
-## June 13, 2026 - KPI Label Rename
-
-**Status:** ✅ COMPLETE
-
-- Renamed KPI label: "Avg Starting Tier" → "Avg Start Tier" (`live.html:1717`)
-
----

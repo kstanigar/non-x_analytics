@@ -1,3 +1,32 @@
+## June 13, 2026 - KPI Tooltips + Documentation
+
+**Status:** ✅ COMPLETE | Commits: `6f5aaab`, `fa4cb69`, `a122be5`
+
+- PRIORITIES.md sync — Case Study + Data Dictionary marked complete
+- Haiku agent classified all 45 dashboard UI elements into 3 tooltip tiers
+- KPI Tooltips implemented — Tier 1 hover (5 KPIs + 17 charts) + Tier 2 ℹ icons (16 KPI labels)
+- Bug fixed — overflow clipping → floating `#kpi-tooltip` div, position:fixed
+
+---
+
+## June 13, 2026 - Session Summary (BigQuery KPI Fix + UI Polish)
+
+**Status:** ✅ COMPLETE | Commits: `6d17eae`, `f37f44f`, `850e8c7`
+
+- BigQuery KPI tiles bug fix — `DATA.kpis` → `DATA.aiAgent.kpis` (`live.html:4214–4216`)
+- KPI label rename — "Avg Starting Tier" → "Avg Start Tier" (`live.html:1717`)
+- A/B tab — red text → yellow — `var(--red)` → `var(--yellow)` (`live.html:548, 4893`)
+
+---
+
+## June 13, 2026 - KPI Label Rename
+
+**Status:** ✅ COMPLETE
+
+- Renamed KPI label: "Avg Starting Tier" → "Avg Start Tier" (`live.html:1717`)
+
+---
+
 ## June 13, 2026 - KPI Tile Bug Fix (avgStartTier / avgFinalTier)
 
 **Status:** ✅ FIXED

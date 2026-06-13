@@ -5,6 +5,14 @@
 
 ---
 
+## Completed: June 13, 2026 (Session 2 — moved to archive)
+
+- [x] **Dashboard Styling + Text Fixes** ✅ — Commit: `5c90a98` | Funnel drop text → yellow; Music OFF funnel/table → yellow; platform table delta `sec` → `min`; boss defeat rates got `%` suffix
+- [x] **New Engagement Metrics — 6 KPIs** ✅ — `engagement-events` Lambda endpoint batching 4 events; Player Behavior row on Overview; Scorecard/Music/Leave/Boss/Survey/Returning KPIs
+- [x] **Final Security Audit + Deploy** ✅ — Commit: `bc59894` | Generic error, ALLOWED_ORIGIN, input validation, 27 `console.log` removals, SRI hash; GitHub Pages CI/CD live
+
+---
+
 ## Completed: June 13, 2026
 
 - [x] **Case Study Page** ✅ — Commit: `daf9a12` | Tab 6, two-column layout | Security section removed
