@@ -3791,6 +3791,28 @@
         }
       }
 
+      async function fetchAvgTierData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
+        const [dateRange] = selectedValue.split('-');
+        // No version param — BigQuery export is not filtered by analytics_version
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=avg-tier&dateRange=${dateRange}`;
+        try {
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(API_CONFIG.timeout),
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return { success: true, data: await response.json() };
+        } catch (error) {
+          if (error.name === 'TimeoutError') {
+            console.error(`Avg-tier request timeout after ${API_CONFIG.timeout}ms`);
+            return { success: false, error: 'Request timeout', data: null };
+          }
+          console.error('Failed to fetch avg tier data:', error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -4185,6 +4207,15 @@
           populateKPIs(DATA.kpis);
         } else {
           console.warn('Engagement-events fetch failed:', engagementResult.error);
+        }
+
+        const avgTierResult = await fetchAvgTierData();
+        if (avgTierResult.success && avgTierResult.data) {
+          if (avgTierResult.data.avgStartTier !== null) DATA.kpis.avgStartTier = String(avgTierResult.data.avgStartTier);
+          if (avgTierResult.data.avgFinalTier  !== null) DATA.kpis.avgFinalTier  = String(avgTierResult.data.avgFinalTier);
+          populateKPIs(DATA.kpis);
+        } else {
+          console.warn('Avg-tier fetch failed:', avgTierResult.error);
         }
 
         // Re-render all charts
