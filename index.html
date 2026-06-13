@@ -1502,7 +1502,7 @@
       display: inline-block;
       margin-left: 5px;
       color: var(--cyan);
-      font-size: 0.68rem;
+      font-size: 0.8rem;
       cursor: pointer;
       user-select: none;
       vertical-align: middle;
@@ -6032,7 +6032,13 @@
                 if (body) {
                   var bodyId = body.id.replace('dict-body-', '');
                   var hdr = document.getElementById('dict-hdr-' + bodyId);
-                  if (hdr && !hdr.classList.contains('open')) toggleDict(bodyId);
+                  if (hdr && !hdr.classList.contains('open')) {
+                    toggleDict(bodyId);
+                    setTimeout(function() {
+                      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 150);
+                    return;
+                  }
                 }
                 anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
