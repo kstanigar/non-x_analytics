@@ -2421,6 +2421,7 @@
           </div>
           <div class="dict-body" id="dict-body-platform">
 
+            <div class="table-wrapper">
             <table class="dict-table">
               <thead><tr><th>Metric</th><th>Formula</th><th>Source</th><th>Live</th></tr></thead>
               <tbody>
@@ -2434,6 +2435,7 @@
                 <tr><td>Replay % (desk/mob)</td><td>is_replay='true' game_starts / total, by platform</td><td>replay-rate</td><td><span class="dict-badge live">Live</span></td></tr>
               </tbody>
             </table>
+            </div>
 
             <p class="dict-section-note">Survival Time Distribution chart: 8 buckets (0–0.5m to 8+m), desktop vs mobile side-by-side. Source: survival-time endpoint.</p>
 
@@ -2447,6 +2449,7 @@
           </div>
           <div class="dict-body" id="dict-body-events">
 
+            <div class="table-wrapper">
             <table class="dict-table">
               <thead><tr><th>Event Name</th><th>When It Fires</th><th>Key Custom Params</th><th>Used In</th></tr></thead>
               <tbody>
@@ -2542,6 +2545,7 @@
                 </tr>
               </tbody>
             </table>
+            </div>
 
           </div>
         </div>
@@ -2555,6 +2559,7 @@
 
             <p class="dict-section-note" style="margin:0 0 14px">All dimensions registered in GA4 under <code>customEvent:</code> prefix. 31 total registered as of June 2026.</p>
 
+            <div class="table-wrapper">
             <table class="dict-table">
               <thead><tr><th>Dimension</th><th>Possible Values</th><th>Sent On</th><th>Used In</th></tr></thead>
               <tbody>
@@ -2650,6 +2655,7 @@
                 </tr>
               </tbody>
             </table>
+            </div>
 
             <p class="dict-section-note">Tier reference: -3 Tutorial (0.50×) · -2 Beginner (0.70×) · -1 Easy (0.85×) · 0 Normal (1.00×) · +1 Hard (1.20×) · +2 Expert (1.40×) · +3 Master (1.50×+)</p>
 
@@ -2754,6 +2760,7 @@
 
             <p class="dict-section-note" style="margin:0 0 14px">Base URL: <code>GET /analytics</code> · Common params: <code>type=standard</code> · <code>version=4.3</code> · <code>dateRange=alltime</code></p>
 
+            <div class="table-wrapper">
             <table class="dict-table">
               <thead><tr><th>subType</th><th>Dimensions</th><th>Events</th><th>Returns</th></tr></thead>
               <tbody>
@@ -2774,6 +2781,7 @@
                 <tr><td>avg-tier</td><td colspan="2"><strong>BigQuery</strong> — session-level window functions on ai_difficulty_adjusted</td><td>Avg start tier (FIRST_VALUE) + avg final tier (LAST_VALUE) per session</td></tr>
               </tbody>
             </table>
+            </div>
 
             <p class="dict-section-note">Security: unknown subType values return HTTP 400. CORS locked to kstanigar.github.io. All BigQuery queries capped at 500MB maxBytesBilled.</p>
 
@@ -2789,6 +2797,7 @@
 
             <p class="dict-section-note" style="margin:0 0 14px">Planned metrics that require BigQuery session-level joins. Full implementation plan: <code>docs/BigQuery_Future_Metrics.md</code>.</p>
 
+            <div class="table-wrapper">
             <table class="dict-table">
               <thead><tr><th>Priority</th><th>Metric</th><th>Formula</th><th>Location</th><th>Effort</th></tr></thead>
               <tbody>
@@ -2801,6 +2810,7 @@
                 <tr><td>7</td><td>User Cohort Retention</td><td>Week-over-week % of users returning after first session</td><td>New tab or Overview expansion</td><td>High — multi-cohort query + new chart</td></tr>
               </tbody>
             </table>
+            </div>
 
             <p class="dict-section-note">All future BigQuery queries use: dataset <code>analytics_525680032</code> · <code>maxBytesBilled: 500MB</code> · 24h cache TTL · <code>getBigQueryClient()</code> lazy-load pattern.</p>
 
