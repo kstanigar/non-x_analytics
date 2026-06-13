@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 11, 2026
+**Last Updated:** June 13, 2026
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced. Use hook to auto-move completed tasks from Pending to Completed section.
 
@@ -540,6 +540,19 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   9. ✅ **MT-4: Replay Rate KPI** — COMPLETE June 10, 2026 (7% live; 8 replay / 112 total starts; desktop 4%, mobile 10%)
   10. **MT-5: Tier vs Final Score chart** — UNBLOCKED (June 11, 2026): `final_score` does NOT need BigQuery or a separate DB. Game just needs to add `final_score` as an event param on `player_won` → register as GA4 custom dim → standard Lambda query works. Cost: $0. Waiting on game-side code change.
 
+  - **MT-6: BigQuery Future Metrics** — BACKLOG — revisit after Case Study + Data Dictionary
+    - **Full plan:** `docs/BigQuery_Future_Metrics.md`
+    - **Priority order (when revisited):**
+      1. **Tier Delta** — `avg(final_tier - start_tier)` per session; fits existing `avg-tier` handler; low effort
+      2. **Sessions per User** — `COUNT(DISTINCT ga_session_id) per user_pseudo_id`; single KPI tile; low effort
+      3. **Win Rate by Starting Tier** — join `player_won` with first `ai_difficulty_adjusted` per session; new bar chart on AI Agent tab
+      4. **AI Adjustment Distribution** — histogram of adjustment count per session; replaces single `avgAdjustments` KPI
+      5. **Exact Funnel Completion** — session-deduped funnel rates; replaces current event-count funnel
+      6. **Player Engagement Span** — days between first + last session per user; single KPI tile
+      7. **User Cohort Retention** — week-over-week retention curve; largest effort, highest strategic value
+    - **Dataset:** `analytics_525680032` | **Cache:** 24h TTL | **Cap:** 500MB maxBytesBilled
+    - **Dependencies:** Case Study + Data Dictionary complete
+
   **🔴 Large (4–8 hrs each) — see `docs/Phase7_Large_Tier_Plan.md` for full implementation plan:**
   11. ✅ **LT-1: Game Funnel** — COMPLETE June 10, 2026 (8-stage funnel live: game_start → boss_attempt/defeated ×3 → player_won; all from boss-analysis; `wave_reached` dropped — param not sent with that event)
   12. ✅ **LT-2: Music A/B Test** — COMPLETE June 10, 2026 (`music-ab` Lambda + parser + fetch + integration; `ab_music_group` returns `'A'`/`'B'` not `'music_on'`/`'music_off'` — parser fixed; A=73 sessions, B=39 sessions; Group B wins on win rate 44% vs 23%)
@@ -547,8 +560,8 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   13. ✅ **LT-3: Movement A/B Test** — COMPLETE June 11, 2026 (`movement-ab` Lambda + parser + fetch + integration; `movement_group` returns `'A'`/`'B'`; A=Horizontal (1.25× pts) 19 sessions, B=Full Direction 93 sessions; win rate `—` — `player_won` not tagged with `movement_group` in game code)
 
   **⚫ BigQuery required (session-level joins):**
-  14. **Avg Starting Tier KPI** — first `ai_difficulty_adjusted` per session
-  15. **Avg Final Tier KPI** — last `ai_difficulty_adjusted` per session
+  14. ✅ **Avg Start Tier KPI** — COMPLETE June 13, 2026 (BigQuery, first `ai_difficulty_adjusted` per session)
+  15. ✅ **Avg Final Tier KPI** — COMPLETE June 13, 2026 (BigQuery, last `ai_difficulty_adjusted` per session)
 
   See BigQuery Integration task below for setup details.
 
@@ -950,7 +963,7 @@ Tasks organized by completion date (newest first). Includes completion details a
 **Completed Tasks:** 34
 **Completion Rate (June 2026):** 30 tasks completed
 
-**Phase 7 Progress:** ~82% live data (QW1–5 ✅, MT-1 ✅, MT-2 ✅, MT-3 ✅, MT-4 ✅, LT-1 ✅)
+**Phase 7 Progress:** ~88% live data (QW1–5 ✅, MT-1 ✅, MT-2 ✅, MT-3 ✅, MT-4 ✅, LT-1 ✅, BQ-14 ✅, BQ-15 ✅)
 
 **Average Task Completion Time:**
 - Quick fixes (< 30 min): 7 tasks
