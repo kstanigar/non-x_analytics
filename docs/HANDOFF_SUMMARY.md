@@ -8,6 +8,29 @@
 
 ---
 
+## June 13, 2026 - KPI Tile Bug Fix (avgStartTier / avgFinalTier)
+
+**Status:** ✅ FIXED
+
+### Bug
+- **Symptom:** Avg Starting Tier and Avg Final Tier KPI tiles showed `—` despite API returning correct data `{"avgStartTier":0,"avgFinalTier":1}` (200 status confirmed in Network tab)
+- **Root cause:** Integration code (live.html:4214-4216) wrote to `DATA.kpis` and called `populateKPIs()`, but the AI Agent KPI data lives under `DATA.aiAgent.kpis` and the correct render function is `populateAIKPIs()`
+
+### Fix Applied — `live.html` lines 4214-4216
+```javascript
+// Before (wrong namespace + wrong function):
+DATA.kpis.avgStartTier = String(...)
+DATA.kpis.avgFinalTier  = String(...)
+populateKPIs(DATA.kpis)
+
+// After (correct):
+DATA.aiAgent.kpis.avgStartTier = String(...)
+DATA.aiAgent.kpis.avgFinalTier  = String(...)
+populateAIKPIs()
+```
+
+---
+
 ## June 12, 2026 - BigQuery Integration Implementation
 
 **Status:** ✅ COMPLETE — June 13, 2026 | Commit: `ecbdcd2`

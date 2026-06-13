@@ -4211,9 +4211,9 @@
 
         const avgTierResult = await fetchAvgTierData();
         if (avgTierResult.success && avgTierResult.data) {
-          if (avgTierResult.data.avgStartTier !== null) DATA.kpis.avgStartTier = String(avgTierResult.data.avgStartTier);
-          if (avgTierResult.data.avgFinalTier  !== null) DATA.kpis.avgFinalTier  = String(avgTierResult.data.avgFinalTier);
-          populateKPIs(DATA.kpis);
+          if (avgTierResult.data.avgStartTier !== null) DATA.aiAgent.kpis.avgStartTier = String(avgTierResult.data.avgStartTier);
+          if (avgTierResult.data.avgFinalTier  !== null) DATA.aiAgent.kpis.avgFinalTier  = String(avgTierResult.data.avgFinalTier);
+          populateAIKPIs();
         } else {
           console.warn('Avg-tier fetch failed:', avgTierResult.error);
         }
