@@ -113,6 +113,16 @@
       line-height: 1;
     }
 
+    .logo-block h1 a {
+      color: inherit;
+      text-decoration: none;
+      transition: opacity 0.15s ease;
+    }
+
+    .logo-block h1 a:hover {
+      opacity: 0.75;
+    }
+
     .logo-block p {
       font-family: var(--mono);
       font-size: 0.75rem;
@@ -825,6 +835,27 @@
 
     .refresh-btn:active {
       transform: translateY(0);
+    }
+
+    .play-btn {
+      display: inline-block;
+      margin-top: 12px;
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 7px 18px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .play-btn:hover {
+      background: rgba(0, 255, 255, 0.22);
+      transform: translateY(-1px);
     }
 
     /* ── Version Filter ── */
@@ -1545,7 +1576,7 @@
     <!-- HEADER -->
     <header>
       <div class="logo-block">
-        <h1>NON-X</h1>
+        <h1><a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener">NON-X</a></h1>
         <p>Analytics Command Center &nbsp;·&nbsp; GA4 · Lambda API</p>
       </div>
       <div class="header-meta">
@@ -2116,6 +2147,7 @@
             <h3>About the Project</h3>
             <p>NON-X is a browser-based action game featuring an adaptive AI difficulty system that adjusts between 7 tiers in real time based on player performance. This dashboard was built to answer one question: <em>is the game actually working as designed?</em></p>
             <p>Rather than relying on gut feel, every meaningful player action — from powerup collection to boss attempts to AI tier changes — is tracked through 31 custom GA4 dimensions and aggregated via a serverless analytics pipeline built in 12 weeks.</p>
+            <a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener" class="play-btn">▶ Play NON-X</a>
           </div>
 
           <div class="case-study-section">
