@@ -4,9 +4,148 @@
 
 **Created:** June 13, 2026  
 **Estimate:** 2–2.5 hours  
-**Status:** 📋 READY TO IMPLEMENT — awaiting user approval
+**Status:** 🔴 BUG — CSS `::after` approach shipped but broken. See Fix Plan below.
 
 **Prerequisite:** Data Dictionary Tab 7 complete with all `id="dict-[metric]"` anchors ✅
+
+---
+
+## 🔴 Bug: Tooltip Fix Required (June 13, 2026)
+
+**Symptom:** Tier 1 hover tooltips (KPI tiles + chart card-titles) do not appear on hover or tap.
+
+**Root cause:** Both `.kpi` (line 213) and `.card` containers have `overflow: hidden`. CSS `::after` pseudo-elements are clipped by their parent — the tooltip renders but is invisible because it's outside the element's paint boundary.
+
+**Wrong approach (current — lines 1481–1518):** CSS `::after` on `.kpi[data-tooltip]` and `.card-title[data-tooltip]`
+
+**Correct approach:** JS-driven floating `<div id="kpi-tooltip">` appended to `<body>`. Positioned via `getBoundingClientRect()` on `mouseenter`. Removed on `mouseleave`. Lives outside all clipping containers entirely.
+
+---
+
+## ✅ Fix Implementation Plan
+
+### What Changes
+
+| # | File | Lines | Action |
+|---|------|-------|--------|
+| 1 | `live.html` | 1481–1518 | **Replace** CSS `::after` block with floating tooltip `<div>` styles |
+| 2 | `live.html` | 6003–6023 | **Replace** JS mobile tap block with full JS tooltip engine (mouseenter/mouseleave/scroll) |
+
+### Task List
+
+- [ ] **Task 1 — Replace CSS block (lines 1481–1518)**
+  - Remove: `.kpi[data-tooltip]:hover::after`, `.kpi[data-tooltip].tooltip-visible::after`, `.card-title[data-tooltip]:hover::after` rules
+  - Remove: `position: relative` override on `.kpi[data-tooltip]` and `.card-title[data-tooltip]`
+  - Keep: `.dict-link` and `.dict-link:hover` rules (these work correctly — no change)
+  - Add: `#kpi-tooltip` floating div styles (position fixed, z-index 9999, pointer-events none)
+
+- [ ] **Task 2 — Replace JS block (lines 6003–6023)**
+  - Remove: mobile `.tooltip-visible` toggle handler
+  - Add: `mouseenter` → create/position `#kpi-tooltip` div, append to body
+  - Add: `mouseleave` → remove `#kpi-tooltip` from body
+  - Add: `scroll` + `resize` listeners → reposition or hide tooltip if anchor moves
+  - Keep: `[data-dict]` click handler (works correctly — no change needed)
+
+### New CSS (replaces lines 1481–1518, keep .dict-link rules)
+
+```css
+/* KPI Tooltips — Tier 1 floating tooltip */
+#kpi-tooltip {
+  position: fixed;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-family: var(--mono);
+  padding: 6px 10px;
+  border-radius: 3px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
+  max-width: 240px;
+  z-index: 9999;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+/* ℹ dict-link icon */
+.dict-link {
+  display: inline-block;
+  margin-left: 5px;
+  color: var(--cyan-dim);
+  font-size: 0.68rem;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: middle;
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+.dict-link:hover { opacity: 1; color: var(--cyan); }
+```
+
+### New JS (replaces lines 6003–6023, keep [data-dict] handler)
+
+```javascript
+// KPI Tooltips — Tier 1 floating tooltip (bypasses overflow:hidden on .kpi and .card)
+(function() {
+  var tip = null;
+
+  function showTip(text, anchor) {
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'kpi-tooltip';
+      document.body.appendChild(tip);
+    }
+    tip.textContent = text;
+    var r = anchor.getBoundingClientRect();
+    tip.style.left = (r.left + r.width / 2) + 'px';
+    tip.style.top  = (r.bottom + 8) + 'px';
+    tip.style.display = 'block';
+  }
+
+  function hideTip() {
+    if (tip) tip.style.display = 'none';
+  }
+
+  // Attach to all [data-tooltip] elements
+  document.querySelectorAll('[data-tooltip]').forEach(function(el) {
+    el.addEventListener('mouseenter', function() { showTip(el.dataset.tooltip, el); });
+    el.addEventListener('mouseleave', hideTip);
+  });
+
+  // Hide on scroll or resize (anchor may have moved)
+  window.addEventListener('scroll', hideTip, true);
+  window.addEventListener('resize', hideTip);
+
+  // Tier 2: ℹ → Data Dictionary anchor
+  document.addEventListener('click', function(e) {
+    var dictLink = e.target.closest('[data-dict]');
+    if (dictLink) {
+      e.stopPropagation();
+      var sectionId = dictLink.dataset.dict;
+      switchTab('data-dict');
+      setTimeout(function() {
+        var hdr = document.getElementById('dict-hdr-' + sectionId);
+        if (hdr && !hdr.classList.contains('open')) toggleDict(sectionId);
+        var anchor = document.getElementById('dict-' + sectionId);
+        if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
+  });
+})();
+```
+
+### Positioning Note
+
+`tip.style.top = (r.bottom + 8) + 'px'` places the tooltip **below** the hovered element. This works for both KPI tiles and chart card-titles since it escapes the clipped container entirely. `transform: translateX(-50%)` centers it horizontally over the anchor.
+
+### Possible Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| Tooltip appears at wrong position after scroll | `getBoundingClientRect()` returns viewport-relative coords | `position: fixed` already handles this correctly |
+| Tooltip persists after tab switch | `mouseleave` not firing on tab navigation | `hideTip()` called on scroll listener catches this |
+| `[data-tooltip]` elements added after page load not wired | `querySelectorAll` runs once at page load | All tooltip elements are static HTML — not an issue |
+| Tooltip clips at viewport bottom | `r.bottom + 8` pushes below fold | Could add check: if `r.bottom + 8 > window.innerHeight - 60`, flip to `r.top - 8 - tipHeight` |
 
 ---
 
