@@ -8,6 +8,33 @@
 
 ---
 
+## June 13, 2026 - Back-link Feature Planning
+
+**Status:** 📋 PLAN COMPLETE — ready to implement | Doc: `docs/Backlink_Feature_Plan.md`
+
+### What Was Planned
+Back-links from Data Dictionary entries and Case Study findings → originating dashboard metric/chart. Clicking a `⊞` icon navigates to the correct tab, scrolls to the element, and pulses a 5s border glow in the element's natural color.
+
+### Key Design Decisions
+- **Icon:** `⊞` (U+229E) — stored as `var BACKLINK_ICON = '⊞'` constant for easy sitewide changes
+- **Icon injection:** JS-driven at page load from a lookup table — avoids 40+ HTML edits
+- **Glow color:** Reads element's existing color class (`.grn` → green, `.red` → red, etc.), defaults to cyan
+- **Chart targets:** Glow fires on `.card` wrapper, not `<canvas>` — canvases have no visible border
+- **`--glow-color`** set inline before `.card-glow` is added — one `@keyframes` handles all colors
+
+### Lookup table coverage (22 Data Dictionary entries + 4 Case Study findings)
+- Overview KPIs: sessions, new-pct, winrate, deathrate, replay, survival, lbrate, avglevel, scorecard-rate, music-rate, leave-rate, boss-reach, survey-rate
+- AI Agent KPIs + charts: speedlock, avg-start-tier, avg-final-tier, avg-adjustments, ai-tier-dist, tier-flow, score-mult, death-triggers
+- Platform: platform-kpis
+- Case Study: cs-ab-findings, cs-ai-findings, cs-death-findings, cs-powerup-findings
+
+### Changes Required (3 types, `live.html` only)
+1. CSS: `@keyframes card-glow` + `.card-glow` — after line 1464
+2. JS: Back-link IIFE (lookup tables + icon injection + click handler) — before line 6080
+3. HTML: `⊞` span on 4 Case Study findings — lines 2122, 2130, 2134, 2138
+
+---
+
 ## June 13, 2026 - Tier 3 Tooltips + Highlight Flash (Final)
 
 **Status:** ✅ COMPLETE | Final commit: `b7975ba` | Production live

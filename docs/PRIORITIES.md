@@ -14,6 +14,20 @@ Tasks organized by date added (newest first). Tasks include planning details, in
 
 ---
 
+### Added: June 13, 2026
+
+- [ ] **Back-link Feature — Data Dict / Case Study → Dashboard Card Glow**
+  - **Estimate:** ~1.5 hours
+  - **Priority:** MEDIUM — UX polish, helps users navigate between docs and live metrics
+  - **Plan:** `docs/Backlink_Feature_Plan.md` (exact lines, task list, inline comments)
+  - **Approach:** JS-driven `⊞` icon injection from lookup table (no 40+ HTML edits)
+  - **Icon:** `⊞` (U+229E) — stored as `var BACKLINK_ICON` constant for easy sitewide changes
+  - **Effect:** 5s pulsing border glow on `.card` or `.kpi` in the element's natural color
+  - **Files:** `live.html` only — CSS (line 1464) + JS (line 6080) + HTML (lines 2122, 2130, 2134, 2138)
+  - **Dependencies:** Tier 3 tooltips complete ✅, highlight animation complete ✅
+
+---
+
 ### Added: June 11, 2026 (Pre-Blog Launch)
 
 - [x] **API Gateway Response Caching** ✅ COMPLETE — June 12, 2026
