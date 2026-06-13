@@ -457,9 +457,156 @@ Add to the chart card title or the container heading for each item.
 ## Notes
 
 - **Death Rate** is the most important Tier 2 item — the denominator nuance (`wins + deaths`, not `game_starts`) is frequently misunderstood. The ℹ icon there is highest-value.
-- **Avg Tier Adjustments** dict anchor currently points to `death-triggers` section — this is intentional since that section explains both KPIs together. Revisit if a dedicated entry is added.
+- **Avg Tier Adjustments** dict anchor currently points to `death-triggers` — this is a bug (see Fix below). Correct anchor is `avg-adjustments`.
 - **Case Study anchors** (Phase 4) may not exist yet in the Case Study tab HTML. Check during implementation and add `id` attributes as needed.
 - **No Lambda changes** — this is purely a frontend styling + UX feature.
+
+---
+
+## Tier 3 Implementation — Current Plan (June 13, 2026)
+
+**Status:** NOT YET IMPLEMENTED — verified by Haiku agent June 13, 2026  
+**Estimated time:** ~30 min (10 changes across 1 file)  
+**File:** `live.html` only
+
+---
+
+### Pre-existing Bug to Fix
+
+| Line | Current | Correct |
+|------|---------|---------|
+| 1890 | `data-dict="death-triggers"` on Avg Tier Adjustments | `data-dict="avg-adjustments"` |
+
+---
+
+### Change 1 — Fix bug: Avg Tier Adjustments wrong dict link
+
+**Line 1890 — before:**
+```html
+<div class="kpi-label">Avg Tier Adjustments <span class="dict-link" data-dict="death-triggers">ⓘ</span></div>
+```
+**After:**
+```html
+<div class="kpi-label">Avg Tier Adjustments <span class="dict-link" data-dict="avg-adjustments">ⓘ</span> <span class="dict-link" data-case="cs-ai-findings">ⓘ</span></div>
+```
+*(Keep the existing dict link corrected + add case study link)*
+
+---
+
+### Change 2 — Add `id` anchors to Case Study findings
+
+All 4 targets are `<div class="case-study-finding">` inside the "Key Findings" section (`live.html:2104`).
+
+| Line | id to add | Finding shown |
+|------|-----------|---------------|
+| 2110 | `cs-ab-findings` | "+21pp Music OFF wins more often" |
+| 2118 | `cs-ai-findings` | "25 vs 3 AI difficulty adjustments" |
+| 2122 | `cs-death-findings` | "L1–L4 most deaths in early green phase" |
+| 2126 | `cs-powerup-findings` | "5× mobile players collect more powerups" |
+
+**Before (all 4 the same pattern):**
+```html
+<div class="case-study-finding">
+```
+**After (example for line 2110):**
+```html
+<div class="case-study-finding" id="cs-ab-findings">
+```
+
+---
+
+### Change 3 — Add ⓘ icons to 4 UI elements
+
+| Line | Element | Icon to add |
+|------|---------|-------------|
+| 1716 | Music A/B Split card-title | `<span class="dict-link" data-case="cs-ab-findings">ⓘ</span>` before `</div>` |
+| 1722 | Powerup Collection card-title | `<span class="dict-link" data-case="cs-powerup-findings">ⓘ</span>` before `</div>` |
+| 1746 | Wave Drop-off span text | `<span class="dict-link" data-case="cs-death-findings">ⓘ</span>` after "Wave Drop-off (Deaths by Level)" |
+| 1890 | Avg Tier Adjustments label | (covered in Change 1 above) |
+
+**Line 1716 before:**
+```html
+<div class="card-title" data-tooltip="% of sessions assigned to each A/B group — Music ON vs OFF."><span class="dot yel"></span> Music A/B Split</div>
+```
+**After:**
+```html
+<div class="card-title" data-tooltip="% of sessions assigned to each A/B group — Music ON vs OFF."><span class="dot yel"></span> Music A/B Split <span class="dict-link" data-case="cs-ab-findings">ⓘ</span></div>
+```
+
+**Line 1722 before:**
+```html
+<div class="card-title" data-tooltip="Powerup collections by type and phase (green / red / purple)."><span class="dot grn"></span> Powerup Collection by Phase</div>
+```
+**After:**
+```html
+<div class="card-title" data-tooltip="Powerup collections by type and phase (green / red / purple)."><span class="dot grn"></span> Powerup Collection by Phase <span class="dict-link" data-case="cs-powerup-findings">ⓘ</span></div>
+```
+
+**Line 1746 before:**
+```html
+<span><span class="dot yel"></span> Wave Drop-off (Deaths by Level)</span>
+```
+**After:**
+```html
+<span><span class="dot yel"></span> Wave Drop-off (Deaths by Level) <span class="dict-link" data-case="cs-death-findings">ⓘ</span></span>
+```
+
+---
+
+### Change 4 — Extend JS click handler
+
+**File:** `live.html`  
+**Location:** Lines 6022–6047 — the existing `data-dict` click handler  
+**Insert:** After `}` on line 6046, before `});` on line 6047
+
+**Before (lines 6044–6047):**
+```javascript
+              anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 80);
+        }
+      });
+```
+**After:**
+```javascript
+              anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 80);
+        }
+        var caseLink = e.target.closest('[data-case]');
+        if (caseLink) {
+          e.stopPropagation();
+          switchTab('case-study');
+          setTimeout(function() {
+            var el = document.getElementById(caseLink.dataset.case);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 80);
+        }
+      });
+```
+
+---
+
+### Task List
+
+- [ ] Change 1: Fix `data-dict` bug + add `data-case` on Avg Tier Adjustments (line 1890)
+- [ ] Change 2a: Add `id="cs-ab-findings"` to case-study-finding at line 2110
+- [ ] Change 2b: Add `id="cs-ai-findings"` to case-study-finding at line 2118
+- [ ] Change 2c: Add `id="cs-death-findings"` to case-study-finding at line 2122
+- [ ] Change 2d: Add `id="cs-powerup-findings"` to case-study-finding at line 2126
+- [ ] Change 3a: Add ⓘ to Music A/B Split card-title (line 1716)
+- [ ] Change 3b: Add ⓘ to Powerup Collection card-title (line 1722)
+- [ ] Change 3c: Add ⓘ to Wave Drop-off span (line 1746)
+- [ ] Change 4: Extend JS click handler with `data-case` block (line 6046)
+
+### Testing Checklist
+
+- [ ] Click ⓘ on Music A/B Split → Case Study tab opens → scrolls to "+21pp" finding
+- [ ] Click ⓘ on Powerup Collection → Case Study tab opens → scrolls to "5×" finding
+- [ ] Click ⓘ on Wave Drop-off → Case Study tab opens → scrolls to "L1–L4" finding
+- [ ] Click ⓘ on Avg Tier Adjustments (case icon) → Case Study tab → scrolls to "25 vs 3" finding
+- [ ] Click ⓘ on Avg Tier Adjustments (dict icon) → Data Dictionary → avg-adjustments entry
+- [ ] Existing Tier 2 dict links still work (no regression)
 
 ---
 
