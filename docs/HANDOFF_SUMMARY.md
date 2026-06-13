@@ -8,6 +8,21 @@
 
 ---
 
+## June 13, 2026 - Returning Players KPI + Docs Update
+
+**Status:** ✅ COMPLETE | Commits: `3afd2c2` (KPI) → `1ce6059` (docs) | Production: pending merge
+
+### Changes
+- **KPI value:** Flipped from new user % (26%) → returning user % (74%) (`live.html:3641`)
+- **KPI label:** `New vs Returning` → `Returning Players` (`live.html:1651`)
+- **KPI sub-text placeholder:** `% first-time players` → `% returning sessions` (`live.html:1653`)
+- **Sub-text colors:** returning = green, new = yellow (was reversed) (`live.html:4707`)
+- **Data Dictionary:** Title, formula, and "Good value" updated to match (`live.html:2246–2251`)
+- **Case Study:** Stat updated `75%` → `74%` to match live data (`live.html:2138`)
+- **Plan doc:** `docs/Returning_Players_KPI_Plan.md`
+
+---
+
 ## June 13, 2026 - AI Agent KPI Label Updates
 
 **Status:** ✅ COMPLETE | Commit: `eca8478` | Production: pending merge

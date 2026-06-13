@@ -27,6 +27,11 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   - **Commit:** `eca8478`
   - **Changes:** `Avg Tier Adjustments` → `Total Tier Adjustments`; `Per session` → `Since Created`
 
+- [x] **Returning Players KPI + Docs Alignment** ✅ COMPLETE — June 13, 2026
+  - **Commits:** `3afd2c2` (KPI flip) → `1ce6059` (Data Dict + Case Study)
+  - **Changes:** KPI flipped from new user % → returning user % (26% → 74%); label → "Returning Players"; sub-text colors swapped; Data Dictionary title/formula/good-value updated; Case Study stat 75% → 74%
+  - **Plan doc:** `docs/Returning_Players_KPI_Plan.md`
+
 ---
 
 ### Added: June 11, 2026 (Pre-Blog Launch)
