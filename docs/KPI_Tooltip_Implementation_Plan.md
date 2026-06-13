@@ -4,7 +4,7 @@
 
 **Created:** June 13, 2026  
 **Estimate:** 2–2.5 hours  
-**Status:** 🔴 BUG — CSS `::after` approach shipped but broken. See Fix Plan below.
+**Status:** ✅ COMPLETE — June 13, 2026 | Commits: `6f5aaab`, `fa4cb69`, `a122be5`
 
 **Prerequisite:** Data Dictionary Tab 7 complete with all `id="dict-[metric]"` anchors ✅
 

@@ -443,18 +443,16 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   **Dependencies:** None
   **Verified:** Live on staging + production June 11, 2026. Endpoint returns 4 events. Sub-text counts showing green/yellow.
 
-- [ ] **KPI Tooltips — Hybrid Approach**
-  - **Estimate:** 2–3 hours
-  - **Approach (approved June 11, 2026):** Three-tier hybrid
-    - **Simple KPIs** (Win Rate, Death Rate, Replay Rate, etc.): CSS `::after` tooltip on `:hover`; click/tap on mobile
-    - **Complex KPIs** (Avg Level, AI Tier, Survival, A/B stats): Small `ℹ` icon inline with label → navigates to `#dict-[metric]` anchor on Data Dictionary page, accordion auto-expands
-    - **Pattern:** Easy things show inline. Deep explanations live in the Data Dictionary.
-  - **Implementation:**
-    - One CSS block for `.kpi-tooltip` class + `::after` pseudo-element
-    - One JS `click` handler on `[data-dict]` attributes to navigate + expand accordion
-    - No third-party libraries needed
-  - **Content per KPI:** formula, data source, what the value means, what "good" looks like
-  - **Dependencies:** Data Dictionary page complete (so anchor targets exist)
+- [x] **KPI Tooltips — Hybrid Approach** ✅ COMPLETE — June 13, 2026
+  - **Estimate:** 2–3 hours (actual: ~2 hours + bug fix)
+  - **Commits:** `6f5aaab` (initial), `fa4cb69` (overflow fix), `a122be5` (width fix)
+  - **Approach:** Three-tier hybrid
+    - **Tier 1** — JS floating `#kpi-tooltip` div (position:fixed, escapes overflow:hidden): 5 KPI tiles + 17 chart card-titles
+    - **Tier 2** — ℹ icon → Data Dictionary accordion anchor: 16 KPI labels
+    - **Tier 3** — planned but deferred (Case Study links — low priority)
+  - **Bug fixed:** CSS `::after` clipped by `.kpi { overflow: hidden }` → replaced with floating `<div>` using `getBoundingClientRect()`
+  - **Tooltip width:** `max-width: 140px` for consistent square shape on all screen sizes
+  - **Dependencies:** Data Dictionary page ✅
 
 ---
 

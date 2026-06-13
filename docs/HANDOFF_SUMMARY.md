@@ -8,6 +8,34 @@
 
 ---
 
+## June 13, 2026 - KPI Tooltips + Documentation
+
+**Status:** ✅ COMPLETE | Commits: `6f5aaab`, `fa4cb69`, `a122be5` | Production: `a122be5`
+
+### Completed This Session
+
+1. **PRIORITIES.md sync** — Case Study (Tab 6) + Data Dictionary (Tab 7) marked complete (were shipped but never marked done)
+
+2. **Data Dictionary research** — Haiku agent classified all 45 dashboard UI elements (20 KPIs, 15 charts, 6 tables) into 3 tooltip tiers. Docs created: `docs/KPI_Tooltip_Plan.md`, `docs/KPI_Tooltip_Implementation_Plan.md`
+
+3. **KPI Tooltips implemented** — Tier 1 hover tooltips + Tier 2 ℹ icons:
+   - 5 KPI tiles with hover tooltip (`data-tooltip` on `.kpi` divs)
+   - 17 chart card-titles with hover tooltip (`data-tooltip` on `.card-title` divs)
+   - 16 KPI labels with ℹ icon linking to Data Dictionary accordion anchor
+   - JS click handler: `switchTab('data-dict')` → `toggleDict()` → `scrollIntoView()`
+
+4. **Bug fixed — overflow clipping** — CSS `::after` on `.kpi { overflow: hidden }` was invisible. Replaced with JS floating `<div id="kpi-tooltip">` using `getBoundingClientRect()` + `position: fixed` — escapes all parent overflow constraints
+
+5. **Tooltip shape fix** — `max-width: 240px` → `max-width: 140px` for consistent square wrapping on all screen sizes (matched mobile appearance)
+
+### Key Technical Notes
+- `#kpi-tooltip` is a single `<div>` appended to `<body>` at page load, reused for all tooltips
+- `mouseenter`/`mouseleave` on all `[data-tooltip]` elements — no per-element DOM overhead
+- `scroll` + `resize` listeners hide the tooltip when the page moves
+- Tier 2 ℹ icons use `data-dict="[section-id]"` — one delegated click handler on `document`
+
+---
+
 ## June 13, 2026 - Session Summary
 
 **Status:** ✅ ALL COMPLETE | Commits: `6d17eae`, `f37f44f`, `850e8c7`
