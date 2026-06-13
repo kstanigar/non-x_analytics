@@ -8,6 +8,30 @@
 
 ---
 
+## June 13, 2026 - Tier 3 Tooltips + Highlight Flash (Final)
+
+**Status:** ✅ COMPLETE | Final commit: `b7975ba` | Production live
+
+### What Was Built
+1. **Tier 3 Case Study ⓘ icons** — 4 elements linking to Case Study Key Findings:
+   - Music A/B Split donut (Overview) + A/B Test 1 section heading (A/B tab) → `cs-ab-findings`
+   - Powerup Collection card-title (Overview) → `cs-powerup-findings`
+   - Wave Drop-off card-title (Funnel tab) → `cs-death-findings`
+   - Avg Tier Adjustments KPI label (AI Agent tab) → `cs-ai-findings`
+2. **Case Study `id` anchors** — added to 4 `.case-study-finding` divs (`cs-ab-findings`, `cs-ai-findings`, `cs-death-findings`, `cs-powerup-findings`)
+3. **Highlight flash animation** — `@keyframes cs-flash`: pulsing yellow (`#FFD700`) border + background, 5s, 2 pulses then fade. Applied to:
+   - `.cs-highlight` — Case Study findings (Tier 3 clicks)
+   - `.dict-highlight` — Data Dictionary entries (Tier 2 clicks)
+4. **Bug fixed** — Avg Tier Adjustments had `data-dict="death-triggers"` (wrong) → corrected to `data-dict="avg-adjustments"`
+
+### Key Technical Notes
+- `void el.offsetWidth` reflow trick restarts animation on repeated clicks
+- `@keyframes cs-flash` defined once, reused by both `.cs-highlight` and `.dict-highlight`
+- Accordion-open path highlights after 150ms delay (waits for DOM repaint); fallback path highlights immediately
+- Commits: `fe8e8fb` → `72bc49d` → `8388546` → `b7975ba`
+
+---
+
 ## June 13, 2026 - KPI Tooltips + Bug Fixes (Final)
 
 **Status:** ✅ COMPLETE | Final commit: `f7043d0` | Production live

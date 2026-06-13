@@ -444,15 +444,14 @@ Tasks organized by date added (newest first). Tasks include planning details, in
   **Verified:** Live on staging + production June 11, 2026. Endpoint returns 4 events. Sub-text counts showing green/yellow.
 
 - [x] **KPI Tooltips — Hybrid Approach** ✅ COMPLETE — June 13, 2026
-  - **Estimate:** 2–3 hours (actual: ~2 hours + bug fix)
-  - **Commits:** `6f5aaab` → `fa4cb69` → `a122be5` → `846299e` → `7cce483` → `f7043d0` (final)
+  - **Commits:** `6f5aaab` → `fa4cb69` → `a122be5` → `846299e` → `7cce483` → `f7043d0` → `fe8e8fb` → `72bc49d` → `8388546` → `b7975ba` (final)
   - **Approach:** Three-tier hybrid
     - **Tier 1** — JS floating `#kpi-tooltip` div (position:fixed, escapes overflow:hidden): 5 KPI tiles + 17 chart card-titles
-    - **Tier 2** — ℹ icon → Data Dictionary accordion anchor: 16 KPI labels
-    - **Tier 3** — planned but deferred (Case Study links — low priority)
-  - **Bug fixed:** CSS `::after` clipped by `.kpi { overflow: hidden }` → replaced with floating `<div>` using `getBoundingClientRect()`
-  - **Tooltip width:** `max-width: 140px` for consistent square shape on all screen sizes
-  - **Dependencies:** Data Dictionary page ✅
+    - **Tier 2** — ℹ icon → Data Dictionary accordion anchor + yellow pulse highlight: 16 KPI labels
+    - **Tier 3** — ℹ icon → Case Study Key Findings + yellow pulse highlight: 4 elements (Music A/B, Powerup, Wave Drop-off, Avg Tier Adjustments)
+  - **Highlight animation:** `@keyframes cs-flash` — pulsing yellow `#FFD700`, 5s, 2 pulses then fade. Shared by `.cs-highlight` (Case Study) and `.dict-highlight` (Data Dictionary)
+  - **Bug fixed:** Avg Tier Adjustments `data-dict` was wrong (`death-triggers` → `avg-adjustments`)
+  - **Dependencies:** Data Dictionary page ✅, Case Study page ✅
 
 ---
 
