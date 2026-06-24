@@ -11,7 +11,7 @@ const ALLOWED_ORIGIN = 'https://kstanigar.github.io';
 
 // Input validation whitelists — reject unknown values before hitting GA4
 const VALID_TYPES      = ['standard', 'realtime'];
-const VALID_SUBTYPES   = ['platform-split','daily-timeseries','boss-analysis','survival-time','powerup-analysis','progression-analysis','ai-analysis','death-triggers','new-user-pct','replay-rate','music-ab','music-funnel','movement-ab','engagement-events','avg-tier'];
+const VALID_SUBTYPES   = ['platform-split','daily-timeseries','boss-analysis','survival-time','powerup-analysis','progression-analysis','ai-analysis','death-triggers','new-user-pct','replay-rate','music-ab','music-funnel','movement-ab','engagement-events','avg-tier','tier-score'];
 const VALID_DATE_RANGES = ['7day','30day','90day','alltime'];
 
 // BigQuery client — lazy-loaded only when avg-tier handler is called
@@ -29,6 +29,7 @@ const getBigQueryClient = () => {
 
 // 24h in-memory cache — matches BigQuery daily export cadence
 const tierCache = { data: null, timestamp: 0 };
+let tierScoreCache = { data: null, timestamp: 0 };
 const TIER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Compute YYYYMMDD string for BigQuery _TABLE_SUFFIX filter
@@ -385,6 +386,63 @@ exports.handler = async (event) => {
             };
             tierCache.data = result;
             tierCache.timestamp = now;
+            return {
+                statusCode: 200,
+                headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },
+                body: JSON.stringify(result)
+            };
+
+        // Tier vs Final Score scatter — joins player_won with last ai_difficulty_adjusted per session
+        } else if (requestType === 'standard' && subType === 'tier-score') {
+            const now = Date.now();
+            if (tierScoreCache.data && (now - tierScoreCache.timestamp) < TIER_CACHE_TTL_MS) {
+                return {
+                    statusCode: 200,
+                    headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tierScoreCache.data)
+                };
+            }
+            const bq = getBigQueryClient();
+            const datasetId = process.env.BQ_DATASET_ID || `analytics_${propertyId}`;
+            const bqStartDate = getBQStartDate(dateRangeParam);
+            const queryOpts = { maxBytesBilled: '500000000' };
+            const [rows] = await bq.query({
+                query: `
+                    WITH wins AS (
+                      SELECT
+                        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS ga_session_id,
+                        user_pseudo_id,
+                        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'final_score') AS score
+                      FROM \`${process.env.GCP_PROJECT_ID}.${datasetId}.events_*\`
+                      WHERE _TABLE_SUFFIX >= '${bqStartDate}'
+                        AND event_name = 'player_won'
+                    ),
+                    last_tier AS (
+                      SELECT DISTINCT
+                        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS ga_session_id,
+                        user_pseudo_id,
+                        LAST_VALUE((SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'new_tier'))
+                          OVER (
+                            PARTITION BY user_pseudo_id,
+                              (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id')
+                            ORDER BY event_timestamp
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                          ) AS tier
+                      FROM \`${process.env.GCP_PROJECT_ID}.${datasetId}.events_*\`
+                      WHERE _TABLE_SUFFIX >= '${bqStartDate}'
+                        AND event_name = 'ai_difficulty_adjusted'
+                    )
+                    SELECT DISTINCT w.score, lt.tier
+                    FROM wins w
+                    JOIN last_tier lt USING (ga_session_id, user_pseudo_id)
+                    WHERE w.score IS NOT NULL AND lt.tier IS NOT NULL
+                    ORDER BY w.score
+                `,
+                ...queryOpts
+            });
+            const result = { points: rows.map(r => ({ x: r.score, y: r.tier })) };
+            tierScoreCache.data = result;
+            tierScoreCache.timestamp = now;
             return {
                 statusCode: 200,
                 headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },

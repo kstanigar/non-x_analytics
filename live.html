@@ -2015,6 +2015,13 @@
         </div>
       </div>
 
+      <div class="card">
+        <div class="card-title" data-tooltip="Each dot is one winning game session. Shows whether higher AI tiers correlate with higher final scores."><span class="dot"></span> Tier vs Final Score</div>
+        <div class="chart-wrap">
+          <canvas id="chart-tier-score"></canvas>
+        </div>
+      </div>
+
       <div class="insight-box" style="margin-top:16px">
         <strong>💡 Success Metrics:</strong> AI Agent should show: (1) Broad tier distribution (not everyone stuck at -3
         or +3),
@@ -3084,6 +3091,7 @@
             // { tier:-3, name:'Tutorial', speed:3.5, mult:0.50, players:0, avgLevel:0, winRate:'—', avgTime:'—' },
             // Populated by CSV
           ],
+          tierScorePoints: [], // [{x: finalScore, y: tier}] — populated by BigQuery tier-score endpoint
         },
       };
 
@@ -4454,6 +4462,21 @@
         }
       }
 
+      async function fetchTierScoreData() {
+        const dataRangeSelect = document.getElementById('data-range-select');
+        const selectedValue = dataRangeSelect ? dataRangeSelect.value : 'alltime-43';
+        const [dateRange] = selectedValue.split('-');
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.analytics}?type=standard&subType=tier-score&dateRange=${dateRange}`;
+        try {
+          const response = await fetch(url, { signal: AbortSignal.timeout(API_CONFIG.timeout) });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return { success: true, data: await response.json() };
+        } catch (error) {
+          console.error('Failed to fetch tier-score data:', error);
+          return { success: false, error: error.message, data: null };
+        }
+      }
+
       /**
        * Loads GA4 data, maps to DATA object, and updates charts
        * @param {string} type - 'realtime' or 'standard'
@@ -4850,13 +4873,18 @@
           console.warn('Engagement-events fetch failed:', engagementResult.error);
         }
 
-        const avgTierResult = await fetchAvgTierData();
+        const [avgTierResult, tierScoreResult] = await Promise.all([fetchAvgTierData(), fetchTierScoreData()]);
         if (avgTierResult.success && avgTierResult.data) {
           if (avgTierResult.data.avgStartTier !== null) DATA.aiAgent.kpis.avgStartTier = String(avgTierResult.data.avgStartTier);
           if (avgTierResult.data.avgFinalTier  !== null) DATA.aiAgent.kpis.avgFinalTier  = String(avgTierResult.data.avgFinalTier);
           populateAIKPIs();
         } else {
           console.warn('Avg-tier fetch failed:', avgTierResult.error);
+        }
+        if (tierScoreResult.success && tierScoreResult.data) {
+          DATA.aiAgent.tierScorePoints = tierScoreResult.data.points || [];
+        } else {
+          console.warn('Tier-score fetch failed:', tierScoreResult.error);
         }
 
         // Re-render all charts
@@ -5809,6 +5837,38 @@
         });
       }
 
+      function chartTierScore() {
+        const points = DATA.aiAgent.tierScorePoints;
+        const el = document.getElementById('chart-tier-score');
+        if (!el) return;
+        const _ex = Chart.getChart('chart-tier-score'); if (_ex) _ex.destroy();
+        const tierColorMap = { '-3': RED, '-2': RED, '-1': YEL, '0': GRN, '1': CYAN, '2': MAG, '3': PUR };
+        const datasets = {};
+        points.forEach(p => {
+          const t = String(p.y);
+          if (!datasets[t]) {
+            const c = tierColorMap[t] || CYAN;
+            datasets[t] = { label: `Tier ${p.y}`, data: [], backgroundColor: c + '99', borderColor: c, pointRadius: 6, pointHoverRadius: 8 };
+          }
+          datasets[t].data.push({ x: p.x, y: p.y });
+        });
+        new Chart(el, {
+          type: 'scatter',
+          data: { datasets: Object.values(datasets) },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { display: true, labels: { color: '#ccc', font: { size: 11 } } },
+              tooltip: { callbacks: { label: ctx => `Score: ${ctx.parsed.x} | Tier: ${ctx.parsed.y}` } }
+            },
+            scales: {
+              x: { title: { display: true, text: 'Final Score', color: '#888' }, ticks: { color: '#888' }, grid: { color: '#222' } },
+              y: { title: { display: true, text: 'AI Tier', color: '#888' }, ticks: { color: '#888', stepSize: 1 }, grid: { color: '#222' } }
+            }
+          }
+        });
+      }
+
       function buildAITierTable() {
         const tbody = document.getElementById('ai-tier-table');
         if (!tbody) return;
@@ -5973,6 +6033,7 @@
         chartAIScoreMult();
         chartSessionOutcome();
         chartAIDeathTriggers();
+        chartTierScore();
         buildAITierTable();
       }
 

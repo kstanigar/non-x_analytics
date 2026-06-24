@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 13, 2026 (Session 2)
+**Last Updated:** June 24, 2026 (Session 3)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -13,14 +13,6 @@
 ## 🎯 PENDING TASKS
 
 ---
-
-### MT-5: Tier vs Final Score Chart — BLOCKED
-
-- **Status:** Waiting on game-side changes in Xenon_3
-- **Estimate:** 1–2 hours (once game change ships)
-- **Blocked by:** Game needs to add `final_score` as event param on `player_won` → register as GA4 custom dim
-- **No BigQuery needed** — standard Lambda query once dim is registered. Cost: $0
-- **Dashboard wiring:** Replace placeholder chart with `customEvent:final_score` × `customEvent:new_tier` scatter or bar
 
 ---
 
@@ -44,7 +36,16 @@
 
 ---
 
-### 1. Game Links ✅ — June 13, 2026
+### 1. Tier vs Final Score Scatter Chart (MT-5) ✅ — June 24, 2026
+- **Plan doc:** `docs/archive/completed-implementations/MT5_Tier_Score_Chart_Plan.md`
+- Scatter chart on AI Agent tab — X: final score, Y: AI tier, color-coded per tier
+- BigQuery Option B join query — `player_won` joined with last `ai_difficulty_adjusted` per session
+- `api/index.js`: `tier-score` added to `VALID_SUBTYPES`; `tierScoreCache` var; full BigQuery handler
+- `live.html`: chart card HTML + `fetchTierScoreData()` + `chartTierScore()` + `reinitAllCharts()` hook
+- BUG-001 fixed: `ga_session_id` extracted from `event_params` (not top-level column)
+- Lambda deployed ✅ | Endpoint verified: `{ "points": [{"x":3432,"y":2},{"x":6586,"y":2}] }` ✅
+
+### 3. Game Links ✅ — June 13, 2026
 - **Commit:** `66fc1fe` | Production: ✅ live
 - "NON-X" heading → anchor link to `https://nonx.standingtiger.com/` (opens new tab)
 - Case Study "About the Project" → `▶ Play NON-X` CTA button (`.play-btn` class)
@@ -57,52 +58,47 @@
 - `@media (min-width: 480px)` → `(min-width: 901px)` at line 1348
 - No JS changes needed — existing `toggleMobileMenu()` / `switchTab()` functions work as-is
 
-### 3. Documentation Restructure ✅ — June 13, 2026
+### 4. Documentation Restructure ✅ — June 13, 2026
 - **Commit:** `de71d11`
 - PRIORITIES + HANDOFF trimmed to last 10 entries each; older entries → `docs/archive/`
 - `docs/archive/PRIORITIES_ARCHIVE.md` created (40+ historical tasks, March–June 2026)
 - `docs/archive/HANDOFF_ARCHIVE.md` created (2,587 lines of prior session entries)
 
-### 4. Documentation Cleanup ✅ — June 13, 2026
+### 5. Documentation Cleanup ✅ — June 13, 2026
 - **Commits:** `ffbf919` → `4c6d895` → `483443e`
 - 6 completed plan docs archived to `docs/archive/completed-implementations/`
 - Stale PRIORITIES entries removed; `docs/README.md` updated to v4.3
 - ISSUE-003 resolved — leaderboard rate capped at 100% (`live.html:3855`)
 - 27 decimal rounding changes (`toFixed(1)` → `toFixed(0)`) across `live.html`
 
-### 5. Returning Players KPI + Docs Alignment ✅ — June 13, 2026
+### 6. Returning Players KPI + Docs Alignment ✅ — June 13, 2026
 - **Commits:** `3afd2c2` → `1ce6059`
 - KPI flipped from new user % (26%) → returning user % (74%)
 - Label → "Returning Players"; sub-text colors swapped (returning=green, new=yellow)
 - Data Dictionary + Case Study updated to match
 
-### 6. AI Agent KPI Label Updates ✅ — June 13, 2026
+### 7. AI Agent KPI Label Updates ✅ — June 13, 2026
 - **Commit:** `eca8478`
 - `Avg Tier Adjustments` → `Total Tier Adjustments`; `Per session` → `Since Created`
 
-### 7. Back-link Feature ✅ — June 13, 2026
+### 8. Back-link Feature ✅ — June 13, 2026
 - **Final commit:** `daf3a4a`
 - `⊞` icons on 22 Data Dictionary entries (JS-injected) + 4 Case Study findings (HTML)
 - Clicking navigates to correct tab, scrolls, pulses 5s cyan overlay
 - 4 bugs fixed (glow inner div, wrong tab, box-shadow → background, A/B stat)
 
-### 8. KPI Tooltips — Hybrid Approach ✅ — June 13, 2026
+### 9. KPI Tooltips — Hybrid Approach ✅ — June 13, 2026
 - **Final commit:** `b7975ba`
 - Tier 1: JS floating tooltip (5 KPI tiles + 17 chart card-titles)
 - Tier 2: ℹ icon → Data Dictionary accordion (16 KPI labels)
 - Tier 3: ℹ icon → Case Study Key Findings (4 elements)
 - 7 bugs fixed across tooltip implementation
 
-### 9. BigQuery Integration ✅ — June 12/13, 2026
+### 10. BigQuery Integration ✅ — June 12/13, 2026
 - **Commit:** `ecbdcd2`
 - Avg Start Tier + Avg Final Tier KPIs live from BigQuery
 - `@google-cloud/bigquery@8.3.1` added to Lambda; 24h in-memory cache; 500MB safety cap
 - Dataset: `analytics_525680032`
-
-### 10. API Gateway Response Caching ✅ — June 12, 2026
-- 0.5 GB cache, 300s TTL, all 4 query params declared as cache keys
-- Daily quota raised 1,000 → 10,000 req/day
-- Cache hits verified via CloudWatch CacheHitCount
 
 ---
 
@@ -115,14 +111,14 @@ Older completed tasks (Phase 6A/6B/6C/6D, Phase 5, Phase 4, April/March 2026 wor
 
 ## 📊 STATISTICS
 
-**Pending:** 2 tasks (1 blocked, 1 backlog)
+**Pending:** 1 task (MT-6 backlog)
 **Completed (active doc):** 10
 **Completion Rate (June 2026):** 40+ tasks completed total
-**Dashboard:** ~88% live data
+**Dashboard:** ~90% live data
 
 ---
 
 ## 🔄 SYNC NOTES
 
-**Last Sync with HANDOFF_SUMMARY.md:** June 13, 2026 (Session 2)
+**Last Sync with HANDOFF_SUMMARY.md:** June 24, 2026 (Session 3)
 **Sync Status:** ✅ In sync

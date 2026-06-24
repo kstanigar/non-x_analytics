@@ -2,11 +2,44 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 13, 2026 (Session 2)
+**Last Updated:** June 24, 2026 (Session 3)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 24, 2026 - Tier vs Final Score Scatter Chart (MT-5)
+
+**Status:** ✅ COMPLETE | Lambda: ✅ deployed + verified | Git: pending push
+
+### Changes
+
+**`api/index.js`:**
+- `'tier-score'` added to `VALID_SUBTYPES` array (`api/index.js:14`)
+- `let tierScoreCache = { data: null, timestamp: 0 }` added alongside `tierCache`
+- Option B BigQuery handler inserted before realtime block — joins `player_won` (`final_score`) with last `ai_difficulty_adjusted` per session (`new_tier`) via `LAST_VALUE() OVER()`
+- Reuses `TIER_CACHE_TTL_MS` (24h) and `getBigQueryClient()` lazy-loader
+
+**`live.html`:**
+- Chart card with `<canvas id="chart-tier-score">` added after Tier Performance Metrics table
+- `DATA.aiAgent.tierScorePoints: []` added to DATA object
+- `fetchTierScoreData()` function added (same pattern as `fetchAvgTierData`)
+- Both BigQuery fetches run in parallel via `Promise.all([fetchAvgTierData(), fetchTierScoreData()])`
+- `chartTierScore()` scatter chart function — color-coded by tier using existing `RED/YEL/GRN/CYAN/MAG/PUR` constants
+- `chartTierScore()` called in `reinitAllCharts()`
+
+**BUG-001 — `Unrecognized name: ga_session_id`:**
+- Root cause: `ga_session_id` referenced as top-level BigQuery column — it lives in `event_params`
+- Fix: extracted via `(SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS ga_session_id` in both CTEs; PARTITION BY uses same subquery expression (matches `avg-tier` pattern)
+- Verified via CloudWatch; endpoint now returns `{"points":[{"x":3432,"y":2},{"x":6586,"y":2}]}` ✅
+
+**Docs:**
+- `docs/MT5_Tier_Score_Chart_Plan.md` created — full plan with bug log → archived to `completed-implementations/`
+- `docs/Decimal_Rounding_Plan.md` → archived to `completed-implementations/`
+- PRIORITIES.md: MT-5 marked ✅ complete; API Gateway Caching pushed to PRIORITIES_ARCHIVE.md
+- HANDOFF_SUMMARY.md: this entry
 
 ---
 

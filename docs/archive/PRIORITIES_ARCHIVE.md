@@ -5,6 +5,12 @@
 
 ---
 
+## Completed: June 24, 2026 (Session 3 — moved to archive)
+
+- [x] **API Gateway Response Caching** ✅ — June 12, 2026 | 0.5 GB cache, 300s TTL, all 4 query params as cache keys; daily quota raised 1,000 → 10,000 req/day; cache hits verified via CloudWatch CacheHitCount
+
+---
+
 ## Completed: June 13, 2026 (Session 2 — moved to archive)
 
 - [x] **Dashboard Styling + Text Fixes** ✅ — Commit: `5c90a98` | Funnel drop text → yellow; Music OFF funnel/table → yellow; platform table delta `sec` → `min`; boss defeat rates got `%` suffix
