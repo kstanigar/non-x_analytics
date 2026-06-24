@@ -17,6 +17,7 @@ jobs:
         run: |
           mkdir -p deploy
           cp live.html deploy/index.html
+          cp -r images deploy/images
 
       - name: Deploy to GitHub Pages (staging subfolder)
         uses: JamesIves/github-pages-deploy-action@v4

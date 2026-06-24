@@ -17,6 +17,7 @@ jobs:
         run: |
           mkdir -p deploy
           cp live.html deploy/index.html
+          cp -r images deploy/images
           # CNAME file tells GitHub Pages to serve this site on the custom domain.
           # If you haven't set up a custom domain yet, delete or comment out the next line.
           # Replace with your actual domain (e.g. analytics.yourdomain.com) when ready.
