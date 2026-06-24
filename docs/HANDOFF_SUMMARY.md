@@ -10,6 +10,34 @@
 
 ---
 
+## June 24, 2026 - Lambda Concurrency Issue (P-0) — BLOCKED
+
+**Status:** 🟡 BLOCKED — AWS quota increase pending (1–3 business days)
+
+### Problem
+Parallel fetch refactor fires 17 simultaneous Lambda requests. Account-level concurrency limit is 10 → 7 endpoints throttled → HTTP 500 → fall back to mock data. Core KPIs (GA4 overview) still load correctly.
+
+### Diagnosis
+- CloudWatch confirmed cold-start invocations (Init: ~806ms)
+- Lambda Configuration → Concurrency → Unreserved account concurrency: **10**
+- 17 simultaneous requests exceed limit by 7 → explains exactly 7 failing endpoints
+
+### Action Taken
+- AWS Service Quotas → Lambda → Concurrent executions → increase requested to **50**
+- Awaiting approval email (typically 1–3 business days)
+
+### Next Session
+1. Check email for quota approval
+2. If approved: test staging with single-wave — all 17 should succeed
+3. If not approved: implement sub-waves (two `Promise.allSettled` calls of ≤8 each) as fallback
+
+### Fallback Plan (sub-waves)
+- Wave A (8): fetchGA4Data, fetchBossAnalysisData, fetchMusicABData, fetchPlatformSplitData, fetchDailyTimeseriesData, fetchSurvivalTimeData, fetchPowerupAnalysisData, fetchAIAnalysisData
+- Wave B (9): fetchDeathTriggersData, fetchNewUserPctData, fetchReplayRateData, fetchMovementABData, fetchAvgTierData, fetchTierScoreData, fetchEngagementData, fetchMusicFunnelData, fetchProgressionAnalysisData
+- Map Wave A first (populates DATA dependencies), then fire + map Wave B
+
+---
+
 ## June 24, 2026 - Favicon, Logo, Footer, Terms & Privacy (P-1 – P-4)
 
 **Status:** ✅ COMPLETE | Branch: `feature/favicon-and-logo` | Production: ✅ live
