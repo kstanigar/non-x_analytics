@@ -18,6 +18,8 @@ jobs:
           mkdir -p deploy
           cp live.html deploy/index.html
           cp -r images deploy/images
+          cp terms.html deploy/terms.html
+          cp privacy.html deploy/privacy.html
 
       - name: Deploy to GitHub Pages (staging subfolder)
         uses: JamesIves/github-pages-deploy-action@v4

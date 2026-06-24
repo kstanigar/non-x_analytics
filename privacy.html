@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — NON-X Analytics</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --cyan: #00ffff;
+      --text: #e0e0e0;
+      --text-dim: #6b7280;
+      --mono: 'Courier New', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      padding: 48px 24px;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    .back {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 40px;
+      transition: color 0.15s;
+    }
+    .back:hover { color: var(--cyan); }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--cyan);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .meta {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-top: 36px;
+      margin-bottom: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    p { margin-bottom: 14px; color: var(--text); }
+    ul { margin: 0 0 14px 20px; color: var(--text); }
+    li { margin-bottom: 6px; }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back">← Back to Dashboard</a>
+
+    <h1>Privacy Policy</h1>
+    <p class="meta">Standing Tiger &nbsp;·&nbsp; Last updated: June 2026</p>
+
+    <h2>1. Information We Collect</h2>
+    <p>The NON-X Analytics Dashboard itself does not collect personal information from visitors. It is a read-only display of aggregated game analytics data.</p>
+    <p>The underlying NON-X game collects anonymized gameplay events through Google Analytics 4 (GA4), including:</p>
+    <ul>
+      <li>Session identifiers (anonymized)</li>
+      <li>Device category (desktop or mobile)</li>
+      <li>Game events (game start, boss encounters, game outcome)</li>
+      <li>A/B test group assignments (music, movement)</li>
+    </ul>
+    <p>No names, email addresses, or personally identifiable information are collected or displayed.</p>
+
+    <h2>2. How We Use It</h2>
+    <p>Aggregated analytics data is used solely to understand gameplay patterns and improve the NON-X game experience. Data displayed on this dashboard is used for portfolio and research purposes only.</p>
+
+    <h2>3. Third-Party Services</h2>
+    <p>This dashboard uses the following third-party services:</p>
+    <ul>
+      <li><strong>Google Analytics 4</strong> — anonymized event collection for the NON-X game. Subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a>.</li>
+      <li><strong>AWS Lambda + API Gateway</strong> — serverless API that serves aggregated data to this dashboard. No user data is stored or logged beyond standard AWS CloudWatch metrics.</li>
+      <li><strong>Google BigQuery</strong> — data warehouse for historical GA4 export. Access is read-only and restricted to the Standing Tiger service account.</li>
+    </ul>
+
+    <h2>4. Data Retention</h2>
+    <p>GA4 event data is retained according to Google's standard retention policies (14 months by default). Aggregated data cached by the API is held in memory for up to 24 hours and is not persisted to disk or a database.</p>
+
+    <h2>5. Your Rights</h2>
+    <p>Since no personal data is collected from dashboard visitors, there is no personal data to access, correct, or delete. If you have questions about GA4 data collected through the NON-X game, you may contact us below.</p>
+
+    <h2>6. Contact</h2>
+    <p>Privacy questions can be directed to <a href="mailto:contact@standingtiger.com">contact@standingtiger.com</a>.</p>
+
+    <footer>© 2026 Standing Tiger. All rights reserved. &nbsp;·&nbsp; <a href="terms.html">Terms of Service</a></footer>
+  </div>
+</body>
+</html>
