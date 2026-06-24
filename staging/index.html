@@ -106,22 +106,47 @@
       margin-bottom: 32px;
     }
 
-    .logo-row {
+    .site-footer {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px 32px;
+      margin-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
     }
 
-    .logo-img {
-      height: 40px;
-      width: 40px;
+    .footer-logo {
+      height: 32px;
+      width: 32px;
       object-fit: contain;
       border-radius: 50%;
+      opacity: 0.7;
       transition: opacity 0.15s ease;
     }
 
-    .logo-img:hover {
-      opacity: 0.75;
+    .footer-logo:hover {
+      opacity: 1;
+    }
+
+    .footer-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--cyan);
     }
 
     .logo-block h1 {
@@ -1596,12 +1621,7 @@
     <!-- HEADER -->
     <header>
       <div class="logo-block">
-        <div class="logo-row">
-          <a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener">
-            <img src="images/st_760.png" alt="Standing Tiger" class="logo-img">
-          </a>
-          <h1><a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener">NON-X</a></h1>
-        </div>
+        <h1><a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener">NON-X</a></h1>
         <p>Analytics Command Center &nbsp;·&nbsp; GA4 · Lambda API</p>
       </div>
       <div class="header-meta">
@@ -6285,6 +6305,20 @@
         });
       })();
     </script>
+
+    <footer class="site-footer">
+      <a href="https://standingtiger.com/" target="_blank" rel="noopener">
+        <img src="images/st_760.png" alt="Standing Tiger" class="footer-logo">
+      </a>
+      <div class="footer-text">
+        <span>© 2026 Standing Tiger. All rights reserved.</span>
+        <span class="footer-links">
+          <a href="terms.html" target="_blank">Terms of Service</a>
+          &nbsp;·&nbsp;
+          <a href="privacy.html" target="_blank">Privacy Policy</a>
+        </span>
+      </div>
+    </footer>
 </body>
 
 </html>
