@@ -4535,34 +4535,23 @@
         isRefreshing = true;
         updateAPIStatus('loading', 'Fetching data...');
 
-        // Fire all 17 fetches simultaneously — mapping order below handles data dependencies
+        // Wave A (8 fetches) — account concurrency limit is 10; stay safely under it
         const [
-          ga4Result, platformResult, dailyResult, bossResult,
-          survivalResult, powerupResult, aiResult, deathTriggersResult,
-          newUserResult, replayResult, musicABResult, movementABResult,
-          avgTierResult, tierScoreResult, engagementResult, musicFunnelResult,
-          progressionResult
+          ga4Result, bossResult, musicABResult, platformResult,
+          dailyResult, survivalResult, powerupResult, aiResult
         ] = await Promise.allSettled([
           fetchGA4Data(type),
+          fetchBossAnalysisData(),
+          fetchMusicABData(),
           fetchPlatformSplitData(),
           fetchDailyTimeseriesData(),
-          fetchBossAnalysisData(),
           fetchSurvivalTimeData(),
           fetchPowerupAnalysisData(),
-          fetchAIAnalysisData(),
-          fetchDeathTriggersData(),
-          fetchNewUserPctData(),
-          fetchReplayRateData(),
-          fetchMusicABData(),
-          fetchMovementABData(),
-          fetchAvgTierData(),
-          fetchTierScoreData(),
-          fetchEngagementData(),
-          fetchMusicFunnelData(),
-          fetchProgressionAnalysisData()
+          fetchAIAnalysisData()
         ]);
 
-        // 1. GA4 core KPIs — map first; engagement + progression mappers read DATA.kpis
+        // Map Wave A dependency results before Wave B fires
+        // (engagement, musicFunnel, progression mappers read DATA.kpis + DATA.bossAnalysis + DATA.abMusic)
         const ga4Value = ga4Result.status === 'fulfilled' ? ga4Result.value : { success: false, error: ga4Result.reason };
         if (!ga4Value.success) {
           console.error('Failed to fetch GA4 data:', ga4Value.error);
@@ -4571,25 +4560,24 @@
           isRefreshing = false;
           return false;
         }
-        const mappedData = mapGA4ResponseToDATA(ga4Value.data, type);
-        if (mappedData.error) {
-          console.error('Failed to map GA4 data:', mappedData.error);
-          updateAPIStatus('error', `Mapping error: ${mappedData.error}`);
-          showToast(`Failed to process data: ${mappedData.error}`, 'error');
+        const mappedDataA = mapGA4ResponseToDATA(ga4Value.data, type);
+        if (mappedDataA.error) {
+          console.error('Failed to map GA4 data:', mappedDataA.error);
+          updateAPIStatus('error', `Mapping error: ${mappedDataA.error}`);
+          showToast(`Failed to process data: ${mappedDataA.error}`, 'error');
           isRefreshing = false;
           return false;
         }
-        if (mappedData.isEmpty) {
+        if (mappedDataA.isEmpty) {
           console.warn('No data available in response');
-          updateAPIStatus('warning', mappedData.message || 'No data available');
-          showToast(mappedData.message || 'No data in date range', 'warning');
+          updateAPIStatus('warning', mappedDataA.message || 'No data available');
+          showToast(mappedDataA.message || 'No data in date range', 'warning');
           isRefreshing = false;
           return false;
         }
-        DATA.kpis = mappedData.kpis;
-        DATA.eventCounts = mappedData.eventCounts;
+        DATA.kpis = mappedDataA.kpis;
+        DATA.eventCounts = mappedDataA.eventCounts;
 
-        // 2. Boss analysis — map second; engagement + progression mappers read DATA.bossAnalysis
         if (bossResult.status === 'fulfilled' && bossResult.value.success && bossResult.value.data) {
           const bossData = mapGA4ResponseToDATA(bossResult.value.data, 'boss-analysis');
           if (!bossData.error && bossData.bossAnalysis) {
@@ -4600,14 +4588,9 @@
               DATA.platform.mobile.boss1  = DATA.bossAnalysis.boss1.mobile.defeatRate;
               DATA.platform.mobile.boss2  = DATA.bossAnalysis.boss2.mobile.defeatRate;
             }
-          } else {
-            console.warn('Boss-analysis parsing failed, using mock data');
-          }
-        } else {
-          console.warn('Boss-analysis fetch failed, using mock data:', bossResult.reason ?? bossResult.value?.error);
-        }
+          } else { console.warn('Boss-analysis parsing failed, using mock data'); }
+        } else { console.warn('Boss-analysis fetch failed, using mock data:', bossResult.reason ?? bossResult.value?.error); }
 
-        // 3. Music A/B — map third; music-funnel mapper reads DATA.abMusic
         if (musicABResult.status === 'fulfilled' && musicABResult.value.success && musicABResult.value.data) {
           const mabData = mapGA4ResponseToDATA(musicABResult.value.data, 'music-ab');
           if (!mabData.error && mabData.hasRealData) {
@@ -4621,12 +4604,25 @@
             DATA.abMusic.B.musicToggle = mabData.musicAB.off.musicToggle;
             DATA.abSplit.musicOn       = mabData.abSplit.musicOn;
             DATA.abSplit.musicOff      = mabData.abSplit.musicOff;
-          } else {
-            console.warn('Music-AB parsing failed or no data, using mock values');
-          }
-        } else {
-          console.warn('Music-AB fetch failed:', musicABResult.reason ?? musicABResult.value?.error);
-        }
+          } else { console.warn('Music-AB parsing failed or no data, using mock values'); }
+        } else { console.warn('Music-AB fetch failed:', musicABResult.reason ?? musicABResult.value?.error); }
+
+        // Wave B (9 fetches) — DATA dependencies populated above
+        const [
+          deathTriggersResult, newUserResult, replayResult, movementABResult,
+          avgTierResult, tierScoreResult, engagementResult, musicFunnelResult,
+          progressionResult
+        ] = await Promise.allSettled([
+          fetchDeathTriggersData(),
+          fetchNewUserPctData(),
+          fetchReplayRateData(),
+          fetchMovementABData(),
+          fetchAvgTierData(),
+          fetchTierScoreData(),
+          fetchEngagementData(),
+          fetchMusicFunnelData(),
+          fetchProgressionAnalysisData()
+        ]);
 
         // 4. Platform split
         if (platformResult.status === 'fulfilled' && platformResult.value.success && platformResult.value.data) {
