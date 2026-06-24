@@ -4490,18 +4490,43 @@
         isRefreshing = true;
         updateAPIStatus('loading', 'Fetching data...');
 
-        const result = await fetchGA4Data(type);
+        // Fire all 17 fetches simultaneously — mapping order below handles data dependencies
+        const [
+          ga4Result, platformResult, dailyResult, bossResult,
+          survivalResult, powerupResult, aiResult, deathTriggersResult,
+          newUserResult, replayResult, musicABResult, movementABResult,
+          avgTierResult, tierScoreResult, engagementResult, musicFunnelResult,
+          progressionResult
+        ] = await Promise.allSettled([
+          fetchGA4Data(type),
+          fetchPlatformSplitData(),
+          fetchDailyTimeseriesData(),
+          fetchBossAnalysisData(),
+          fetchSurvivalTimeData(),
+          fetchPowerupAnalysisData(),
+          fetchAIAnalysisData(),
+          fetchDeathTriggersData(),
+          fetchNewUserPctData(),
+          fetchReplayRateData(),
+          fetchMusicABData(),
+          fetchMovementABData(),
+          fetchAvgTierData(),
+          fetchTierScoreData(),
+          fetchEngagementData(),
+          fetchMusicFunnelData(),
+          fetchProgressionAnalysisData()
+        ]);
 
-        if (!result.success) {
-          console.error('Failed to fetch GA4 data:', result.error);
-          updateAPIStatus('error', `Error: ${result.error}`);
-          showToast(`Failed to load data: ${result.error}`, 'error');
+        // 1. GA4 core KPIs — map first; engagement + progression mappers read DATA.kpis
+        const ga4Value = ga4Result.status === 'fulfilled' ? ga4Result.value : { success: false, error: ga4Result.reason };
+        if (!ga4Value.success) {
+          console.error('Failed to fetch GA4 data:', ga4Value.error);
+          updateAPIStatus('error', `Error: ${ga4Value.error}`);
+          showToast(`Failed to load data: ${ga4Value.error}`, 'error');
           isRefreshing = false;
           return false;
         }
-
-        const mappedData = mapGA4ResponseToDATA(result.data, type);
-
+        const mappedData = mapGA4ResponseToDATA(ga4Value.data, type);
         if (mappedData.error) {
           console.error('Failed to map GA4 data:', mappedData.error);
           updateAPIStatus('error', `Mapping error: ${mappedData.error}`);
@@ -4509,7 +4534,6 @@
           isRefreshing = false;
           return false;
         }
-
         if (mappedData.isEmpty) {
           console.warn('No data available in response');
           updateAPIStatus('warning', mappedData.message || 'No data available');
@@ -4517,37 +4541,66 @@
           isRefreshing = false;
           return false;
         }
-
-        // Update DATA object (only KPIs for now, since current API is limited)
         DATA.kpis = mappedData.kpis;
-        DATA.eventCounts = mappedData.eventCounts; // Store for reference
+        DATA.eventCounts = mappedData.eventCounts;
 
-        // Fetch platform-split data (desktop vs mobile breakdown)
-        const platformResult = await fetchPlatformSplitData();
+        // 2. Boss analysis — map second; engagement + progression mappers read DATA.bossAnalysis
+        if (bossResult.status === 'fulfilled' && bossResult.value.success && bossResult.value.data) {
+          const bossData = mapGA4ResponseToDATA(bossResult.value.data, 'boss-analysis');
+          if (!bossData.error && bossData.bossAnalysis) {
+            DATA.bossAnalysis = bossData.bossAnalysis;
+            if (DATA.bossAnalysis.boss1 && DATA.bossAnalysis.boss2) {
+              DATA.platform.desktop.boss1 = DATA.bossAnalysis.boss1.desktop.defeatRate;
+              DATA.platform.desktop.boss2 = DATA.bossAnalysis.boss2.desktop.defeatRate;
+              DATA.platform.mobile.boss1  = DATA.bossAnalysis.boss1.mobile.defeatRate;
+              DATA.platform.mobile.boss2  = DATA.bossAnalysis.boss2.mobile.defeatRate;
+            }
+          } else {
+            console.warn('Boss-analysis parsing failed, using mock data');
+          }
+        } else {
+          console.warn('Boss-analysis fetch failed, using mock data:', bossResult.reason ?? bossResult.value?.error);
+        }
 
-        if (platformResult.success && platformResult.data) {
-          // Update DATA.platform with live data from API
-          // platformResult.data structure: { desktop: {...}, mobile: {...} }
-          const pd = platformResult.data;
+        // 3. Music A/B — map third; music-funnel mapper reads DATA.abMusic
+        if (musicABResult.status === 'fulfilled' && musicABResult.value.success && musicABResult.value.data) {
+          const mabData = mapGA4ResponseToDATA(musicABResult.value.data, 'music-ab');
+          if (!mabData.error && mabData.hasRealData) {
+            DATA.abMusic.A.sessions    = mabData.musicAB.on.sessions;
+            DATA.abMusic.A.winRate     = mabData.musicAB.on.winRate;
+            DATA.abMusic.A.lbRate      = mabData.musicAB.on.lbRate;
+            DATA.abMusic.A.musicToggle = mabData.musicAB.on.musicToggle;
+            DATA.abMusic.B.sessions    = mabData.musicAB.off.sessions;
+            DATA.abMusic.B.winRate     = mabData.musicAB.off.winRate;
+            DATA.abMusic.B.lbRate      = mabData.musicAB.off.lbRate;
+            DATA.abMusic.B.musicToggle = mabData.musicAB.off.musicToggle;
+            DATA.abSplit.musicOn       = mabData.abSplit.musicOn;
+            DATA.abSplit.musicOff      = mabData.abSplit.musicOff;
+          } else {
+            console.warn('Music-AB parsing failed or no data, using mock values');
+          }
+        } else {
+          console.warn('Music-AB fetch failed:', musicABResult.reason ?? musicABResult.value?.error);
+        }
 
-          // Calculate derived KPIs for each platform
+        // 4. Platform split
+        if (platformResult.status === 'fulfilled' && platformResult.value.success && platformResult.value.data) {
+          const pd = platformResult.value.data;
           DATA.platform = {
             desktop: {
               sessions: pd.desktop.sessions,
               winRate: pd.desktop.gameStarts > 0
                 ? ((pd.desktop.playerWon / pd.desktop.gameStarts) * 100).toFixed(0) + '%'
                 : '0%',
-              // Note: Additional KPIs (survival, replay, avgLevel, lbRate, boss rates) require more API dimensions
-              // For now, these will remain with mock data until Phase 6A Tasks 6-7 complete
-              survival: DATA.platform.desktop.survival,   // Mock data (requires timeseries)
-              replay: DATA.platform.desktop.replay,       // Mock data (requires user dimension)
-              avgLevel: DATA.platform.desktop.avgLevel,   // Mock data (requires level dimension)
+              survival: DATA.platform.desktop.survival,
+              replay: DATA.platform.desktop.replay,
+              avgLevel: DATA.platform.desktop.avgLevel,
               lbRate: pd.desktop.playerWon > 0
                 ? ((pd.desktop.leaderboardSubmit / pd.desktop.playerWon) * 100).toFixed(0) + '%'
                 : '0%',
-              boss1: DATA.platform.desktop.boss1,         // Mock data (requires boss dimension)
-              boss2: DATA.platform.desktop.boss2,         // Mock data (requires boss dimension)
-              boss3: DATA.platform.desktop.boss3,         // Mock data (requires boss dimension)
+              boss1: DATA.platform.desktop.boss1,
+              boss2: DATA.platform.desktop.boss2,
+              boss3: DATA.platform.desktop.boss3,
             },
             mobile: {
               sessions: pd.mobile.sessions,
@@ -4565,77 +4618,38 @@
               boss3: DATA.platform.mobile.boss3,
             },
           };
-
-          // Derive device mix percentages from live session counts
           const totalSessions = DATA.platform.desktop.sessions + DATA.platform.mobile.sessions;
           if (totalSessions > 0) {
             DATA.deviceMix.desktop = Math.round((DATA.platform.desktop.sessions / totalSessions) * 100);
             DATA.deviceMix.mobile  = Math.round((DATA.platform.mobile.sessions  / totalSessions) * 100);
           }
-
-          // Update KPI cards on PLATFORM tab with live data
           DATA.kpis.deskWin    = DATA.platform.desktop.winRate;
           DATA.kpis.deskWinSub = `<span style="color:var(--green)">${pd.desktop.playerWon}&nbsp;wins</span> / <span style="color:#FFD700">${pd.desktop.gameStarts}&nbsp;starts</span>`;
           DATA.kpis.mobWin     = DATA.platform.mobile.winRate;
           DATA.kpis.mobWinSub  = `<span style="color:var(--green)">${pd.mobile.playerWon}&nbsp;wins</span> / <span style="color:#FFD700">${pd.mobile.gameStarts}&nbsp;starts</span>`;
-          DATA.kpis.deskLevel = DATA.platform.desktop.avgLevel; // Desktop avg level (mock until Task 6-7)
-          DATA.kpis.mobLevel = DATA.platform.mobile.avgLevel;   // Mobile avg level (mock until Task 6-7)
-
+          DATA.kpis.deskLevel = DATA.platform.desktop.avgLevel;
+          DATA.kpis.mobLevel = DATA.platform.mobile.avgLevel;
         } else {
-          console.warn('Platform-split data fetch failed, using mock data:', platformResult.error);
+          console.warn('Platform-split data fetch failed, using mock data:', platformResult.reason ?? platformResult.value?.error);
         }
 
-        // Fetch daily timeseries data (14-day trend)
-        const dailyResult = await fetchDailyTimeseriesData();
-
-        if (dailyResult.success && dailyResult.data) {
-          // Update DATA.daily with live data from API
-          const dailyData = mapGA4ResponseToDATA(dailyResult.data, 'daily-timeseries');
-
+        // 5. Daily timeseries
+        if (dailyResult.status === 'fulfilled' && dailyResult.value.success && dailyResult.value.data) {
+          const dailyData = mapGA4ResponseToDATA(dailyResult.value.data, 'daily-timeseries');
           if (!dailyData.error && dailyData.daily) {
             DATA.daily = dailyData.daily;
           } else {
             console.warn('Daily-timeseries parsing failed, using mock data');
           }
         } else {
-          console.warn('Daily-timeseries fetch failed, using mock data:', dailyResult.error);
+          console.warn('Daily-timeseries fetch failed, using mock data:', dailyResult.reason ?? dailyResult.value?.error);
         }
 
-        // Fetch boss analysis data (boss defeat rates by platform)
-        const bossResult = await fetchBossAnalysisData();
-
-        if (bossResult.success && bossResult.data) {
-          // Update DATA.bossAnalysis with live data from API
-          const bossData = mapGA4ResponseToDATA(bossResult.data, 'boss-analysis');
-
-          if (!bossData.error && bossData.bossAnalysis) {
-            DATA.bossAnalysis = bossData.bossAnalysis;
-
-            // Wire live boss defeat rates into DATA.platform for chartPlatformFunnel()
-            if (DATA.bossAnalysis.boss1 && DATA.bossAnalysis.boss2) {
-              DATA.platform.desktop.boss1 = DATA.bossAnalysis.boss1.desktop.defeatRate;
-              DATA.platform.desktop.boss2 = DATA.bossAnalysis.boss2.desktop.defeatRate;
-              DATA.platform.mobile.boss1  = DATA.bossAnalysis.boss1.mobile.defeatRate;
-              DATA.platform.mobile.boss2  = DATA.bossAnalysis.boss2.mobile.defeatRate;
-            }
-          } else {
-            console.warn('Boss-analysis parsing failed, using mock data');
-          }
-        } else {
-          console.warn('Boss-analysis fetch failed, using mock data:', bossResult.error);
-        }
-
-        // Fetch survival time distribution (session duration by platform)
-        const survivalResult = await fetchSurvivalTimeData();
-
-        if (survivalResult.success && survivalResult.data) {
-          const survivalData = mapGA4ResponseToDATA(survivalResult.data, 'survival-time');
-
+        // 6. Survival time
+        if (survivalResult.status === 'fulfilled' && survivalResult.value.success && survivalResult.value.data) {
+          const survivalData = mapGA4ResponseToDATA(survivalResult.value.data, 'survival-time');
           if (!survivalData.error && survivalData.survivalDist) {
-            // Update survival distribution chart data
             DATA.survivalDist = survivalData.survivalDist;
-
-            // Update average survival time for platform comparison
             if (survivalData.avgSurvival) {
               DATA.kpis.survival             = survivalData.avgSurvival.desktop;
               DATA.platform.desktop.survival = survivalData.avgSurvival.desktop;
@@ -4645,39 +4659,118 @@
             console.warn('Survival-time parsing failed, using mock data');
           }
         } else {
-          console.warn('Survival-time fetch failed, using mock data:', survivalResult.error);
+          console.warn('Survival-time fetch failed, using mock data:', survivalResult.reason ?? survivalResult.value?.error);
         }
 
-        // Fetch powerup analysis data (powerup collection by phase and platform)
-        const powerupResult = await fetchPowerupAnalysisData();
-
-        if (powerupResult.success && powerupResult.data) {
-          const powerupData = mapGA4ResponseToDATA(powerupResult.data, 'powerup-analysis');
-
+        // 7. Powerup analysis
+        if (powerupResult.status === 'fulfilled' && powerupResult.value.success && powerupResult.value.data) {
+          const powerupData = mapGA4ResponseToDATA(powerupResult.value.data, 'powerup-analysis');
           if (!powerupData.error && powerupData.powerupCollection) {
-            // Update powerup collection chart data
             DATA.powerups = powerupData.powerupCollection;
           } else {
             console.warn('Powerup-analysis parsing failed, using mock data');
           }
         } else {
-          console.warn('Powerup-analysis fetch failed, using mock data:', powerupResult.error);
+          console.warn('Powerup-analysis fetch failed, using mock data:', powerupResult.reason ?? powerupResult.value?.error);
         }
 
-        // Fetch progression analysis data (wave drop-off by level and platform)
-        const progressionResult = await fetchProgressionAnalysisData();
+        // 8. AI analysis
+        if (aiResult.status === 'fulfilled' && aiResult.value.success && aiResult.value.data) {
+          const aiData = mapGA4ResponseToDATA(aiResult.value.data, 'ai-analysis');
+          if (!aiData.error && aiData.aiData?.hasRealData) {
+            DATA.aiAgent.tierDist.counts      = aiData.aiData.tierDistCounts;
+            DATA.aiAgent.tierFlow.increases   = aiData.aiData.increases;
+            DATA.aiAgent.tierFlow.decreases   = aiData.aiData.decreases;
+            DATA.aiAgent.kpis.avgAdjustments  = aiData.aiData.totalAdjustments.toString();
+            DATA.aiAgent.kpis.speedLockRate   = aiData.aiData.speedLockRate;
+            DATA.aiAgent.kpis.speedLockSub    = aiData.aiData.speedLockSub;
+            DATA.aiAgent.scoreMultDist.counts = aiData.aiData.scoreMultCounts;
+          } else {
+            console.warn('AI-analysis parsing failed or no data, charts remain empty');
+          }
+        } else {
+          console.warn('AI-analysis fetch failed:', aiResult.reason ?? aiResult.value?.error);
+        }
 
-        if (progressionResult.success && progressionResult.data) {
-          const progressionData = mapGA4ResponseToDATA(progressionResult.data, 'progression-analysis');
+        // 9. Death triggers
+        if (deathTriggersResult.status === 'fulfilled' && deathTriggersResult.value.success && deathTriggersResult.value.data) {
+          const dtData = mapGA4ResponseToDATA(deathTriggersResult.value.data, 'death-triggers');
+          if (!dtData.error && dtData.deathTriggers?.hasRealData) {
+            DATA.aiAgent.deathTriggers.counts = dtData.deathTriggers.counts;
+          } else {
+            console.warn('Death-triggers parsing failed or no data, chart remains empty');
+          }
+        } else {
+          console.warn('Death-triggers fetch failed:', deathTriggersResult.reason ?? deathTriggersResult.value?.error);
+        }
 
+        // 10. New user %
+        if (newUserResult.status === 'fulfilled' && newUserResult.value.success && newUserResult.value.data) {
+          const nuData = mapGA4ResponseToDATA(newUserResult.value.data, 'new-user-pct');
+          if (!nuData.error && nuData.hasRealData) {
+            DATA.kpis.newPct    = nuData.newPct;
+            DATA.kpis.newPctSub = `<span style="color:#FFD700">${nuData.newCount}&nbsp;new</span> / <span style="color:var(--green)">${nuData.returningCount}&nbsp;returning</span>`;
+          } else {
+            console.warn('New-user-pct parsing failed or no data, using mock value');
+          }
+        } else {
+          console.warn('New-user-pct fetch failed:', newUserResult.reason ?? newUserResult.value?.error);
+        }
+
+        // 11. Replay rate
+        if (replayResult.status === 'fulfilled' && replayResult.value.success && replayResult.value.data) {
+          const rrData = mapGA4ResponseToDATA(replayResult.value.data, 'replay-rate');
+          if (!rrData.error && rrData.hasRealData) {
+            DATA.kpis.replay             = rrData.replayRate;
+            DATA.kpis.replaySub          = rrData.replaySub;
+            DATA.platform.desktop.replay = rrData.desktop.replayRate;
+            DATA.platform.mobile.replay  = rrData.mobile.replayRate;
+          } else {
+            console.warn('Replay-rate parsing failed or no data, using mock value');
+          }
+        } else {
+          console.warn('Replay-rate fetch failed:', replayResult.reason ?? replayResult.value?.error);
+        }
+
+        // 12. Movement A/B
+        if (movementABResult.status === 'fulfilled' && movementABResult.value.success && movementABResult.value.data) {
+          const mabData = mapGA4ResponseToDATA(movementABResult.value.data, 'movement-ab');
+          if (!mabData.error && mabData.hasRealData) {
+            DATA.abMovement.A.sessions = mabData.movementAB.A.sessions;
+            DATA.abMovement.A.winRate  = mabData.movementAB.A.winRate;
+            DATA.abMovement.A.label    = 'Horizontal (1.25× pts)';
+            DATA.abMovement.B.sessions = mabData.movementAB.B.sessions;
+            DATA.abMovement.B.winRate  = mabData.movementAB.B.winRate;
+            DATA.abMovement.B.label    = 'Full Direction';
+          } else {
+            console.warn('Movement-AB parsing failed or no data, using mock values');
+          }
+        } else {
+          console.warn('Movement-AB fetch failed:', movementABResult.reason ?? movementABResult.value?.error);
+        }
+
+        // 13. Avg tier + tier score (BigQuery)
+        if (avgTierResult.status === 'fulfilled' && avgTierResult.value.success && avgTierResult.value.data) {
+          if (avgTierResult.value.data.avgStartTier !== null) DATA.aiAgent.kpis.avgStartTier = String(avgTierResult.value.data.avgStartTier);
+          if (avgTierResult.value.data.avgFinalTier  !== null) DATA.aiAgent.kpis.avgFinalTier  = String(avgTierResult.value.data.avgFinalTier);
+          populateAIKPIs();
+        } else {
+          console.warn('Avg-tier fetch failed:', avgTierResult.reason ?? avgTierResult.value?.error);
+        }
+        if (tierScoreResult.status === 'fulfilled' && tierScoreResult.value.success && tierScoreResult.value.data) {
+          DATA.aiAgent.tierScorePoints = tierScoreResult.value.data.points || [];
+        } else {
+          console.warn('Tier-score fetch failed:', tierScoreResult.reason ?? tierScoreResult.value?.error);
+        }
+
+        // 14. Progression analysis — reads DATA.bossAnalysis + DATA.kpis.sessions (mapped above)
+        if (progressionResult.status === 'fulfilled' && progressionResult.value.success && progressionResult.value.data) {
+          const progressionData = mapGA4ResponseToDATA(progressionResult.value.data, 'progression-analysis');
           if (!progressionData.error && progressionData.progressionData) {
-            // Populate live data keys — chartDropoff() uses hasRealData flag to switch from mock to live path
-            DATA.deathsByLevel.levelDeaths = progressionData.progressionData.levelDeaths;
+            DATA.deathsByLevel.levelDeaths  = progressionData.progressionData.levelDeaths;
             DATA.deathsByLevel.levelDesktop = progressionData.progressionData.levelDesktop;
-            DATA.deathsByLevel.levelMobile = progressionData.progressionData.levelMobile;
-            DATA.deathsByLevel.hasRealData = progressionData.progressionData.hasRealData;
-
-            // Wire avg level KPI — manual weighted average (GA4 has no native AVG metric)
+            DATA.deathsByLevel.levelMobile  = progressionData.progressionData.levelMobile;
+            DATA.deathsByLevel.hasRealData  = progressionData.progressionData.hasRealData;
             if (progressionData.progressionData.avgLevel) {
               DATA.kpis.avgLevel             = progressionData.progressionData.avgLevel.overall;
               DATA.kpis.deskLevel            = progressionData.progressionData.avgLevel.desktop;
@@ -4685,9 +4778,6 @@
               DATA.platform.desktop.avgLevel = progressionData.progressionData.avgLevel.desktop;
               DATA.platform.mobile.avgLevel  = progressionData.progressionData.avgLevel.mobile;
             }
-
-            // Wire game funnel — all stages from boss-analysis (attempt + defeat per boss)
-            // player_won proxy = boss3 defeats (virtually identical; exact count needs BigQuery session joins)
             const gs = parseInt((DATA.kpis.sessions || '0').replace(/,/g, ''), 10);
             if (gs > 0 && DATA.bossAnalysis?.boss1) {
               const ba1 = DATA.bossAnalysis.boss1.overall.attempts || 0;
@@ -4713,138 +4803,12 @@
             console.warn('Progression-analysis parsing failed, using mock data');
           }
         } else {
-          console.warn('Progression-analysis fetch failed, using mock data:', progressionResult.error);
+          console.warn('Progression-analysis fetch failed, using mock data:', progressionResult.reason ?? progressionResult.value?.error);
         }
 
-        // Fetch AI analysis data (tier distribution and flow by direction)
-        const aiResult = await fetchAIAnalysisData();
-
-        if (aiResult.success && aiResult.data) {
-          const aiData = mapGA4ResponseToDATA(aiResult.data, 'ai-analysis');
-
-          if (!aiData.error && aiData.aiData?.hasRealData) {
-            // Populate tierDist counts — chartAITierDist() reads DATA.aiAgent.tierDist.counts
-            DATA.aiAgent.tierDist.counts = aiData.aiData.tierDistCounts;
-            // Populate tierFlow — chartAITierFlow() reads DATA.aiAgent.tierFlow
-            DATA.aiAgent.tierFlow.increases = aiData.aiData.increases;
-            DATA.aiAgent.tierFlow.decreases = aiData.aiData.decreases;
-            // Populate KPI — populateAIKPIs() reads DATA.aiAgent.kpis.avgAdjustments
-            DATA.aiAgent.kpis.avgAdjustments = aiData.aiData.totalAdjustments.toString();
-            // Populate speed lock rate KPI — populateAIKPIs() reads DATA.aiAgent.kpis.speedLockRate
-            DATA.aiAgent.kpis.speedLockRate = aiData.aiData.speedLockRate;
-            DATA.aiAgent.kpis.speedLockSub  = aiData.aiData.speedLockSub;
-            // Populate score multiplier distribution — chartAIScoreMult() reads DATA.aiAgent.scoreMultDist.counts
-            DATA.aiAgent.scoreMultDist.counts = aiData.aiData.scoreMultCounts;
-          } else {
-            console.warn('AI-analysis parsing failed or no data, charts remain empty');
-          }
-        } else {
-          console.warn('AI-analysis fetch failed:', aiResult.error);
-        }
-
-        const deathTriggersResult = await fetchDeathTriggersData();
-        if (deathTriggersResult.success && deathTriggersResult.data) {
-          const dtData = mapGA4ResponseToDATA(deathTriggersResult.data, 'death-triggers');
-          if (!dtData.error && dtData.deathTriggers?.hasRealData) {
-            DATA.aiAgent.deathTriggers.counts = dtData.deathTriggers.counts;
-          } else {
-            console.warn('Death-triggers parsing failed or no data, chart remains empty');
-          }
-        } else {
-          console.warn('Death-triggers fetch failed:', deathTriggersResult.error);
-        }
-
-        const newUserResult = await fetchNewUserPctData();
-        if (newUserResult.success && newUserResult.data) {
-          const nuData = mapGA4ResponseToDATA(newUserResult.data, 'new-user-pct');
-          if (!nuData.error && nuData.hasRealData) {
-            DATA.kpis.newPct    = nuData.newPct;
-            DATA.kpis.newPctSub = `<span style="color:#FFD700">${nuData.newCount}&nbsp;new</span> / <span style="color:var(--green)">${nuData.returningCount}&nbsp;returning</span>`;
-          } else {
-            console.warn('New-user-pct parsing failed or no data, using mock value');
-          }
-        } else {
-          console.warn('New-user-pct fetch failed:', newUserResult.error);
-        }
-
-        // Fetch replay rate data (% of game_start events that are replays, per platform)
-        const replayResult = await fetchReplayRateData();
-        if (replayResult.success && replayResult.data) {
-          const rrData = mapGA4ResponseToDATA(replayResult.data, 'replay-rate');
-          if (!rrData.error && rrData.hasRealData) {
-            DATA.kpis.replay             = rrData.replayRate;
-            DATA.kpis.replaySub          = rrData.replaySub;
-            DATA.platform.desktop.replay = rrData.desktop.replayRate;
-            DATA.platform.mobile.replay  = rrData.mobile.replayRate;
-          } else {
-            console.warn('Replay-rate parsing failed or no data, using mock value');
-          }
-        } else {
-          console.warn('Replay-rate fetch failed:', replayResult.error);
-        }
-
-        // Fetch music A/B + funnel data in parallel (independent queries, saves ~300ms)
-        // Promise.all is safe — both fetch functions return {success, error} and never reject
-        const [musicABResult, musicFunnelResult] = await Promise.all([
-          fetchMusicABData(),
-          fetchMusicFunnelData(),
-        ]);
-
-        // Process music-ab FIRST — music-funnel parser reads DATA.abMusic.A/B.sessions
-        if (musicABResult.success && musicABResult.data) {
-          const mabData = mapGA4ResponseToDATA(musicABResult.data, 'music-ab');
-          if (!mabData.error && mabData.hasRealData) {
-            DATA.abMusic.A.sessions    = mabData.musicAB.on.sessions;
-            DATA.abMusic.A.winRate     = mabData.musicAB.on.winRate;
-            DATA.abMusic.A.lbRate      = mabData.musicAB.on.lbRate;
-            DATA.abMusic.A.musicToggle = mabData.musicAB.on.musicToggle;
-            DATA.abMusic.B.sessions    = mabData.musicAB.off.sessions;
-            DATA.abMusic.B.winRate     = mabData.musicAB.off.winRate;
-            DATA.abMusic.B.lbRate      = mabData.musicAB.off.lbRate;
-            DATA.abMusic.B.musicToggle = mabData.musicAB.off.musicToggle;
-            DATA.abSplit.musicOn       = mabData.abSplit.musicOn;
-            DATA.abSplit.musicOff      = mabData.abSplit.musicOff;
-          } else {
-            console.warn('Music-AB parsing failed or no data, using mock values');
-          }
-        } else {
-          console.warn('Music-AB fetch failed:', musicABResult.error);
-        }
-
-        // Process music-funnel AFTER music-ab (parser reads DATA.abMusic.A/B.sessions)
-        if (musicFunnelResult.success && musicFunnelResult.data) {
-          const mfData = mapGA4ResponseToDATA(musicFunnelResult.data, 'music-funnel');
-          if (!mfData.error && mfData.hasRealData) {
-            DATA.funnelMusicOn  = mfData.funnelMusicOn;
-            DATA.funnelMusicOff = mfData.funnelMusicOff;
-          } else {
-            console.warn('Music-Funnel parsing failed or no data, using mock values');
-          }
-        } else {
-          console.warn('Music-Funnel fetch failed:', musicFunnelResult.error);
-        }
-
-        // Fetch movement A/B data (win rate split by movement_group)
-        const movementABResult = await fetchMovementABData();
-        if (movementABResult.success && movementABResult.data) {
-          const mabData = mapGA4ResponseToDATA(movementABResult.data, 'movement-ab');
-          if (!mabData.error && mabData.hasRealData) {
-            DATA.abMovement.A.sessions = mabData.movementAB.A.sessions;
-            DATA.abMovement.A.winRate  = mabData.movementAB.A.winRate;
-            DATA.abMovement.A.label    = 'Horizontal (1.25× pts)'; // movement_group 'A' — horizontal only, 1.25× points multiplier
-            DATA.abMovement.B.sessions = mabData.movementAB.B.sessions;
-            DATA.abMovement.B.winRate  = mabData.movementAB.B.winRate;
-            DATA.abMovement.B.label    = 'Full Direction';         // movement_group 'B' — full directional movement
-          } else {
-            console.warn('Movement-AB parsing failed or no data, using mock values');
-          }
-        } else {
-          console.warn('Movement-AB fetch failed:', movementABResult.error);
-        }
-
-        const engagementResult = await fetchEngagementData();
-        if (engagementResult.success && engagementResult.data) {
-          const rows = engagementResult.data.rows || [];
+        // 15. Engagement — reads DATA.kpis.sessions + DATA.bossAnalysis (mapped above)
+        if (engagementResult.status === 'fulfilled' && engagementResult.value.success && engagementResult.value.data) {
+          const rows = engagementResult.value.data.rows || [];
           const gameStarts = DATA.kpis.sessions ? parseInt(DATA.kpis.sessions.replace(/,/g, '')) : 0;
           const counts = { scorecard_viewed: 0, music_toggled: 0, leave_game: 0, survey_submitted: 0 };
           rows.forEach(row => {
@@ -4870,21 +4834,20 @@
             : 'boss_attempt / game_start';
           populateKPIs(DATA.kpis);
         } else {
-          console.warn('Engagement-events fetch failed:', engagementResult.error);
+          console.warn('Engagement-events fetch failed:', engagementResult.reason ?? engagementResult.value?.error);
         }
 
-        const [avgTierResult, tierScoreResult] = await Promise.all([fetchAvgTierData(), fetchTierScoreData()]);
-        if (avgTierResult.success && avgTierResult.data) {
-          if (avgTierResult.data.avgStartTier !== null) DATA.aiAgent.kpis.avgStartTier = String(avgTierResult.data.avgStartTier);
-          if (avgTierResult.data.avgFinalTier  !== null) DATA.aiAgent.kpis.avgFinalTier  = String(avgTierResult.data.avgFinalTier);
-          populateAIKPIs();
+        // 16. Music funnel — reads DATA.abMusic.A/B.sessions (mapped above)
+        if (musicFunnelResult.status === 'fulfilled' && musicFunnelResult.value.success && musicFunnelResult.value.data) {
+          const mfData = mapGA4ResponseToDATA(musicFunnelResult.value.data, 'music-funnel');
+          if (!mfData.error && mfData.hasRealData) {
+            DATA.funnelMusicOn  = mfData.funnelMusicOn;
+            DATA.funnelMusicOff = mfData.funnelMusicOff;
+          } else {
+            console.warn('Music-Funnel parsing failed or no data, using mock values');
+          }
         } else {
-          console.warn('Avg-tier fetch failed:', avgTierResult.error);
-        }
-        if (tierScoreResult.success && tierScoreResult.data) {
-          DATA.aiAgent.tierScorePoints = tierScoreResult.data.points || [];
-        } else {
-          console.warn('Tier-score fetch failed:', tierScoreResult.error);
+          console.warn('Music-Funnel fetch failed:', musicFunnelResult.reason ?? musicFunnelResult.value?.error);
         }
 
         // Re-render all charts
