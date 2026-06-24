@@ -35,13 +35,13 @@
 - `© 2026 Standing Tiger. All rights reserved.` in `.site-footer`
 - Footer: logo · copyright · Terms · Privacy
 
-### P-0: Lambda Concurrency Fix — BLOCKED (AWS quota increase pending)
+### P-0: Lambda Concurrency Fix ✅ — June 24, 2026
 
-- **Root cause:** Account-level Lambda concurrency limit is 10; dashboard fires 17 simultaneous requests → 7 endpoints return 500 and fall back to mock data
-- **Fix A (in progress):** AWS Service Quotas → Lambda → Concurrent executions → requested increase to 50 — awaiting approval (1–3 business days)
-- **Fix B (fallback):** Split `Promise.allSettled` into two sub-waves of ≤8 if quota increase is delayed
-- **Current state:** Dashboard still loads — failed endpoints fall back to mock data gracefully; core KPIs are live
-- **Next session:** Check if quota approved → test single-wave on staging → if not approved, implement sub-waves
+- **Commit:** `381123d` | Production: ✅ live
+- **Root cause:** Account-level Lambda concurrency limit is 10 (applied); 17 simultaneous requests throttled 7 endpoints → 500
+- **Fix:** Split into two sub-waves of 8 + 9 — stays under concurrency limit
+- **Result:** All sections load with live data; load time significantly reduced vs. sequential
+- **Note:** If AWS quota increase to 50 is ever approved, can revert to single-wave `Promise.allSettled` for max speed
 
 ### P-5: Full Security Audit — PENDING
 - Review current security posture post-refactor

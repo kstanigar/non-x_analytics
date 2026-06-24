@@ -12,7 +12,7 @@
 
 ## June 24, 2026 - Lambda Concurrency Issue (P-0) — BLOCKED
 
-**Status:** 🟡 BLOCKED — AWS quota increase pending (1–3 business days)
+**Status:** ✅ COMPLETE | Commit: `381123d` | Production: ✅ live
 
 ### Problem
 Parallel fetch refactor fires 17 simultaneous Lambda requests. Account-level concurrency limit is 10 → 7 endpoints throttled → HTTP 500 → fall back to mock data. Core KPIs (GA4 overview) still load correctly.
@@ -26,15 +26,11 @@ Parallel fetch refactor fires 17 simultaneous Lambda requests. Account-level con
 - AWS Service Quotas → Lambda → Concurrent executions → increase requested to **50**
 - Awaiting approval email (typically 1–3 business days)
 
-### Next Session
-1. Check email for quota approval
-2. If approved: test staging with single-wave — all 17 should succeed
-3. If not approved: implement sub-waves (two `Promise.allSettled` calls of ≤8 each) as fallback
-
-### Fallback Plan (sub-waves)
+### Fix Implemented (same session)
 - Wave A (8): fetchGA4Data, fetchBossAnalysisData, fetchMusicABData, fetchPlatformSplitData, fetchDailyTimeseriesData, fetchSurvivalTimeData, fetchPowerupAnalysisData, fetchAIAnalysisData
+- Map Wave A dependency results (DATA.kpis, DATA.bossAnalysis, DATA.abMusic)
 - Wave B (9): fetchDeathTriggersData, fetchNewUserPctData, fetchReplayRateData, fetchMovementABData, fetchAvgTierData, fetchTierScoreData, fetchEngagementData, fetchMusicFunnelData, fetchProgressionAnalysisData
-- Map Wave A first (populates DATA dependencies), then fire + map Wave B
+- All sections load with live data — confirmed fast load in incognito ✅
 
 ---
 
