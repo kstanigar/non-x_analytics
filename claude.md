@@ -86,6 +86,33 @@ git add . && git commit -m 'fix: correct death rate formula'"
 
 **Exception:** User explicitly says "run git commit" or "commit these changes now"
 
+**Branch + Deploy Workflow (REQUIRED):**
+```
+1. Create feature branch:
+   git checkout -b feature/[task-name]
+
+2. Commit changes to feature branch
+
+3. Push to staging for testing:
+   git push origin feature/[task-name]:staging
+
+4. User tests on staging
+
+5. Only after user confirms ✅ — merge to main:
+   git checkout main
+   git merge feature/[task-name]
+   git push origin main
+
+6. Clean up branch (optional):
+   git branch -d feature/[task-name]
+```
+
+**FORBIDDEN:**
+```
+❌ Pushing directly to main without staging test
+❌ Skipping branch creation
+```
+
 **Format for presenting git commands:**
 ```markdown
 ## Git Commands Ready
@@ -97,14 +124,19 @@ git add . && git commit -m 'fix: correct death rate formula'"
 
 **Suggested command:**
 ```bash
+# Step 1: Create branch + commit
+git checkout -b feature/[task-name]
 git add live.html index.html docs/HANDOFF_SUMMARY.md && \
 git commit -m "fix: correct powerup phase data
 
 - Set Quad Shot to Purple phase only
 - Updated mock data to reflect game design"
+
+# Step 2: Push to staging for testing
+git push origin feature/[task-name]:staging
 ```
 
-**Ready to commit? Reply 'yes' to execute.**
+**Test on staging, then reply 'merge to main' when confirmed.**
 ```
 
 ---
