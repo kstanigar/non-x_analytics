@@ -15,6 +15,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NON-X Analytics - Live Dashboard</title>
+  <link rel="icon" type="image/png" href="images/st_760.png">
+  <link rel="apple-touch-icon" href="images/st_760.png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
     integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw=="
     crossorigin="anonymous"></script>
@@ -102,6 +104,49 @@
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
       margin-bottom: 32px;
+    }
+
+    .site-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px 32px;
+      margin-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    .footer-logo {
+      height: 32px;
+      width: 32px;
+      object-fit: contain;
+      border-radius: 50%;
+      opacity: 0.7;
+      transition: opacity 0.15s ease;
+    }
+
+    .footer-logo:hover {
+      opacity: 1;
+    }
+
+    .footer-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--cyan);
     }
 
     .logo-block h1 {
@@ -6260,6 +6305,20 @@
         });
       })();
     </script>
+
+    <footer class="site-footer">
+      <a href="https://standingtiger.com/" target="_blank" rel="noopener">
+        <img src="images/st_760.png" alt="Standing Tiger" class="footer-logo">
+      </a>
+      <div class="footer-text">
+        <span>© 2026 Standing Tiger. All rights reserved.</span>
+        <span class="footer-links">
+          <a href="terms.html" target="_blank">Terms of Service</a>
+          &nbsp;·&nbsp;
+          <a href="privacy.html" target="_blank">Privacy Policy</a>
+        </span>
+      </div>
+    </footer>
 </body>
 
 </html>
