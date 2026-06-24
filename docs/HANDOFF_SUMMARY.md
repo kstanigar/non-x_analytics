@@ -2,11 +2,81 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 24, 2026 (Session 3)
+**Last Updated:** June 24, 2026 (Session 4)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 24, 2026 - Favicon, Logo, Footer, Terms & Privacy (P-1 – P-4)
+
+**Status:** ✅ COMPLETE | Branch: `feature/favicon-and-logo` | Production: ✅ live
+
+### Changes
+
+**`live.html`:**
+- Favicon: `<link rel="icon" type="image/png" href="images/st_760.png">` + `<link rel="apple-touch-icon">` added to `<head>`
+- Logo removed from header (`.logo-row` / `.logo-img` CSS removed); `<h1>` restored to plain link
+- `.site-footer` added before `</body>` — Standing Tiger logo (32px) + copyright + Terms/Privacy links
+- `.footer-logo`, `.footer-text`, `.footer-links` CSS added
+
+**`images/st_760.png`:** committed to git (was untracked — caused broken image on staging)
+
+**`terms.html` + `privacy.html`:** created from scratch
+- Dark theme matching dashboard (`#0a0a0f` bg, cyan headings, mono font)
+- Terms: 6 sections (Acceptance, Use, IP, Disclaimers, Changes, Contact)
+- Privacy: 6 sections (Collection, Use, Third-Party Services — GA4/AWS/BigQuery, Retention, Rights, Contact)
+- Contact: `contact@standingtiger.com` (placeholder — swap when business email is ready)
+- Each page has `← Back to Dashboard` link and cross-links to the other
+
+**`.github/workflows/deploy-staging.yml` + `deploy-production.yml`:**
+- Added `cp -r images deploy/images` (was missing — caused favicon/logo to 404 on staging)
+- Added `cp terms.html deploy/terms.html` and `cp privacy.html deploy/privacy.html`
+
+### Issues Encountered
+- `images/` was never committed to git → favicon + logo broken on staging → fixed by `git add images/`
+- Deploy workflows only copied `live.html` → static assets 404'd → fixed by adding `cp` commands to both workflows
+
+---
+
+## June 24, 2026 - Parallel Fetch Refactor
+
+**Status:** ✅ COMPLETE | Commit: `8746a86` | Production: ✅ live
+
+### Problem
+`loadAndRenderGA4Data()` fired 17 fetches sequentially — total load time = sum of all fetch durations (15–20s). Would grow linearly with each new metric added.
+
+### Solution
+Single-wave `Promise.allSettled()` — all 17 fetches fire simultaneously. Total load time = duration of slowest single fetch (~2–4s). Future metrics join the single `allSettled` at zero additional load time cost.
+
+### Changes
+
+**`live.html:4493–4888`** — `loadAndRenderGA4Data()` refactored:
+- Sequential `await` chain (17 fetches) → single `Promise.allSettled([...17 fetches])`
+- Mapping order controlled for data dependencies:
+  1. `ga4Result` → DATA.kpis (required by engagement + progression mappers)
+  2. `bossResult` → DATA.bossAnalysis (required by engagement + progression mappers)
+  3. `musicABResult` → DATA.abMusic (required by musicFunnel mapper)
+  4. All remaining results (any order)
+  5. `progressionResult`, `engagementResult`, `musicFunnelResult` mapped last
+- Each result wrapped in `status === 'fulfilled'` check — one failed fetch does not block others
+- `console.warn` per failure with `reason ?? value?.error` pattern
+
+**AWS API Gateway:**
+- Usage plan `NON-X-Analytics-Rate-Limit` throttle raised: **10 req/s → 20 req/s**
+- Required: Wave of 17 simultaneous requests would have exceeded old 10 req/s limit
+- Burst remains 20; quota remains 10,000 req/day
+
+**Docs:**
+- `docs/Parallel_Fetch_Refactor_Plan.md` created — full research, dependency analysis, security audit, implementation plan
+- PRIORITIES.md + HANDOFF_SUMMARY.md updated
+
+### Research (3 Haiku agents)
+- Dependency analysis: 3 hard dependencies (engagement/musicFunnel/progression) — all resolved via mapping order, not separate fetch waves
+- Best practices: `Promise.allSettled()` confirmed as 2026 standard for dashboards
+- Security: only real concern was rate limiting (addressed by quota raise); race conditions impossible in single-threaded JS
 
 ---
 

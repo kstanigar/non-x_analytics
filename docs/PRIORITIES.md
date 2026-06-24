@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 24, 2026 (Session 3)
+**Last Updated:** June 24, 2026 (Session 4)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -13,6 +13,33 @@
 ## 🎯 PENDING TASKS
 
 ---
+
+### P-1: Add Favicon ✅ — June 24, 2026
+- **Commit:** `feature/favicon-and-logo` → merged to main
+- `st_760.png` linked as `<link rel="icon">` + `<link rel="apple-touch-icon">` in `<head>`
+- Deploy workflows updated to copy `images/` directory
+
+### P-2: Add Logo Branding ✅ — June 24, 2026
+- **Commit:** `feature/favicon-and-logo` → merged to main
+- Logo moved to footer (32px circular, links to standingtiger.com)
+- Removed from header; header restored to plain `<h1>NON-X</h1>`
+
+### P-3: Terms & Privacy Pages ✅ — June 24, 2026
+- **Commit:** `feature/favicon-and-logo` → merged to main
+- `terms.html` + `privacy.html` created — dark theme matching dashboard
+- Contact: `contact@standingtiger.com` (swap for real mailbox when ready)
+- Deploy workflows updated to copy both files
+
+### P-4: Add Copyright ✅ — June 24, 2026
+- **Commit:** `feature/favicon-and-logo` → merged to main
+- `© 2026 Standing Tiger. All rights reserved.` in `.site-footer`
+- Footer: logo · copyright · Terms · Privacy
+
+### P-5: Full Security Audit — PENDING
+- Review current security posture post-refactor
+- Check: CORS config, input validation, API Gateway settings, SRI hashes, error message exposure
+- Prior audit: `bc59894` (June 11, 2026) — re-audit after parallel fetch refactor + quota change
+- Output: updated `Issues_And_Bugs.md` entries + any fixes
 
 ---
 
@@ -35,6 +62,14 @@
 ## ✅ COMPLETED TASKS (last 10)
 
 ---
+
+### 0. Parallel Fetch Refactor ✅ — June 24, 2026
+- **Commit:** `8746a86` | Production: ✅ live
+- **Plan doc:** `docs/Parallel_Fetch_Refactor_Plan.md`
+- Replaced 17 sequential/partial-parallel fetches with single `Promise.allSettled()`
+- All 17 fetches fire simultaneously; mapping in dependency order (GA4 → boss → musicAB → others → progression/engagement/musicFunnel)
+- API Gateway throttle raised: 10 req/s → 20 req/s (AWS console)
+- Expected load time: 15–20s → 2–4s; future metrics add zero additional load time
 
 ### 1. Tier vs Final Score Scatter Chart (MT-5) ✅ — June 24, 2026
 - **Plan doc:** `docs/archive/completed-implementations/MT5_Tier_Score_Chart_Plan.md`
