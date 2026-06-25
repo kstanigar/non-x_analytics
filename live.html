@@ -4792,8 +4792,8 @@
 
         // 13. Avg tier + tier score (BigQuery)
         if (avgTierResult.status === 'fulfilled' && avgTierResult.value.success && avgTierResult.value.data) {
-          if (avgTierResult.value.data.avgStartTier !== null) DATA.aiAgent.kpis.avgStartTier = String(avgTierResult.value.data.avgStartTier);
-          if (avgTierResult.value.data.avgFinalTier  !== null) DATA.aiAgent.kpis.avgFinalTier  = String(avgTierResult.value.data.avgFinalTier);
+          if (avgTierResult.value.data.avgStartTier !== null) DATA.aiAgent.kpis.avgStartTier = String(Math.round(avgTierResult.value.data.avgStartTier));
+          if (avgTierResult.value.data.avgFinalTier  !== null) DATA.aiAgent.kpis.avgFinalTier  = String(Math.round(avgTierResult.value.data.avgFinalTier));
           populateAIKPIs();
         } else {
           console.warn('Avg-tier fetch failed:', avgTierResult.reason ?? avgTierResult.value?.error);
