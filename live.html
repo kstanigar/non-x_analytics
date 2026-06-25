@@ -1741,7 +1741,7 @@
 
       <div class="section-label">Top-Line KPIs <span class="section-info" data-tooltip="Core metrics — how many people played, won, and came back.">ⓘ</span></div>
       <div class="kpi-grid">
-        <div class="kpi" data-tooltip="Count of game_start events. One per play session across all platforms.">
+        <div class="kpi" data-dict="sessions" data-tooltip="Count of game_start events. One per play session across all platforms.">
           <div class="kpi-label">Total Plays</div>
           <div class="kpi-value" id="kpi-sessions">—</div>
           <div class="kpi-sub">All platforms</div>
@@ -1766,7 +1766,7 @@
           <div class="kpi-value" id="kpi-replay">—</div>
           <div class="kpi-sub" id="kpi-replay-sub">game_start per user</div>
         </div>
-        <div class="kpi" data-tooltip="Avg session length from game_start to outcome. Minutes per run.">
+        <div class="kpi" data-dict="survival" data-tooltip="Avg session length from game_start to outcome. Minutes per run.">
           <div class="kpi-label">Avg Survival</div>
           <div class="kpi-value" id="kpi-survival">—</div>
           <div class="kpi-sub">minutes per run</div>
@@ -1776,7 +1776,7 @@
           <div class="kpi-value" id="kpi-lb-rate">—</div>
           <div class="kpi-sub" id="kpi-lb-rate-sub">leaderboard_submit / win</div>
         </div>
-        <div class="kpi grn" data-tooltip="Weighted avg level where players died. Scale: 1–12 levels + 3 boss stages.">
+        <div class="kpi grn" data-dict="avglevel" data-tooltip="Weighted avg level where players died. Scale: 1–12 levels + 3 boss stages.">
           <div class="kpi-label">Avg Level Reached</div>
           <div class="kpi-value" id="kpi-avg-level">—</div>
           <div class="kpi-sub">of 12 levels</div>
@@ -2519,8 +2519,8 @@
               </dl>
             </div>
 
-            <div class="dict-entry">
-              <div class="dict-entry-title"><h4>Avg Tier Adjustments</h4><span class="dict-badge live">Live</span></div>
+            <div class="dict-entry" id="dict-avg-adjustments">
+              <div class="dict-entry-title"><h4>Total Tier Adjustments</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">COUNT(ai_difficulty_adjusted) — total events, not per-session avg</dd>
                 <dt>Source</dt><dd>ai-analysis endpoint</dd>

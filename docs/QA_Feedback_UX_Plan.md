@@ -342,6 +342,9 @@ Updating the constant at line 6197 automatically updates all Data Dictionary bac
 **Effort:** M-L — content rewrite + HTML restructure per entry (~20+ entries)
 **Files:** `live.html` — Data Dictionary accordion HTML
 
+**Known gap to fix during UX-5:**
+- `dict-platform-kpis` entry is missing from the HTML — Desktop Win % and Mobile Win % both link to it (`data-dict="platform-kpis"`) but no dict entry exists. Create this entry covering both platform KPIs during the UX-5 content pass.
+
 ---
 
 ### UX-6: Discrete Players KPI
