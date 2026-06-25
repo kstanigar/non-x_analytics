@@ -20,6 +20,38 @@ Current language skews technical. Goal: make metrics legible to both without dum
 
 ---
 
+### UX-0: Hamburger Menu Color Styling ✅ — June 25, 2026
+
+**Problem:** The hamburger icon, "DASHBOARDS" label, and "- OVERVIEW" active tab name all render in cyan — they blend into the general UI accent color and don't feel distinct from other interface elements.
+
+**Change:**
+- Hamburger icon bars + "DASHBOARDS" label → neon green (`var(--green)`, `#39FF14`)
+- "- OVERVIEW" active tab name → yellow (`var(--yellow)`, `#FFD700`)
+
+**Effort:** XS — 3 CSS property changes, no HTML or JS changes
+**Files:** `live.html` — CSS only
+
+#### Implementation Plan
+
+| Selector | Line | Property | Current | Change to |
+|----------|------|----------|---------|-----------|
+| `.hamburger-label` | 1256 | `color` | `var(--cyan)` | `var(--green)` |
+| `.active-tab-name` | 1262 | `color` | `var(--mag)` | `var(--yellow)` |
+| `.hamburger-btn span` | 1299 | `background` | `var(--cyan)` | `var(--green)` |
+
+**Not changed:**
+- `.hamburger-btn` border/color properties — border stays `var(--border)`, keeping button outline neutral
+- `.hamburger-btn:hover` — hover state stays cyan to signal interactivity
+- `.mobile-menu` border — stays cyan, unrelated to this change
+
+**Task list:**
+- [ ] `live.html:1256` — `.hamburger-label` color → `var(--green)`
+- [ ] `live.html:1262` — `.active-tab-name` color → `var(--yellow)`
+- [ ] `live.html:1299` — `.hamburger-btn span` background → `var(--green)`
+- [ ] Verify on staging at ≤900px: hamburger bars + "DASHBOARDS" are neon green, "- OVERVIEW" is yellow
+
+---
+
 ### UX-1: Rename Metrics for Player Clarity ✅ — June 25, 2026
 
 **Problem:** Labels like "Total Sessions" and "Leave Game Rate" are developer-speak. Players don't think in "sessions."
@@ -130,7 +162,17 @@ Current language skews technical. Goal: make metrics legible to both without dum
 **Tooltip plan (from screenshot annotations):**
 - **Remove** per-card `ⓘ` icons (redundant once card is fully clickable)
 - **Move** a single `ⓘ` to each **section header** ("TOP-LINE KPIS", "PLAYER BEHAVIOR") — explains what the section contains at a high level
-- Hover tooltip on section `ⓘ` gives a one-liner: e.g. *"Core metrics measuring player volume and engagement."*
+- Hover tooltip on section `ⓘ` gives a one-liner per section (drafted below)
+
+**Section tooltip one-liners (drafted):**
+
+| Section Header | Tooltip Text |
+|---|---|
+| TOP-LINE KPIS | "Core metrics — how many people played, won, and came back." |
+| PLAYER BEHAVIOR | "What players do during a run — deaths, drop-offs, and feature usage." |
+| AI AGENT | "How the difficulty AI is adjusting in response to player performance." |
+| MOVEMENT A/B TEST | "Live split test comparing two movement control schemes." |
+| PLATFORM BREAKDOWN | "Side-by-side comparison of Desktop vs. Mobile player outcomes." |
 
 **Effort:** M
 **Files:** `live.html` — KPI card HTML, JS click handlers, CSS cursor/hover state, section header HTML

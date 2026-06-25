@@ -56,11 +56,12 @@
 **Full plan:** `docs/QA_Feedback_UX_Plan.md`
 
 **Priority order (next session):**
-1. **UX-2: White card + section titles** ✅ — `84e6ccc`, live
-2. **UX-4: `⊞` → "View" label** ✅ — `ec33b20`, live
-3. **UX-1: Rename metrics for player clarity** ✅ — pending merge to main
-4. **UX-3: Clickable KPI cards + section-level tooltips** — M, removes per-card ⓘ icons, card click → Data Dictionary, single ⓘ per section header
-5. **UX-5: Simplify Data Dictionary** — M-L, separate session
+1. **UX-0: Hamburger menu color styling** ✅ — `9aee2ed`, live
+2. **UX-2: White card + section titles** ✅ — `84e6ccc`, live
+3. **UX-4: `⊞` → "View" label** ✅ — `ec33b20`, live
+4. **UX-1: Rename metrics for player clarity** ✅ — `4c91766`, live
+5. **UX-3: Clickable KPI cards + section-level tooltips** — M, removes per-card ⓘ icons, card click → Data Dictionary, single ⓘ per section header
+6. **UX-5: Simplify Data Dictionary** — M-L, separate session
 
 **Open questions before UX-3:**
 - Confirm leaderboard API returns per-row data (needed for UX-8)

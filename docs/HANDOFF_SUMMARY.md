@@ -10,12 +10,17 @@
 
 ---
 
-## June 25, 2026 - UX Sprint: Metric Renames (Session 6)
+## June 25, 2026 - UX Sprint: Hamburger Colors + Metric Renames (Session 6)
 
 **Status:** ✅ DOCUMENTED | Branch: `feature/ux-1-metric-renames` → staging
 
 ### Completed This Session
-- **UX-1: Full metric rename pass** ✅ — ~47 changes, pending merge to main
+- **UX-0: Hamburger menu color styling** ✅ — `9aee2ed`, live
+  - Hamburger bars + "DASHBOARDS" label → `var(--green)` (#39FF14)
+  - "- OVERVIEW" active tab name → `var(--yellow)` (#FFD700)
+  - 3 CSS-only changes: `.hamburger-label:1256`, `.active-tab-name:1262`, `.hamburger-btn span:1299`
+  - Added UX-3 section tooltip one-liners to `docs/QA_Feedback_UX_Plan.md`
+- **UX-1: Full metric rename pass** ✅ — `4c91766`, merged to main
   - `Total Sessions` → `Total Plays`
   - `Win Rate` → `Win %` (KPI labels, Dict h4, JS label objects, comparison tables)
   - `Death Rate` → `Death %`
