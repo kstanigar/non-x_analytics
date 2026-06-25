@@ -1722,7 +1722,7 @@
       <div class="section-label">Top-Line KPIs</div>
       <div class="kpi-grid">
         <div class="kpi" data-tooltip="Count of game_start events. One per play session across all platforms.">
-          <div class="kpi-label">Total Sessions</div>
+          <div class="kpi-label">Total Plays</div>
           <div class="kpi-value" id="kpi-sessions">—</div>
           <div class="kpi-sub">All platforms</div>
         </div>
@@ -1732,17 +1732,17 @@
           <div class="kpi-sub" id="kpi-new-pct-sub">% returning sessions</div>
         </div>
         <div class="kpi grn">
-          <div class="kpi-label">Win Rate <span class="dict-link" data-dict="winrate">ⓘ</span></div>
+          <div class="kpi-label">Win % <span class="dict-link" data-dict="winrate">ⓘ</span></div>
           <div class="kpi-value" id="kpi-winrate">—</div>
           <div class="kpi-sub" id="kpi-winrate-sub">player_won / game_start</div>
         </div>
         <div class="kpi red">
-          <div class="kpi-label">Death Rate <span class="dict-link" data-dict="deathrate">ⓘ</span></div>
+          <div class="kpi-label">Death % <span class="dict-link" data-dict="deathrate">ⓘ</span></div>
           <div class="kpi-value" id="kpi-deathrate">—</div>
           <div class="kpi-sub" id="kpi-deathrate-sub">player_death / completed games</div>
         </div>
         <div class="kpi yel">
-          <div class="kpi-label">Play-Again Rate <span class="dict-link" data-dict="replay">ⓘ</span></div>
+          <div class="kpi-label">Play-Again % <span class="dict-link" data-dict="replay">ⓘ</span></div>
           <div class="kpi-value" id="kpi-replay">—</div>
           <div class="kpi-sub" id="kpi-replay-sub">game_start per user</div>
         </div>
@@ -1752,7 +1752,7 @@
           <div class="kpi-sub">minutes per run</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">Leaderboard Rate <span class="dict-link" data-dict="lbrate">ⓘ</span></div>
+          <div class="kpi-label">Leaderboard Entries <span class="dict-link" data-dict="lbrate">ⓘ</span></div>
           <div class="kpi-value" id="kpi-lb-rate">—</div>
           <div class="kpi-sub" id="kpi-lb-rate-sub">leaderboard_submit / win</div>
         </div>
@@ -1766,27 +1766,27 @@
       <div class="section-label">Player Behavior</div>
       <div class="kpi-grid">
         <div class="kpi yel">
-          <div class="kpi-label">Scorecard View Rate <span class="dict-link" data-dict="scorecard-rate">ⓘ</span></div>
+          <div class="kpi-label">Scorecard Views <span class="dict-link" data-dict="scorecard-rate">ⓘ</span></div>
           <div class="kpi-value" id="kpi-scorecard-rate">—</div>
           <div class="kpi-sub" id="kpi-scorecard-sub">scorecard_viewed / game_start</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Music Toggle Rate <span class="dict-link" data-dict="music-rate">ⓘ</span></div>
+          <div class="kpi-label">Music Toggle % <span class="dict-link" data-dict="music-rate">ⓘ</span></div>
           <div class="kpi-value" id="kpi-music-rate">—</div>
           <div class="kpi-sub" id="kpi-music-sub">music_toggled / game_start</div>
         </div>
         <div class="kpi red">
-          <div class="kpi-label">Leave Game Rate <span class="dict-link" data-dict="leave-rate">ⓘ</span></div>
+          <div class="kpi-label">Drop-off Rate <span class="dict-link" data-dict="leave-rate">ⓘ</span></div>
           <div class="kpi-value" id="kpi-leave-rate">—</div>
           <div class="kpi-sub" id="kpi-leave-sub">leave_game / game_start</div>
         </div>
         <div class="kpi grn">
-          <div class="kpi-label">Boss Reach Rate <span class="dict-link" data-dict="boss-reach">ⓘ</span></div>
+          <div class="kpi-label">Boss Reach % <span class="dict-link" data-dict="boss-reach">ⓘ</span></div>
           <div class="kpi-value" id="kpi-boss-reach-rate">—</div>
           <div class="kpi-sub" id="kpi-boss-reach-sub">boss_attempt / game_start</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">Survey Response Rate <span class="dict-link" data-dict="survey-rate">ⓘ</span></div>
+          <div class="kpi-label">Survey Response % <span class="dict-link" data-dict="survey-rate">ⓘ</span></div>
           <div class="kpi-value" id="kpi-survey-rate">—</div>
           <div class="kpi-sub" id="kpi-survey-sub">survey_submitted / game_start</div>
         </div>
@@ -1983,7 +1983,7 @@
           <div class="kpi-sub">At victory/death</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Speed Lock Rate <span class="dict-link" data-dict="speedlock">ⓘ</span></div>
+          <div class="kpi-label">Speed Lock % <span class="dict-link" data-dict="speedlock">ⓘ</span></div>
           <div class="kpi-value" id="kpi-ai-speed-lock">—</div>
           <div class="kpi-sub" id="kpi-ai-speed-lock-sub">Players who completed 1+ cycles</div>
         </div>
@@ -2054,7 +2054,7 @@
                 <th>Score Mult</th>
                 <th>Players</th>
                 <th>Avg Level Reached</th>
-                <th>Win Rate</th>
+                <th>Win %</th>
                 <th>Avg Session Time</th>
               </tr>
             </thead>
@@ -2129,12 +2129,12 @@
       <div class="section-label">Desktop vs Mobile Comparison</div>
       <div class="kpi-grid">
         <div class="kpi">
-          <div class="kpi-label">Desktop Win Rate <span class="dict-link" data-dict="platform-kpis">ⓘ</span></div>
+          <div class="kpi-label">Desktop Win % <span class="dict-link" data-dict="platform-kpis">ⓘ</span></div>
           <div class="kpi-value" id="kpi-desk-win">—</div>
           <div class="kpi-sub" id="kpi-desk-win-sub">player_won / game_start</div>
         </div>
         <div class="kpi mag">
-          <div class="kpi-label">Mobile Win Rate <span class="dict-link" data-dict="platform-kpis">ⓘ</span></div>
+          <div class="kpi-label">Mobile Win % <span class="dict-link" data-dict="platform-kpis">ⓘ</span></div>
           <div class="kpi-value" id="kpi-mob-win">—</div>
           <div class="kpi-sub" id="kpi-mob-win-sub">player_won / game_start</div>
         </div>
@@ -2320,7 +2320,7 @@
           <div class="dict-body" id="dict-body-topline">
 
             <div class="dict-entry" id="dict-sessions">
-              <div class="dict-entry-title"><h4>Total Sessions</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Total Plays</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">COUNT(game_start)</dd>
                 <dt>Source</dt><dd>platform-split endpoint</dd>
@@ -2340,7 +2340,7 @@
             </div>
 
             <div class="dict-entry" id="dict-winrate">
-              <div class="dict-entry-title"><h4>Win Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Win %</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">player_won / game_start × 100</dd>
                 <dt>Source</dt><dd>platform-split endpoint</dd>
@@ -2350,7 +2350,7 @@
             </div>
 
             <div class="dict-entry" id="dict-deathrate">
-              <div class="dict-entry-title"><h4>Death Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Death %</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">player_death / (player_won + player_death) × 100</dd>
                 <dt>Source</dt><dd>platform-split endpoint</dd>
@@ -2360,7 +2360,7 @@
             </div>
 
             <div class="dict-entry" id="dict-replay">
-              <div class="dict-entry-title"><h4>Play-Again Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Play-Again %</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">game_start[is_replay='true'] / total game_start × 100</dd>
                 <dt>Source</dt><dd>replay-rate endpoint — <code>is_replay</code> custom dimension on <code>game_start</code></dd>
@@ -2380,7 +2380,7 @@
             </div>
 
             <div class="dict-entry" id="dict-lbrate">
-              <div class="dict-entry-title"><h4>Leaderboard Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Leaderboard Entries</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">leaderboard_submit / player_won × 100</dd>
                 <dt>Source</dt><dd>platform-split endpoint</dd>
@@ -2400,7 +2400,7 @@
             </div>
 
             <div class="dict-entry" id="dict-speedlock">
-              <div class="dict-entry-title"><h4>Speed Lock Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Speed Lock %</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">ai_difficulty_adjusted[speed_locked='true'] / total ai_difficulty_adjusted × 100</dd>
                 <dt>Source</dt><dd>ai-analysis endpoint — <code>speed_locked</code> custom dim</dd>
@@ -2420,7 +2420,7 @@
           <div class="dict-body" id="dict-body-behavior">
 
             <div class="dict-entry" id="dict-scorecard-rate">
-              <div class="dict-entry-title"><h4>Scorecard View Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Scorecard Views</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">scorecard_viewed / game_start × 100</dd>
                 <dt>Source</dt><dd>engagement-events endpoint</dd>
@@ -2430,7 +2430,7 @@
             </div>
 
             <div class="dict-entry" id="dict-music-rate">
-              <div class="dict-entry-title"><h4>Music Toggle Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Music Toggle %</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">music_toggled / game_start × 100</dd>
                 <dt>Source</dt><dd>engagement-events endpoint</dd>
@@ -2440,7 +2440,7 @@
             </div>
 
             <div class="dict-entry" id="dict-leave-rate">
-              <div class="dict-entry-title"><h4>Leave Game Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Drop-off Rate</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">leave_game / game_start × 100</dd>
                 <dt>Source</dt><dd>engagement-events endpoint</dd>
@@ -2450,7 +2450,7 @@
             </div>
 
             <div class="dict-entry" id="dict-boss-reach">
-              <div class="dict-entry-title"><h4>Boss Reach Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Boss Reach %</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">boss_attempt[boss_id='1'] / game_start × 100</dd>
                 <dt>Source</dt><dd>boss-analysis endpoint (reuses Boss 1 attempt count)</dd>
@@ -2460,7 +2460,7 @@
             </div>
 
             <div class="dict-entry" id="dict-survey-rate">
-              <div class="dict-entry-title"><h4>Survey Response Rate</h4><span class="dict-badge live">Live</span></div>
+              <div class="dict-entry-title"><h4>Survey Response %</h4><span class="dict-badge live">Live</span></div>
               <dl class="dict-meta">
                 <dt>Formula</dt><dd class="formula">survey_submitted / game_start × 100</dd>
                 <dt>Source</dt><dd>engagement-events endpoint</dd>
@@ -2563,8 +2563,8 @@
             <table class="dict-table">
               <thead><tr><th>Metric</th><th>Formula</th><th>Source</th><th>Live</th></tr></thead>
               <tbody>
-                <tr><td>Desktop Win Rate</td><td>desktop player_won / desktop game_start × 100</td><td>platform-split</td><td><span class="dict-badge live">Live</span></td></tr>
-                <tr><td>Mobile Win Rate</td><td>mobile player_won / mobile game_start × 100</td><td>platform-split</td><td><span class="dict-badge live">Live</span></td></tr>
+                <tr><td>Desktop Win %</td><td>desktop player_won / desktop game_start × 100</td><td>platform-split</td><td><span class="dict-badge live">Live</span></td></tr>
+                <tr><td>Mobile Win %</td><td>mobile player_won / mobile game_start × 100</td><td>platform-split</td><td><span class="dict-badge live">Live</span></td></tr>
                 <tr><td>Desktop Avg Level</td><td>weighted avg: sum(level × desktop_deaths) / total_desktop_deaths</td><td>progression-analysis</td><td><span class="dict-badge live">Live</span></td></tr>
                 <tr><td>Mobile Avg Level</td><td>weighted avg: sum(level × mobile_deaths) / total_mobile_deaths</td><td>progression-analysis</td><td><span class="dict-badge live">Live</span></td></tr>
                 <tr><td>Avg Survival (desk)</td><td>avg session_duration_seconds for desktop outcomes</td><td>survival-time</td><td><span class="dict-badge live">Live</span></td></tr>
@@ -2595,19 +2595,19 @@
                   <td>game_start</td>
                   <td>Player begins a game session</td>
                   <td><span class="dict-tag">analytics_version</span> <span class="dict-tag">is_replay</span> <span class="dict-tag">ab_music_group</span> <span class="dict-tag">movement_group</span></td>
-                  <td>Sessions KPI, Win Rate, Death Rate, all funnels, A/B tests</td>
+                  <td>Sessions KPI, Win %, Death %, all funnels, A/B tests</td>
                 </tr>
                 <tr>
                   <td>player_won</td>
                   <td>Player wins (defeats all 3 bosses)</td>
                   <td><span class="dict-tag">analytics_version</span> <span class="dict-tag">effective_multiplier</span></td>
-                  <td>Win Rate, Daily chart, Funnel, Score Multiplier chart</td>
+                  <td>Win %, Daily chart, Funnel, Score Multiplier chart</td>
                 </tr>
                 <tr>
                   <td>player_death</td>
                   <td>Player dies before winning</td>
                   <td><span class="dict-tag">analytics_version</span> <span class="dict-tag">level_reached</span> <span class="dict-tag">phase</span> <span class="dict-tag">session_duration_seconds</span></td>
-                  <td>Death Rate, Daily chart, Wave Drop-off chart</td>
+                  <td>Death %, Daily chart, Wave Drop-off chart</td>
                 </tr>
                 <tr>
                   <td>play_again</td>
@@ -2631,7 +2631,7 @@
                   <td>leaderboard_submit</td>
                   <td>Player submits score to leaderboard</td>
                   <td><span class="dict-tag">analytics_version</span></td>
-                  <td>Leaderboard Rate KPI</td>
+                  <td>Leaderboard Entries KPI</td>
                 </tr>
                 <tr>
                   <td>powerup_collected</td>
@@ -2643,25 +2643,25 @@
                   <td>scorecard_viewed</td>
                   <td>Player views the end-screen scorecard</td>
                   <td><span class="dict-tag">analytics_version</span></td>
-                  <td>Scorecard View Rate KPI</td>
+                  <td>Scorecard Views KPI</td>
                 </tr>
                 <tr>
                   <td>music_toggled</td>
                   <td>Player toggles music on/off during gameplay</td>
                   <td><span class="dict-tag">analytics_version</span></td>
-                  <td>Music Toggle Rate KPI, Music A/B test</td>
+                  <td>Music Toggle % KPI, Music A/B test</td>
                 </tr>
                 <tr>
                   <td>leave_game</td>
                   <td>Player exits game before any outcome</td>
                   <td><span class="dict-tag">analytics_version</span></td>
-                  <td>Leave Game Rate KPI</td>
+                  <td>Drop-off Rate KPI</td>
                 </tr>
                 <tr>
                   <td>survey_submitted</td>
                   <td>Player submits in-game feedback survey</td>
                   <td><span class="dict-tag">analytics_version</span></td>
-                  <td>Survey Response Rate KPI</td>
+                  <td>Survey Response % KPI</td>
                 </tr>
                 <tr>
                   <td>ai_difficulty_adjusted</td>
@@ -2711,7 +2711,7 @@
                   <td>is_replay</td>
                   <td><span class="dict-tag">'true'</span> <span class="dict-tag">'false'</span></td>
                   <td>game_start</td>
-                  <td>Play-Again Rate KPI</td>
+                  <td>Play-Again % KPI</td>
                 </tr>
                 <tr>
                   <td>ab_music_group</td>
@@ -2783,7 +2783,7 @@
                   <td>speed_locked</td>
                   <td><span class="dict-tag">'true'</span> <span class="dict-tag">'false'</span></td>
                   <td>ai_difficulty_adjusted</td>
-                  <td>Speed Lock Rate KPI</td>
+                  <td>Speed Lock % KPI</td>
                 </tr>
                 <tr>
                   <td>effective_multiplier</td>
@@ -5500,12 +5500,12 @@
       function buildABCards() {
         const ab = DATA.abMusic;
         const metrics = [
-          { k: 'winRate', label: 'Win Rate', better: 'higher' },
+          { k: 'winRate', label: 'Win %', better: 'higher' },
           { k: 'survival', label: 'Avg Survival', better: 'higher' },
-          { k: 'replay', label: 'Play-Again Rate', better: 'higher' },
-          { k: 'lbRate', label: 'Leaderboard Rate', better: 'higher' },
+          { k: 'replay', label: 'Play-Again %', better: 'higher' },
+          { k: 'lbRate', label: 'Leaderboard Entries', better: 'higher' },
           { k: 'avgLevel', label: 'Avg Level Reached', better: 'higher' },
-          { k: 'musicToggle', label: 'Music Toggle Rate', better: 'lower' },
+          { k: 'musicToggle', label: 'Music Toggle %', better: 'lower' },
         ];
         const container = document.getElementById('ab-music-cards');
         container.innerHTML = ''; // Clear existing cards before rebuilding
@@ -5534,7 +5534,7 @@
 
         const mov = DATA.abMovement;
         const movMetrics = [
-          { k: 'winRate', label: 'Win Rate' },
+          { k: 'winRate', label: 'Win %' },
           { k: 'survival', label: 'Avg Survival' },
           { k: 'avgLevel', label: 'Avg Level' },
         ];
@@ -5576,7 +5576,7 @@
       <td style="color:${CYAN}">${DATA.abMusic.A.sessions.toLocaleString()}</td>
       <td style="color:${MAG}">${DATA.abMusic.B.sessions.toLocaleString()}</td>
       <td style="color:${mSig.color}">${mSig.text}</td>
-      <td>Win Rate, Replay, Survival</td>
+      <td>Win %, Replay, Survival</td>
       <td>p &lt; 0.05</td>
       <td style="color:${mSig.color}">${DATA.abMusic.A.sessions >= 100 && DATA.abMusic.B.sessions >= 100 ? 'Ship Music ON as default' : 'Gather more data'}</td>
     </tr>
@@ -5585,7 +5585,7 @@
       <td style="color:${CYAN}">${DATA.abMovement.A.sessions.toLocaleString()}</td>
       <td style="color:${MAG}">${DATA.abMovement.B.sessions.toLocaleString()}</td>
       <td style="color:${mvSig.color}">${mvSig.text}</td>
-      <td>Avg Level, Win Rate</td>
+      <td>Avg Level, Win %</td>
       <td>p &lt; 0.05</td>
       <td style="color:${mvSig.color}">${DATA.abMovement.A.sessions >= 100 && DATA.abMovement.B.sessions >= 100 ? 'Monitor 1 more week' : 'Gather more data'}</td>
     </tr>`;
@@ -5663,11 +5663,11 @@
         const d = DATA.platform;
         const metrics = [
           { label: 'Sessions', desk: d.desktop.sessions, mob: d.mobile.sessions, higherBetter: true },
-          { label: 'Win Rate', desk: d.desktop.winRate, mob: d.mobile.winRate, higherBetter: true },
+          { label: 'Win %', desk: d.desktop.winRate, mob: d.mobile.winRate, higherBetter: true },
           { label: 'Avg Survival', desk: d.desktop.survival, mob: d.mobile.survival, higherBetter: true, unit: 'min' },
-          { label: 'Play-Again Rate', desk: d.desktop.replay, mob: d.mobile.replay, higherBetter: true },
+          { label: 'Play-Again %', desk: d.desktop.replay, mob: d.mobile.replay, higherBetter: true },
           { label: 'Avg Level', desk: d.desktop.avgLevel, mob: d.mobile.avgLevel, higherBetter: true },
-          { label: 'Leaderboard Rate', desk: d.desktop.lbRate, mob: d.mobile.lbRate, higherBetter: true },
+          { label: 'Leaderboard Entries', desk: d.desktop.lbRate, mob: d.mobile.lbRate, higherBetter: true },
           { label: 'Boss 1 Defeat %', desk: d.desktop.boss1 != null ? `${d.desktop.boss1}%` : '—', mob: d.mobile.boss1 != null ? `${d.mobile.boss1}%` : '—', higherBetter: true },
           { label: 'Boss 2 Defeat %', desk: d.desktop.boss2 != null ? `${d.desktop.boss2}%` : '—', mob: d.mobile.boss2 != null ? `${d.mobile.boss2}%` : '—', higherBetter: true },
           { label: 'Boss 3 Defeat %', desk: d.desktop.boss3 != null ? `${d.desktop.boss3}%` : '—', mob: d.mobile.boss3 != null ? `${d.mobile.boss3}%` : '—', higherBetter: true },
