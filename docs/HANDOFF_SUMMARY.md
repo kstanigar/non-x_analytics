@@ -34,7 +34,7 @@
 3. ~~UX-4: `⊞` → "View" label~~ ✅
 4. ~~UX-1: Metric renames~~ ✅
 5. ~~UX-3: Clickable cards + section tooltips~~ ✅
-6. **UX-3b: Remove individual card `data-tooltip` text** — now that cards are clickable, the hover tooltips on Total Plays, Avg Survival, Avg Level Reached are redundant and should be removed or replaced with a simpler "Click to learn more" hint
+6. ~~UX-3b: Remove individual card `data-tooltip` text~~ ✅ — `2187025`, live
 7. UX-5: Simplify Data Dictionary (M-L, separate session)
 8. P-5: Security audit (when ready)
 9. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)

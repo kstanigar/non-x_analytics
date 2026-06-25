@@ -288,7 +288,7 @@ Also: `.section-info` hover → show/hide `#kpi-tooltip` (reuse existing tooltip
 
 **Commit:** `eac7416` | Production: ✅ live (merged to main)
 
-**Follow-up identified (UX-3b):** Total Plays, Avg Survival, and Avg Level Reached still carry `data-tooltip` text from before UX-3. Now that those cards are clickable, the hover tooltips are redundant and should be removed or replaced with a simple "Click to learn more" hint. Tracked in PRIORITIES.md as UX-3b.
+**Follow-up UX-3b** ✅ — `2187025`, live: Removed `data-tooltip` from Total Plays, Avg Survival, and Avg Level Reached — hover tooltips were redundant once cards became clickable.
 
 ---
 
