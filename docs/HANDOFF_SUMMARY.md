@@ -2,11 +2,87 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 24, 2026 (Session 4)
+**Last Updated:** June 25, 2026 (Session 6)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 25, 2026 - UX Sprint: Metric Renames (Session 6)
+
+**Status:** ✅ DOCUMENTED | Branch: `feature/ux-1-metric-renames` → staging
+
+### Completed This Session
+- **UX-1: Full metric rename pass** ✅ — ~47 changes, pending merge to main
+  - `Total Sessions` → `Total Plays`
+  - `Win Rate` → `Win %` (KPI labels, Dict h4, JS label objects, comparison tables)
+  - `Death Rate` → `Death %`
+  - `Play-Again Rate` → `Play-Again %`
+  - `Leaderboard Rate` → `Leaderboard Entries`
+  - `Scorecard View Rate` → `Scorecard Views`
+  - `Music Toggle Rate` → `Music Toggle %`
+  - `Leave Game Rate` → `Drop-off Rate`
+  - `Boss Reach Rate` → `Boss Reach %`
+  - `Survey Response Rate` → `Survey Response %`
+  - `Speed Lock Rate` → `Speed Lock %`
+  - `Desktop/Mobile Win Rate` → `Desktop/Mobile Win %`
+  - Haiku agent confirmed all exact line numbers; full plan in `docs/QA_Feedback_UX_Plan.md`
+  - Note: QA plan had 3 wrong label names (event names, not display labels) — corrected during research
+
+### Next Priority Order
+1. ~~UX-2: White titles~~ ✅
+2. ~~UX-4: `⊞` → "View" label~~ ✅
+3. ~~UX-1: Metric renames~~ ✅ (pending staging confirm)
+4. UX-3: Clickable cards + section tooltips (M) ← **next**
+5. UX-5: Simplify Data Dictionary (M-L, separate session)
+6. P-5: Security audit (when ready)
+7. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)
+
+---
+
+## June 24, 2026 - QA Feedback + UX Planning (Session 5)
+
+**Status:** ✅ DOCUMENTED | Plan: `docs/QA_Feedback_UX_Plan.md` | Tier rounding: ✅ live (`7678761`)
+
+### Changes This Session
+- **Tier rounding fix:** Avg Start Tier + Avg Final Tier now display as whole numbers (`Math.round()` applied before render) — `live.html:4795-4796`
+- **Git branches cleaned:** No stale feature branches; only `main` + `staging` remain
+- **QA feedback incorporated** from external testers — 8 UX tasks documented
+
+### QA Feedback Summary
+External testers flagged:
+1. Dashboard purpose unclear — needs to signal "game analyst portfolio" + be legible to players
+2. Metric names too technical ("Total Sessions" → "Total Plays")
+3. Overview page overwhelming; card titles need to be white for contrast
+4. `ⓘ` icons on each card feel cluttered — move to section headers instead; make entire card clickable → Data Dictionary
+5. `⊞` icon in Data Dictionary/Case Study cryptic — rename to "Chart"
+6. Data Dictionary too dense for average user
+7. Requested: Distinct Players count, Player Performance page, Leaderboard tab
+
+### Tooltip/Card Interaction Plan (UX-3)
+- Remove per-card `ⓘ` icons
+- Each KPI card → fully clickable → jumps to its Data Dictionary entry
+- Single `ⓘ` on section headers ("TOP-LINE KPIS", "PLAYER BEHAVIOR") for section-level context
+- Screenshot annotation confirmed: tooltips move to section header level
+
+### Completed This Session
+- **UX-2: White titles** ✅ — `84e6ccc`, merged to main
+  - `.section-label:246`, `.kpi-label:314`, `.card-title:402` → `color: #fff`
+- **UX-4: `⊞` → "View" label** ✅ — `ec33b20`, merged to main
+  - `BACKLINK_ICON` constant + 4 Case Study HTML instances → `'View'`
+  - `.dict-link` CSS: added `border: 1px solid var(--cyan)`, `padding: 1px 6px`, `border-radius: 3px`
+
+### Next Priority Order
+1. ~~UX-2: White titles~~ ✅
+2. ~~UX-4: `⊞` → "View" label~~ ✅
+3. UX-1: Metric renames (S) ← **next**
+3. UX-1: Metric renames (S)
+4. UX-3: Clickable cards + section tooltips (M)
+5. UX-5: Simplify Data Dictionary (M-L, separate session)
+6. P-5: Security audit (when ready)
+7. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)
 
 ---
 

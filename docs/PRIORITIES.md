@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 24, 2026 (Session 4)
+**Last Updated:** June 24, 2026 (Session 5)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -48,6 +48,32 @@
 - Check: CORS config, input validation, API Gateway settings, SRI hashes, error message exposure
 - Prior audit: `bc59894` (June 11, 2026) — re-audit after parallel fetch refactor + quota change
 - Output: updated `Issues_And_Bugs.md` entries + any fixes
+
+---
+
+### UX-1 through UX-5: QA Feedback + UX Improvements — PENDING
+
+**Full plan:** `docs/QA_Feedback_UX_Plan.md`
+
+**Priority order (next session):**
+1. **UX-2: White card + section titles** ✅ — `84e6ccc`, live
+2. **UX-4: `⊞` → "View" label** ✅ — `ec33b20`, live
+3. **UX-1: Rename metrics for player clarity** ✅ — pending merge to main
+4. **UX-3: Clickable KPI cards + section-level tooltips** — M, removes per-card ⓘ icons, card click → Data Dictionary, single ⓘ per section header
+5. **UX-5: Simplify Data Dictionary** — M-L, separate session
+
+**Open questions before UX-3:**
+- Confirm leaderboard API returns per-row data (needed for UX-8)
+- Verify `user_pseudo_id` captured on `player_won` in BigQuery (needed for UX-7)
+
+---
+
+### UX-6 through UX-8: Player Metrics Expansion — BACKLOG
+
+**Full plan:** `docs/QA_Feedback_UX_Plan.md`
+- **UX-6: Distinct Players KPI** — implement during MT-6 BigQuery session
+- **UX-7: Player Performance page** — after UX-6 + data verification
+- **UX-8: Leaderboard tab** — after confirming leaderboard API format
 
 ---
 
