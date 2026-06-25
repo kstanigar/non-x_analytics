@@ -2,11 +2,41 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 25, 2026 (Session 6)
+**Last Updated:** June 25, 2026 (Session 7)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 25, 2026 - UX Sprint: Clickable KPI Cards + Section Tooltips (Session 7)
+
+**Status:** ✅ DOCUMENTED | Branch: `feature/ux-3-clickable-kpi-cards` → staging
+
+### Completed This Session
+- **UX-3: Clickable KPI cards + section-level tooltips** ✅ — pending commit
+  - **CSS (2 rules):** `.kpi[data-dict]` → `cursor: pointer` + cyan border glow on hover; `.section-info` → inline ⓘ styling; `.section-info[data-case]` → pointer cursor
+  - **KPI cards (16 cards):** All per-card ⓘ spans removed from `.kpi-label`; `data-dict` moved to parent `.kpi` div — existing `[data-dict]` click handler navigates to Data Dictionary automatically
+  - **Total Tier Adjustments:** Both ⓘ spans removed; only `data-dict="avg-adjustments"` kept (Case Study link dropped — Dict + Case Study are on separate tabs, can't highlight simultaneously)
+  - **Section headers (5):** `.section-info` ⓘ spans added with `data-tooltip` — picked up by existing `querySelectorAll('[data-tooltip]')` at page load
+    - Top-Line KPIs (line 1722): "Core metrics — how many people played, won, and came back."
+    - Player Behavior (line 1766): "What players do during a run — deaths, drop-offs, and feature usage."
+    - AI Agent (line 1964): "How the difficulty AI is adjusting in response to player performance."
+    - A/B Test 1 (line 2087): "Live split test comparing music toggle and player performance and the two movement control schemes used by the player." — also retains `data-case="cs-ab-findings"` click to Case Study
+    - Desktop vs Mobile (line 2129): "Side-by-side comparison of Desktop vs. Mobile player outcomes."
+  - **No JS changes needed** — existing `[data-dict]` handler + `querySelectorAll('[data-tooltip]')` covered both behaviors
+  - Full plan: `docs/QA_Feedback_UX_Plan.md`
+
+### Next Priority Order
+1. ~~UX-0: Hamburger colors~~ ✅
+2. ~~UX-2: White titles~~ ✅
+3. ~~UX-4: `⊞` → "View" label~~ ✅
+4. ~~UX-1: Metric renames~~ ✅
+5. ~~UX-3: Clickable cards + section tooltips~~ ✅ (pending staging confirm)
+6. UX-5: Simplify Data Dictionary (M-L, separate session)
+7. P-5: Security audit (when ready)
+8. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)
 
 ---
 
@@ -35,15 +65,6 @@
   - `Desktop/Mobile Win Rate` → `Desktop/Mobile Win %`
   - Haiku agent confirmed all exact line numbers; full plan in `docs/QA_Feedback_UX_Plan.md`
   - Note: QA plan had 3 wrong label names (event names, not display labels) — corrected during research
-
-### Next Priority Order
-1. ~~UX-2: White titles~~ ✅
-2. ~~UX-4: `⊞` → "View" label~~ ✅
-3. ~~UX-1: Metric renames~~ ✅ (pending staging confirm)
-4. UX-3: Clickable cards + section tooltips (M) ← **next**
-5. UX-5: Simplify Data Dictionary (M-L, separate session)
-6. P-5: Security audit (when ready)
-7. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)
 
 ---
 

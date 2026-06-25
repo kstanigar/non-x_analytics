@@ -1611,6 +1611,26 @@
       border-radius: 3px;
     }
     .dict-link:hover { opacity: 1; }
+    /* Clickable KPI tiles */
+    .kpi[data-dict] { cursor: pointer; }
+    .kpi[data-dict]:hover { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,255,255,0.12); }
+    /* Section header info icon */
+    .section-info {
+      display: inline-block;
+      margin-left: 8px;
+      color: var(--cyan);
+      font-size: 0.75rem;
+      cursor: default;
+      user-select: none;
+      vertical-align: middle;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+      border: 1px solid var(--cyan);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .section-info[data-case] { cursor: pointer; }
+    .section-info:hover { opacity: 1; }
   </style>
 </head>
 
@@ -1719,30 +1739,30 @@
   ═══════════════════════════════════════════ -->
     <div class="page active" id="page-overview">
 
-      <div class="section-label">Top-Line KPIs</div>
+      <div class="section-label">Top-Line KPIs <span class="section-info" data-tooltip="Core metrics — how many people played, won, and came back.">ⓘ</span></div>
       <div class="kpi-grid">
         <div class="kpi" data-tooltip="Count of game_start events. One per play session across all platforms.">
           <div class="kpi-label">Total Plays</div>
           <div class="kpi-value" id="kpi-sessions">—</div>
           <div class="kpi-sub">All platforms</div>
         </div>
-        <div class="kpi mag">
-          <div class="kpi-label">Returning Players <span class="dict-link" data-dict="new-pct">ⓘ</span></div>
+        <div class="kpi mag" data-dict="new-pct">
+          <div class="kpi-label">Returning Players</div>
           <div class="kpi-value" id="kpi-new-pct">—</div>
           <div class="kpi-sub" id="kpi-new-pct-sub">% returning sessions</div>
         </div>
-        <div class="kpi grn">
-          <div class="kpi-label">Win % <span class="dict-link" data-dict="winrate">ⓘ</span></div>
+        <div class="kpi grn" data-dict="winrate">
+          <div class="kpi-label">Win %</div>
           <div class="kpi-value" id="kpi-winrate">—</div>
           <div class="kpi-sub" id="kpi-winrate-sub">player_won / game_start</div>
         </div>
-        <div class="kpi red">
-          <div class="kpi-label">Death % <span class="dict-link" data-dict="deathrate">ⓘ</span></div>
+        <div class="kpi red" data-dict="deathrate">
+          <div class="kpi-label">Death %</div>
           <div class="kpi-value" id="kpi-deathrate">—</div>
           <div class="kpi-sub" id="kpi-deathrate-sub">player_death / completed games</div>
         </div>
-        <div class="kpi yel">
-          <div class="kpi-label">Play-Again % <span class="dict-link" data-dict="replay">ⓘ</span></div>
+        <div class="kpi yel" data-dict="replay">
+          <div class="kpi-label">Play-Again %</div>
           <div class="kpi-value" id="kpi-replay">—</div>
           <div class="kpi-sub" id="kpi-replay-sub">game_start per user</div>
         </div>
@@ -1751,8 +1771,8 @@
           <div class="kpi-value" id="kpi-survival">—</div>
           <div class="kpi-sub">minutes per run</div>
         </div>
-        <div class="kpi mag">
-          <div class="kpi-label">Leaderboard Entries <span class="dict-link" data-dict="lbrate">ⓘ</span></div>
+        <div class="kpi mag" data-dict="lbrate">
+          <div class="kpi-label">Leaderboard Entries</div>
           <div class="kpi-value" id="kpi-lb-rate">—</div>
           <div class="kpi-sub" id="kpi-lb-rate-sub">leaderboard_submit / win</div>
         </div>
@@ -1763,30 +1783,30 @@
         </div>
       </div>
 
-      <div class="section-label">Player Behavior</div>
+      <div class="section-label">Player Behavior <span class="section-info" data-tooltip="What players do during a run — deaths, drop-offs, and feature usage.">ⓘ</span></div>
       <div class="kpi-grid">
-        <div class="kpi yel">
-          <div class="kpi-label">Scorecard Views <span class="dict-link" data-dict="scorecard-rate">ⓘ</span></div>
+        <div class="kpi yel" data-dict="scorecard-rate">
+          <div class="kpi-label">Scorecard Views</div>
           <div class="kpi-value" id="kpi-scorecard-rate">—</div>
           <div class="kpi-sub" id="kpi-scorecard-sub">scorecard_viewed / game_start</div>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">Music Toggle % <span class="dict-link" data-dict="music-rate">ⓘ</span></div>
+        <div class="kpi" data-dict="music-rate">
+          <div class="kpi-label">Music Toggle %</div>
           <div class="kpi-value" id="kpi-music-rate">—</div>
           <div class="kpi-sub" id="kpi-music-sub">music_toggled / game_start</div>
         </div>
-        <div class="kpi red">
-          <div class="kpi-label">Drop-off Rate <span class="dict-link" data-dict="leave-rate">ⓘ</span></div>
+        <div class="kpi red" data-dict="leave-rate">
+          <div class="kpi-label">Drop-off Rate</div>
           <div class="kpi-value" id="kpi-leave-rate">—</div>
           <div class="kpi-sub" id="kpi-leave-sub">leave_game / game_start</div>
         </div>
-        <div class="kpi grn">
-          <div class="kpi-label">Boss Reach % <span class="dict-link" data-dict="boss-reach">ⓘ</span></div>
+        <div class="kpi grn" data-dict="boss-reach">
+          <div class="kpi-label">Boss Reach %</div>
           <div class="kpi-value" id="kpi-boss-reach-rate">—</div>
           <div class="kpi-sub" id="kpi-boss-reach-sub">boss_attempt / game_start</div>
         </div>
-        <div class="kpi mag">
-          <div class="kpi-label">Survey Response % <span class="dict-link" data-dict="survey-rate">ⓘ</span></div>
+        <div class="kpi mag" data-dict="survey-rate">
+          <div class="kpi-label">Survey Response %</div>
           <div class="kpi-value" id="kpi-survey-rate">—</div>
           <div class="kpi-sub" id="kpi-survey-sub">survey_submitted / game_start</div>
         </div>
@@ -1961,7 +1981,7 @@
   ═══════════════════════════════════════════ -->
     <div class="page" id="page-ai">
 
-      <div class="section-label">AI Agent v1.0 — Adaptive Difficulty System</div>
+      <div class="section-label">AI Agent v1.0 — Adaptive Difficulty System <span class="section-info" data-tooltip="How the difficulty AI is adjusting in response to player performance.">ⓘ</span></div>
 
       <div class="insight-box" style="margin-bottom:24px">
         <strong>📊 7-Tier System:</strong> AI adjusts difficulty from Tier -3 (Tutorial) to +3 (Expert).
@@ -1972,23 +1992,23 @@
 
       <!-- KPI Cards -->
       <div class="kpi-grid" style="margin-bottom:32px">
-        <div class="kpi">
-          <div class="kpi-label">Avg Start Tier <span class="dict-link" data-dict="avg-start-tier">ⓘ</span></div>
+        <div class="kpi" data-dict="avg-start-tier">
+          <div class="kpi-label">Avg Start Tier</div>
           <div class="kpi-value" id="kpi-ai-avg-start">—</div>
           <div class="kpi-sub">First session</div>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">Avg Final Tier <span class="dict-link" data-dict="avg-final-tier">ⓘ</span></div>
+        <div class="kpi" data-dict="avg-final-tier">
+          <div class="kpi-label">Avg Final Tier</div>
           <div class="kpi-value" id="kpi-ai-avg-final">—</div>
           <div class="kpi-sub">At victory/death</div>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">Speed Lock % <span class="dict-link" data-dict="speedlock">ⓘ</span></div>
+        <div class="kpi" data-dict="speedlock">
+          <div class="kpi-label">Speed Lock %</div>
           <div class="kpi-value" id="kpi-ai-speed-lock">—</div>
           <div class="kpi-sub" id="kpi-ai-speed-lock-sub">Players who completed 1+ cycles</div>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">Total Tier Adjustments <span class="dict-link" data-dict="avg-adjustments">ⓘ</span> <span class="dict-link" data-case="cs-ai-findings">ⓘ</span></div>
+        <div class="kpi" data-dict="avg-adjustments">
+          <div class="kpi-label">Total Tier Adjustments</div>
           <div class="kpi-value" id="kpi-ai-avg-adjustments">—</div>
           <div class="kpi-sub">Since Created</div>
         </div>
@@ -2084,7 +2104,7 @@
   ═══════════════════════════════════════════ -->
     <div class="page" id="page-ab">
 
-      <div class="section-label">A/B Test 1 — Music Default (ON vs OFF) <span class="dict-link" data-case="cs-ab-findings">ⓘ</span></div>
+      <div class="section-label">A/B Test 1 — Music Default (ON vs OFF) <span class="section-info" data-case="cs-ab-findings" data-tooltip="Live split test comparing music toggle and player performance and the two movement control schemes used by the player.">ⓘ</span></div>
       <div class="ab-grid" id="ab-music-cards"></div>
 
       <div class="section-label">A/B Test 2 — Movement Scheme</div>
@@ -2126,15 +2146,15 @@
   ═══════════════════════════════════════════ -->
     <div class="page" id="page-platform">
 
-      <div class="section-label">Desktop vs Mobile Comparison</div>
+      <div class="section-label">Desktop vs Mobile Comparison <span class="section-info" data-tooltip="Side-by-side comparison of Desktop vs. Mobile player outcomes.">ⓘ</span></div>
       <div class="kpi-grid">
-        <div class="kpi">
-          <div class="kpi-label">Desktop Win % <span class="dict-link" data-dict="platform-kpis">ⓘ</span></div>
+        <div class="kpi" data-dict="platform-kpis">
+          <div class="kpi-label">Desktop Win %</div>
           <div class="kpi-value" id="kpi-desk-win">—</div>
           <div class="kpi-sub" id="kpi-desk-win-sub">player_won / game_start</div>
         </div>
-        <div class="kpi mag">
-          <div class="kpi-label">Mobile Win % <span class="dict-link" data-dict="platform-kpis">ⓘ</span></div>
+        <div class="kpi mag" data-dict="platform-kpis">
+          <div class="kpi-label">Mobile Win %</div>
           <div class="kpi-value" id="kpi-mob-win">—</div>
           <div class="kpi-sub" id="kpi-mob-win-sub">player_won / game_start</div>
         </div>

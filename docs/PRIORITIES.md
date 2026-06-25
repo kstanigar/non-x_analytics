@@ -60,7 +60,7 @@
 2. **UX-2: White card + section titles** ✅ — `84e6ccc`, live
 3. **UX-4: `⊞` → "View" label** ✅ — `ec33b20`, live
 4. **UX-1: Rename metrics for player clarity** ✅ — `4c91766`, live
-5. **UX-3: Clickable KPI cards + section-level tooltips** — M, removes per-card ⓘ icons, card click → Data Dictionary, single ⓘ per section header
+5. **UX-3: Clickable KPI cards + section-level tooltips** ✅ — pending commit, staging
 6. **UX-5: Simplify Data Dictionary** — M-L, separate session
 
 **Open questions before UX-3:**

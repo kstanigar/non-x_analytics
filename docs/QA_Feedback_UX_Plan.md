@@ -153,15 +153,16 @@ Current language skews technical. Goal: make metrics legible to both without dum
 
 ---
 
-### UX-3: Clickable KPI Cards → Data Dictionary
+### UX-3: Clickable KPI Cards → Data Dictionary ✅ — June 25, 2026
 
 **Problem:** The `ⓘ` icon on each card is small and easy to miss. Users don't know cards link anywhere.
 
-**Change:** Entire KPI card becomes clickable → jumps to its Data Dictionary entry (same behavior as the existing `⊞` back-link system).
+**Change:** Entire KPI card becomes clickable → jumps to its Data Dictionary entry (same behavior as the existing back-link system).
 
 **Tooltip plan (from screenshot annotations):**
 - **Remove** per-card `ⓘ` icons (redundant once card is fully clickable)
-- **Move** a single `ⓘ` to each **section header** ("TOP-LINE KPIS", "PLAYER BEHAVIOR") — explains what the section contains at a high level
+- **Move** data-dict routing to the `.kpi` wrapper div itself
+- **Add** a single `ⓘ` to each **section header** with a hover tooltip one-liner
 - Hover tooltip on section `ⓘ` gives a one-liner per section (drafted below)
 
 **Section tooltip one-liners (drafted):**
@@ -171,11 +172,119 @@ Current language skews technical. Goal: make metrics legible to both without dum
 | TOP-LINE KPIS | "Core metrics — how many people played, won, and came back." |
 | PLAYER BEHAVIOR | "What players do during a run — deaths, drop-offs, and feature usage." |
 | AI AGENT | "How the difficulty AI is adjusting in response to player performance." |
-| MOVEMENT A/B TEST | "Live split test comparing two movement control schemes." |
+| A/B TESTS | "Live split test comparing music toggle and player performance and the two movement control schemes used by the player." |
 | PLATFORM BREAKDOWN | "Side-by-side comparison of Desktop vs. Mobile player outcomes." |
 
 **Effort:** M
 **Files:** `live.html` — KPI card HTML, JS click handlers, CSS cursor/hover state, section header HTML
+
+#### Research Findings (Explore Agent — June 25, 2026)
+
+**KPI cards with ⓘ icons — 16 cards total (17 icon instances):**
+
+| Line | KPI Label | `data-dict` value | `data-case` value |
+|------|-----------|-------------------|-------------------|
+| 1730 | Returning Players | `new-pct` | — |
+| 1735 | Win % | `winrate` | — |
+| 1740 | Death % | `deathrate` | — |
+| 1745 | Play-Again % | `replay` | — |
+| 1755 | Leaderboard Entries | `lbrate` | — |
+| 1769 | Scorecard Views | `scorecard-rate` | — |
+| 1774 | Music Toggle % | `music-rate` | — |
+| 1779 | Drop-off Rate | `leave-rate` | — |
+| 1784 | Boss Reach % | `boss-reach` | — |
+| 1789 | Survey Response % | `survey-rate` | — |
+| 1976 | Avg Start Tier | `avg-start-tier` | — |
+| 1981 | Avg Final Tier | `avg-final-tier` | — |
+| 1986 | Speed Lock % | `speedlock` | — |
+| 1991 | Total Tier Adjustments | `avg-adjustments` | `cs-ai-findings` ← dual icon |
+| 2132 | Desktop Win % | `platform-kpis` | — |
+| 2137 | Mobile Win % | `platform-kpis` | — |
+
+**Note on dual-icon card (Total Tier Adjustments, line 1991):**
+- Has TWO ⓘ icons: one links to Dict (`avg-adjustments`), one links to Case Study (`cs-ai-findings`)
+- Dict and Case Study are on separate tabs — both cannot highlight simultaneously
+- **Decision (Option A):** Click navigates to Dict entry only. `data-case` link removed with the ⓘ icon.
+
+**Section header locations (`.section-label` class):**
+
+| Line | Section Text | ⓘ tooltip? |
+|------|-------------|------------|
+| 1722 | Top-Line KPIs | ✅ add ⓘ |
+| 1766 | Player Behavior | ✅ add ⓘ |
+| 1964 | AI Agent v1.0 — Adaptive Difficulty System | ✅ add ⓘ |
+| 2087 | A/B Test 1 — Music Default (ON vs OFF) | ✅ add ⓘ (covers both A/B tests) |
+| 2090 | A/B Test 2 — Movement Scheme | — (covered by ⓘ on 2087) |
+| 2129 | Desktop vs Mobile Comparison | ✅ add ⓘ |
+| 2168 | Full Platform Breakdown | — (secondary, no tooltip) |
+
+**Key functions:**
+- `navigateAndGlow(tab, elementId)` — lines 6262–6271 — handles tab switch + scroll + glow
+- Delegated click handler — lines 6289–6305 — listens for `[data-backlink]` / `[data-cs-backlink]`
+- `switchTab()` — line 5904
+- `#kpi-tooltip` — lines 1580–1597 — existing floating tooltip element (already used for `.kpi` hover)
+- `BACKLINK_MAP` — lines 6204–6228 — Dict routing table
+- `CS_BACKLINK_MAP` — lines 6232–6237 — Case Study routing table
+
+**Existing tooltip mechanism:** `.kpi` cards already have `data-tooltip` attributes powering the `#kpi-tooltip` on hover — section ⓘ tooltips will reuse this same `#kpi-tooltip` element.
+
+#### Implementation Plan
+
+**Part 1 — CSS (2 changes):**
+
+| Selector | Change |
+|----------|--------|
+| `.kpi[data-dict]` | Add `cursor: pointer` + subtle hover border glow |
+| `.section-info` (new class) | Style section header ⓘ icon — same cyan, small, positioned inline |
+
+**Part 2 — HTML (per-card edits + section header edits):**
+
+For each of the 16 KPI cards:
+- Remove `<span class="dict-link" data-dict="...">ⓘ</span>` from inside `.kpi-label`
+- Move `data-dict="..."` attribute to the parent `.kpi` div
+
+Section headers (5 additions):
+- `live.html:1722` — Top-Line KPIs → append `<span class="section-info" data-tooltip="Core metrics — how many people played, won, and came back.">ⓘ</span>`
+- `live.html:1766` — Player Behavior → append `<span class="section-info" data-tooltip="What players do during a run — deaths, drop-offs, and feature usage.">ⓘ</span>`
+- `live.html:1964` — AI Agent → append `<span class="section-info" data-tooltip="How the difficulty AI is adjusting in response to player performance.">ⓘ</span>`
+- `live.html:2087` — A/B Tests → append `<span class="section-info" data-tooltip="Live split test comparing music toggle and player performance and the two movement control schemes used by the player.">ⓘ</span>`
+- `live.html:2129` — Platform → append `<span class="section-info" data-tooltip="Side-by-side comparison of Desktop vs. Mobile player outcomes.">ⓘ</span>`
+
+**Part 3 — JS (1 addition to existing click delegation block ~line 6289):**
+
+Add handler: when `.kpi[data-dict]` is clicked → read `data-dict` value → look up in `BACKLINK_MAP` → call `navigateAndGlow(tab, elementId)`
+
+Also: `.section-info` hover → show/hide `#kpi-tooltip` (reuse existing tooltip show/hide logic)
+
+#### Task List
+
+- [x] CSS: Add `cursor: pointer` + hover glow to `.kpi[data-dict]`
+- [x] CSS: Add `.section-info` icon styles
+- [x] HTML: Remove ⓘ span from `live.html:1730` (Returning Players) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1735` (Win %) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1740` (Death %) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1745` (Play-Again %) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1755` (Leaderboard Entries) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1769` (Scorecard Views) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1774` (Music Toggle %) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1779` (Drop-off Rate) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1784` (Boss Reach %) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1789` (Survey Response %) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1976` (Avg Start Tier) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1981` (Avg Final Tier) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:1986` (Speed Lock %) + move `data-dict` to `.kpi`
+- [x] HTML: Remove BOTH ⓘ spans from `live.html:1991` (Total Tier Adjustments) + move `data-dict="avg-adjustments"` only to `.kpi` (drop `data-case`)
+- [x] HTML: Remove ⓘ span from `live.html:2132` (Desktop Win %) + move `data-dict` to `.kpi`
+- [x] HTML: Remove ⓘ span from `live.html:2137` (Mobile Win %) + move `data-dict` to `.kpi`
+- [x] HTML: Add section ⓘ to `live.html:1722` (Top-Line KPIs)
+- [x] HTML: Add section ⓘ to `live.html:1766` (Player Behavior)
+- [x] HTML: Add section ⓘ to `live.html:1964` (AI Agent)
+- [x] HTML: Add section ⓘ to `live.html:2087` (A/B Tests — covers both Music + Movement)
+- [x] HTML: Add section ⓘ to `live.html:2129` (Platform Breakdown)
+- [x] JS: No changes needed — existing `[data-dict]` handler + `querySelectorAll('[data-tooltip]')` covered both behaviors
+- [ ] Verify on staging: all KPI cards clickable, cursor changes, glow animates on Dict entry
+- [ ] Verify on staging: section ⓘ icons show correct one-liner tooltip on hover
+- [ ] Verify on staging: Total Tier Adjustments navigates to Dict entry only
 
 ---
 
