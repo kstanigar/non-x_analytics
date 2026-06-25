@@ -60,7 +60,8 @@
 2. **UX-2: White card + section titles** ✅ — `84e6ccc`, live
 3. **UX-4: `⊞` → "View" label** ✅ — `ec33b20`, live
 4. **UX-1: Rename metrics for player clarity** ✅ — `4c91766`, live
-5. **UX-3: Clickable KPI cards + section-level tooltips** ✅ — pending commit, staging
+5. **UX-3: Clickable KPI cards + section-level tooltips** ✅ — `eac7416`, live
+6. **UX-3b: Remove individual card hover tooltips** — Total Plays, Avg Survival, Avg Level Reached still have `data-tooltip` text; redundant now that cards are clickable → remove or replace with "Click to learn more"
 6. **UX-5: Simplify Data Dictionary** — M-L, separate session
 
 **Open questions before UX-3:**

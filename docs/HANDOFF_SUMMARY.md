@@ -12,10 +12,10 @@
 
 ## June 25, 2026 - UX Sprint: Clickable KPI Cards + Section Tooltips (Session 7)
 
-**Status:** ✅ DOCUMENTED | Branch: `feature/ux-3-clickable-kpi-cards` → staging
+**Status:** ✅ COMPLETE | Commit: `eac7416`, merged to main
 
 ### Completed This Session
-- **UX-3: Clickable KPI cards + section-level tooltips** ✅ — pending commit
+- **UX-3: Clickable KPI cards + section-level tooltips** ✅ — `eac7416`, live
   - **CSS (2 rules):** `.kpi[data-dict]` → `cursor: pointer` + cyan border glow on hover; `.section-info` → inline ⓘ styling; `.section-info[data-case]` → pointer cursor
   - **KPI cards (16 cards):** All per-card ⓘ spans removed from `.kpi-label`; `data-dict` moved to parent `.kpi` div — existing `[data-dict]` click handler navigates to Data Dictionary automatically
   - **Total Tier Adjustments:** Both ⓘ spans removed; only `data-dict="avg-adjustments"` kept (Case Study link dropped — Dict + Case Study are on separate tabs, can't highlight simultaneously)
@@ -33,10 +33,11 @@
 2. ~~UX-2: White titles~~ ✅
 3. ~~UX-4: `⊞` → "View" label~~ ✅
 4. ~~UX-1: Metric renames~~ ✅
-5. ~~UX-3: Clickable cards + section tooltips~~ ✅ (pending staging confirm)
-6. UX-5: Simplify Data Dictionary (M-L, separate session)
-7. P-5: Security audit (when ready)
-8. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)
+5. ~~UX-3: Clickable cards + section tooltips~~ ✅
+6. **UX-3b: Remove individual card `data-tooltip` text** — now that cards are clickable, the hover tooltips on Total Plays, Avg Survival, Avg Level Reached are redundant and should be removed or replaced with a simpler "Click to learn more" hint
+7. UX-5: Simplify Data Dictionary (M-L, separate session)
+8. P-5: Security audit (when ready)
+9. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)
 
 ---
 

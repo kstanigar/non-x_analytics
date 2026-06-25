@@ -282,9 +282,13 @@ Also: `.section-info` hover → show/hide `#kpi-tooltip` (reuse existing tooltip
 - [x] HTML: Add section ⓘ to `live.html:2087` (A/B Tests — covers both Music + Movement)
 - [x] HTML: Add section ⓘ to `live.html:2129` (Platform Breakdown)
 - [x] JS: No changes needed — existing `[data-dict]` handler + `querySelectorAll('[data-tooltip]')` covered both behaviors
-- [ ] Verify on staging: all KPI cards clickable, cursor changes, glow animates on Dict entry
-- [ ] Verify on staging: section ⓘ icons show correct one-liner tooltip on hover
-- [ ] Verify on staging: Total Tier Adjustments navigates to Dict entry only
+- [x] Verify on staging: all KPI cards clickable, cursor changes, glow animates on Dict entry
+- [x] Verify on staging: section ⓘ icons show correct one-liner tooltip on hover
+- [x] Verify on staging: Total Tier Adjustments navigates to Dict entry only
+
+**Commit:** `eac7416` | Production: ✅ live (merged to main)
+
+**Follow-up identified (UX-3b):** Total Plays, Avg Survival, and Avg Level Reached still carry `data-tooltip` text from before UX-3. Now that those cards are clickable, the hover tooltips are redundant and should be removed or replaced with a simple "Click to learn more" hint. Tracked in PRIORITIES.md as UX-3b.
 
 ---
 
