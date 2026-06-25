@@ -1606,6 +1606,9 @@
       vertical-align: middle;
       opacity: 0.85;
       transition: opacity 0.15s;
+      border: 1px solid var(--cyan);
+      padding: 1px 6px;
+      border-radius: 3px;
     }
     .dict-link:hover { opacity: 1; }
   </style>
@@ -2216,7 +2219,7 @@
             <div class="case-study-finding" id="cs-ab-findings">
               <span class="case-study-stat">+23pp</span>
               <span class="case-study-label">Music OFF players reach Boss 1 at nearly double the rate (61% vs 38%) and win more often (44% vs 23%). See the Conversion Rates Table for the full stage-by-stage funnel split by music group.</span>
-              <span class="dict-link backlink-icon" data-cs-backlink="cs-ab-findings" title="View on dashboard">Chart ↗</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-ab-findings" title="View on dashboard">View</span>
             </div>
             <div class="case-study-finding">
               <span class="case-study-stat">74%</span>
@@ -2225,17 +2228,17 @@
             <div class="case-study-finding" id="cs-ai-findings">
               <span class="case-study-stat">25 vs 3</span>
               <span class="case-study-label">AI difficulty adjustments: 25 increases vs 3 decreases. The system is actively pushing players harder — it's working.</span>
-              <span class="dict-link backlink-icon" data-cs-backlink="cs-ai-findings" title="View on dashboard">Chart ↗</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-ai-findings" title="View on dashboard">View</span>
             </div>
             <div class="case-study-finding" id="cs-death-findings">
               <span class="case-study-stat">L1–L4</span>
               <span class="case-study-label">Most deaths occur in the early Green phase, not at boss fights. The opening levels are where the game loses players.</span>
-              <span class="dict-link backlink-icon" data-cs-backlink="cs-death-findings" title="View on dashboard">Chart ↗</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-death-findings" title="View on dashboard">View</span>
             </div>
             <div class="case-study-finding" id="cs-powerup-findings">
               <span class="case-study-stat">5×</span>
               <span class="case-study-label">Mobile players collect roughly 5× more powerups than desktop players — likely a touch-control advantage.</span>
-              <span class="dict-link backlink-icon" data-cs-backlink="cs-powerup-findings" title="View on dashboard">Chart ↗</span>
+              <span class="dict-link backlink-icon" data-cs-backlink="cs-powerup-findings" title="View on dashboard">View</span>
             </div>
           </div>
 
@@ -6194,7 +6197,7 @@
       // HUMAN: To change the back-link icon, update BACKLINK_ICON below.
       // Current: ⊞ (U+229E squared plus). Other options: ↗ ⤴ → ⊹
       (function() {
-        var BACKLINK_ICON = 'Chart ↗';
+        var BACKLINK_ICON = 'View';
 
         // Lookup table: dict-entry id → { tab name, dashboard element id }
         // HUMAN: Add new entries here as new Data Dictionary sections are created.
