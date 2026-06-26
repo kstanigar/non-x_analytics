@@ -2,7 +2,7 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 26, 2026 (Session 9)
+**Last Updated:** June 26, 2026 (Session 10)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
@@ -12,16 +12,29 @@
 
 ## June 26, 2026 - P-5 Security Audit (Session 10)
 
-**Status:** ⏳ IN PROGRESS — Phase A complete ✅ | Phase B next
+**Status:** ⏳ IN PROGRESS — Phase A ✅ | Phase B ✅ | Phase C next (deploy + test)
+
+### Phase B Complete — June 26, 2026
+
+- **H-1 RESOLVED:** HTTP method validation added to `api/index.js` — OPTIONS → 204, non-GET → 405
+- **M-1 RESOLVED:** 3 shared security header constants added; all 9 inline header objects replaced
+- **Pre-implementation research:** Haiku agent re-verified all headers against OWASP 2026 — 3 corrections applied vs. Session 9 plan:
+  - `X-Frame-Options: DENY` removed from all constants (OWASP 2026: redundant on JSON APIs)
+  - `Access-Control-Max-Age` corrected `86400` → `7200` (Chrome silently caps at 7200s)
+  - Added `Referrer-Policy` + `Permissions-Policy` to SUCCESS/ERROR headers (OWASP 2026 recommended; were missing)
+- **`api/index.js` changes:**
+  - Lines 12–34: `SUCCESS_HEADERS`, `ERROR_HEADERS`, `CORS_HEADERS` constants inserted after `ALLOWED_ORIGIN`
+  - Lines 70–83: OPTIONS (204) + non-GET (405) method validation at handler entry
+  - 9 inline header objects replaced with constants throughout file
+- **Branch:** `feature/security-p5-phase-a` — uncommitted, ready to stage
+- **Next:** Phase C — `npm audit` final → deploy Lambda → test endpoints → smoke test dashboard
 
 ### Phase A Complete — June 26, 2026
 
 - **C-1 RESOLVED:** Upgraded `@google-analytics/data` `^4.1.0` → pinned `6.1.0` in `api/package.json`
 - **`npm audit`:** 0 vulnerabilities (was 10 HIGH/CRITICAL) ✅
-- **`package-lock.json`:** Generated — ready to commit alongside `package.json`
+- **`package-lock.json`:** Generated and committed on `feature/security-p5-phase-a`
 - **Pre-implementation verification:** Haiku agent confirmed 6.1.0 is latest stable (no v7), zero breaking changes to `runReport()` / `runRealtimeReport()` / `BetaAnalyticsDataClient`, exact pinning + lockfile is 2026 AWS Lambda best practice
-- **Git:** Staged — `api/package.json` + `api/package-lock.json` ready for `feature/security-p5-phase-a` branch
-- **Next:** Phase B — `api/index.js` edits (H-1 method validation + M-1 header constants)
 
 ---
 

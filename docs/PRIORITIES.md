@@ -48,7 +48,8 @@
 - **Full plan + task list:** `docs/Security_Audit_P5.md`
 - **Mandatory protocol:** research → plan → verify → approve → implement → test (no exceptions)
 - **Phase A: C-1 ✅ COMPLETE** — `api/package.json` pinned to `6.1.0`; `npm audit` = 0 vulnerabilities; `package-lock.json` generated
-- **Next — Phase B:** H-1 + M-1 in `api/index.js` (header constants + method validation — single atomic edit)
+- **Phase B: H-1 + M-1 ✅ COMPLETE** — `api/index.js` updated: method validation + 3 shared header constants; all 9 inline headers replaced; OWASP 2026 re-verified
+- **Next — Phase C:** `npm audit` final → deploy Lambda → test GET/OPTIONS/POST → smoke test dashboard → update docs
 - **Then:** H-3 (`innerHTML` → `textContent`/`createElement` in `live.html`) → H-2 (CSP meta tag) → H-4 (AWS WAF)
 - **Post-launch:** JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/M-4/L-1/L-2
 - **Last Updated:** June 26, 2026 (Session 10)

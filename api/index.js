@@ -9,6 +9,30 @@ const propertyId = process.env.GA4_PROPERTY_ID;
 // CORS origin — set to production domain before Standing Tiger deploy (replace '*')
 const ALLOWED_ORIGIN = 'https://kstanigar.github.io';
 
+// Shared security headers — use in all return statements
+const SUCCESS_HEADERS = {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'Cache-Control': 'public, max-age=86400',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'geolocation=(), camera=(), microphone=(), payment=()'
+};
+const ERROR_HEADERS = {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'Cache-Control': 'no-store',
+    'Referrer-Policy': 'strict-origin-when-cross-origin'
+};
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '7200'
+};
+
 // Input validation whitelists — reject unknown values before hitting GA4
 const VALID_TYPES      = ['standard', 'realtime'];
 const VALID_SUBTYPES   = ['platform-split','daily-timeseries','boss-analysis','survival-time','powerup-analysis','progression-analysis','ai-analysis','death-triggers','new-user-pct','replay-rate','music-ab','music-funnel','movement-ab','engagement-events','avg-tier','tier-score'];
@@ -43,6 +67,21 @@ const getBQStartDate = (param) => {
 
 exports.handler = async (event) => {
     try {
+        if (event.httpMethod === 'OPTIONS') {
+            return {
+                statusCode: 204,
+                headers: CORS_HEADERS,
+                body: ''
+            };
+        }
+        if (event.httpMethod && event.httpMethod !== 'GET') {
+            return {
+                statusCode: 405,
+                headers: { ...ERROR_HEADERS, 'Allow': 'GET, OPTIONS' },
+                body: JSON.stringify({ error: 'Method Not Allowed' })
+            };
+        }
+
         const requestType = event.queryStringParameters?.type || 'standard';
         const version = event.queryStringParameters?.version || '4.3';
         const subType = event.queryStringParameters?.subType || null;
@@ -50,13 +89,13 @@ exports.handler = async (event) => {
 
         // Validate inputs — return 400 for unknown values to prevent unexpected GA4 queries
         if (!VALID_TYPES.includes(requestType)) {
-            return { statusCode: 400, headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN }, body: JSON.stringify({ error: 'Invalid request type' }) };
+            return { statusCode: 400, headers: ERROR_HEADERS, body: JSON.stringify({ error: 'Invalid request type' }) };
         }
         if (subType && !VALID_SUBTYPES.includes(subType)) {
-            return { statusCode: 400, headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN }, body: JSON.stringify({ error: 'Invalid subType' }) };
+            return { statusCode: 400, headers: ERROR_HEADERS, body: JSON.stringify({ error: 'Invalid subType' }) };
         }
         if (!VALID_DATE_RANGES.includes(dateRangeParam)) {
-            return { statusCode: 400, headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN }, body: JSON.stringify({ error: 'Invalid date range' }) };
+            return { statusCode: 400, headers: ERROR_HEADERS, body: JSON.stringify({ error: 'Invalid date range' }) };
         }
 
         const dateRangeMap = {
@@ -327,7 +366,7 @@ exports.handler = async (event) => {
             if (tierCache.data && (now - tierCache.timestamp) < TIER_CACHE_TTL_MS) {
                 return {
                     statusCode: 200,
-                    headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },
+                    headers: SUCCESS_HEADERS,
                     body: JSON.stringify(tierCache.data)
                 };
             }
@@ -388,7 +427,7 @@ exports.handler = async (event) => {
             tierCache.timestamp = now;
             return {
                 statusCode: 200,
-                headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },
+                headers: SUCCESS_HEADERS,
                 body: JSON.stringify(result)
             };
 
@@ -398,7 +437,7 @@ exports.handler = async (event) => {
             if (tierScoreCache.data && (now - tierScoreCache.timestamp) < TIER_CACHE_TTL_MS) {
                 return {
                     statusCode: 200,
-                    headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },
+                    headers: SUCCESS_HEADERS,
                     body: JSON.stringify(tierScoreCache.data)
                 };
             }
@@ -445,7 +484,7 @@ exports.handler = async (event) => {
             tierScoreCache.timestamp = now;
             return {
                 statusCode: 200,
-                headers: { 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Content-Type': 'application/json' },
+                headers: SUCCESS_HEADERS,
                 body: JSON.stringify(result)
             };
 
@@ -477,10 +516,7 @@ exports.handler = async (event) => {
 
         return {
             statusCode: 200,
-            headers: {
-                "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-                "Content-Type": "application/json"
-            },
+            headers: SUCCESS_HEADERS,
             body: JSON.stringify(response),
         };
 
@@ -489,7 +525,7 @@ exports.handler = async (event) => {
         console.error('Lambda error:', error);
         return {
             statusCode: 500,
-            headers: { "Access-Control-Allow-Origin": ALLOWED_ORIGIN },
+            headers: ERROR_HEADERS,
             body: JSON.stringify({ error: 'Internal server error' }),
         };
     }

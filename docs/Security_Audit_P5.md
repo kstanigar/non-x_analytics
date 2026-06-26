@@ -81,11 +81,11 @@ Update this document
 | ID | Severity | Finding | Status |
 |----|----------|---------|--------|
 | C-1 | CRITICAL | Vulnerable npm dependencies in `api/` | ✅ Fixed — June 26, 2026 |
-| H-1 | HIGH | No HTTP method validation in Lambda | 🔴 Open |
+| H-1 | HIGH | No HTTP method validation in Lambda | ✅ Fixed — June 26, 2026 |
 | H-2 | HIGH | No Content Security Policy (CSP) | 🔴 Open |
 | H-3 | HIGH | `innerHTML` with unsanitized API data | 🔴 Open |
 | H-4 | HIGH | No Lambda-level rate limiting | 🔴 Open |
-| M-1 | MEDIUM | Missing security headers in Lambda responses | 🔴 Open |
+| M-1 | MEDIUM | Missing security headers in Lambda responses | ✅ Fixed — June 26, 2026 |
 | M-2 | MEDIUM | No clickjacking protection | 🔴 Open |
 | M-3 | MEDIUM | GitHub Actions permissions too broad | 🔴 Open |
 | M-4 | MEDIUM | `function.zip` committed to repo | 🔴 Open |
@@ -561,17 +561,19 @@ Low urgency — no active exploit path. Safe to ship without these.
 
 ---
 
-**Current status:** ✅ Phase A complete (C-1 resolved, 0 vulnerabilities) → ⏳ Phase B next (H-1 + M-1 — `api/index.js`)
+**Current status:** ✅ Phase A complete (C-1) | ✅ Phase B complete (H-1 + M-1) → ⏳ Phase C next (npm audit final → deploy Lambda → test)
 
 ---
 
 ## Implementation Plan: api/index.js — C-1 + H-1 + M-1 (Unified Edit)
 
-**Research status:** 3 parallel Haiku agents completed ✅
-**Verification status:** Pending (verification agent runs after user approves this plan)
-**Implementation status:** Not started
+**Research status:** ✅ Complete — Session 9: 3 parallel Haiku agents | Session 10: Haiku re-verification (June 26, 2026)
+**Verification status:** ✅ Complete — all corrections applied (see Key Research Findings → Phase B Research)
+**Implementation status:** ⏳ Phase A complete — Phase B pending user approval
 
 ### Key Research Findings
+
+#### Phase A Research — Session 9 (June 26, 2026)
 
 - **C-1 (v4→v6):** Zero code changes to `api/index.js` — `runReport()`, `runRealtimeReport()`, client instantiation, and response shapes are identical across v4 and v6. Only `package.json` changes.
 - **Breaking change check:** `getUniversalMetadata()` — NOT present in codebase. `SheetExportAudienceList()` — NOT present. `dayOfWeek`/`week` dimensions — NOT used. No dimension parsing logic to update.
@@ -579,6 +581,29 @@ Low urgency — no active exploit path. Safe to ship without these.
 - **Sequencing:** C-1, H-1, and M-1 are fully independent. C-1 touches only `package.json`. H-1 and M-1 touch `api/index.js` only. Recommended order: C-1 → H-1 → M-1.
 - **H-1 adds 2 new return statements** (OPTIONS → 204, non-GET → 405). M-1 must include these in its header updates, bringing total returns to update from 9 to 11.
 - **M-1 strategy:** Define two shared header constants at file top instead of updating 11 returns individually. Cleaner, maintainable, no risk of missing a return.
+
+#### Phase B Research — Session 10 (June 26, 2026) — Haiku Agent Verification
+
+**Corrections to prior plan:**
+
+- **X-Frame-Options: REMOVE from all three constants.** OWASP 2026 HTTP Headers Cheat Sheet explicitly states X-Frame-Options is only useful when the response has interactive content (links, buttons). JSON API responses cannot be framed in exploitable ways. Including it adds bytes with no security value.
+- **`Access-Control-Max-Age`: change `'86400'` → `'7200'`.** Chrome (v76+) silently caps preflight caching at 7200s (2 hours). Setting 86400 appears correct but Chrome ignores the excess — preflight still fires every 2h. Setting 7200 is consistent across Chrome and Firefox (which caps at 86400 but accepts lower values).
+- **`Cross-Origin-Resource-Policy` (`same-origin`): DO NOT ADD.** Haiku agent suggested CORP `same-origin`, but this would block the cross-origin fetch from the GitHub Pages frontend (a different origin). CORS headers already restrict access to `ALLOWED_ORIGIN`. CORP `same-origin` would override CORS and break all dashboard API calls. Omitted.
+
+**Additions confirmed correct:**
+
+- **`Referrer-Policy: strict-origin-when-cross-origin`** — OWASP 2026 recommended. Controls referrer leakage. Add to `SUCCESS_HEADERS` and `ERROR_HEADERS`.
+- **`Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()`** — OWASP 2026 standard. Disables unused browser capabilities. Add to `SUCCESS_HEADERS` only (not needed on error responses or preflight).
+
+**Confirmed correct, no change:**
+
+- ✅ HTTP 204 for OPTIONS preflight — correct per RFC and MDN 2026
+- ✅ HTTP 405 + `Allow: GET, OPTIONS` for non-GET — correct per RFC9110
+- ✅ `Cache-Control: public, max-age=86400` for success — appropriate; GA4 analytics data contains no user PII
+- ✅ `Cache-Control: no-store` for errors — correct per OWASP 2026
+- ✅ `Strict-Transport-Security` on Lambda responses — NOT redundant; HSTS is application-layer; API Gateway HTTPS enforcement is network-layer. AWS documentation (Feb 2026) confirms both are needed.
+- ✅ `event.httpMethod` — correct property name for both API Gateway v1 (REST) and v2 (HTTP) proxy integrations in 2026
+- ✅ Module-level constants — safe for warm Lambda invocations; AWS best practice for avoiding re-initialization
 
 ---
 
@@ -682,36 +707,41 @@ const SUCCESS_HEADERS = {
     'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
     'Content-Type': 'application/json',
     'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
     'Cache-Control': 'public, max-age=86400',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'geolocation=(), camera=(), microphone=(), payment=()'
 };
 const ERROR_HEADERS = {
     'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
     'Content-Type': 'application/json',
     'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Cache-Control': 'no-store'
+    'Cache-Control': 'no-store',
+    'Referrer-Policy': 'strict-origin-when-cross-origin'
 };
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400',
-    'X-Frame-Options': 'DENY'
+    'Access-Control-Max-Age': '7200'
 };
 ```
 
-**Verification corrections applied:**
-- `X-Frame-Options: DENY` added to all three constants — prevents iframe embedding even on JSON API
-- `s-maxage` removed from `SUCCESS_HEADERS` — only meaningful with a CDN (CloudFront); no CDN currently in place. Re-add if CloudFront is added in Phase 2.
-- `Access-Control-Max-Age: '86400'` added to `CORS_HEADERS` — without it, browser repeats OPTIONS preflight on every single request, causing unnecessary Lambda invocations
-- Version pinned to `"6.1.0"` (exact) not `"^6.1.0"` — prevents auto-pull of unvetted minor updates
+**Corrections applied (Session 9 → Session 10):**
+
+| Header | Session 9 Plan | Session 10 Correction | Reason |
+|--------|---------------|----------------------|--------|
+| `X-Frame-Options: DENY` | In all 3 constants | **Removed** | OWASP 2026: redundant on JSON APIs; JSON cannot be framed exploitably |
+| `Access-Control-Max-Age` | `'86400'` | **`'7200'`** | Chrome silently caps at 7200s; 86400 ignored by Chrome |
+| `Referrer-Policy` | Missing | **Added to SUCCESS + ERROR** | OWASP 2026 recommended; controls referrer leakage |
+| `Permissions-Policy` | Missing | **Added to SUCCESS only** | OWASP 2026 standard; disables unused browser capabilities |
+| `Cross-Origin-Resource-Policy` | Not planned | **Omitted (do not add)** | `same-origin` would block cross-origin fetch from GitHub Pages; CORS already restricts by origin |
+| `s-maxage` | Already removed | Confirmed correct | No CDN in place |
 
 **Why three header sets:**
-- `SUCCESS_HEADERS` — 200 responses: 24h public cache, HSTS, full security headers
-- `ERROR_HEADERS` — 400/500 responses: `no-store` (errors must never be cached), full security headers
-- `CORS_HEADERS` — OPTIONS preflight only: no Content-Type or cache; includes Max-Age to cache preflight for 24h
+- `SUCCESS_HEADERS` — 200 responses: full security headers, 24h public cache, HSTS, Referrer-Policy, Permissions-Policy
+- `ERROR_HEADERS` — 400/500 responses: `no-store` (errors must never be cached), CORS + essential security headers only
+- `CORS_HEADERS` — OPTIONS preflight only: no Content-Type or cache body headers; 2h preflight cache (7200s)
 
 **Step 3b — Replace all 9 existing inline header objects**
 
@@ -754,25 +784,27 @@ These use the constants directly in their definition — no separate update need
 
 **Phase B: Edit `api/index.js` (single atomic session — do not split across sessions)**
 
-- [ ] Task 5: Insert 3 shared header constants immediately after `ALLOWED_ORIGIN` on line 10 (M-1 setup):
-  - `SUCCESS_HEADERS` — 200 responses
-  - `ERROR_HEADERS` — 400/500 responses
-  - `CORS_HEADERS` — OPTIONS preflight only
-  - Exact code: see Change 3 / Step 3a above
+**Research status:** ✅ Haiku verification complete — Session 10 (June 26, 2026). Header constants corrected. See Key Research Findings → Phase B Research section above.
 
-- [ ] Task 6: Insert OPTIONS (204) + non-GET (405) method validation after `try {` on line 45 (H-1)
-  - Exact code: see Change 2 above
+- [x] Task 5: Insert 3 shared header constants immediately after `ALLOWED_ORIGIN` on line 10 (M-1 setup) ✅ June 26, 2026
+  - `SUCCESS_HEADERS` — lines 13–21: nosniff, 24h cache, HSTS, Referrer-Policy, Permissions-Policy
+  - `ERROR_HEADERS` — lines 22–28: nosniff, no-store, Referrer-Policy
+  - `CORS_HEADERS` — lines 29–34: CORS headers + `Access-Control-Max-Age: '7200'`
 
-- [ ] Task 7: Replace 9 existing inline header objects with constants (M-1 cleanup):
-  - Line 53 → `ERROR_HEADERS`
-  - Line 56 → `ERROR_HEADERS`
-  - Line 59 → `ERROR_HEADERS`
-  - Lines 328–332 → `SUCCESS_HEADERS`
-  - Lines 389–393 → `SUCCESS_HEADERS`
-  - Lines 399–403 → `SUCCESS_HEADERS`
-  - Lines 446–450 → `SUCCESS_HEADERS`
-  - Lines 478–485 → `SUCCESS_HEADERS`
-  - Lines 490–494 → `ERROR_HEADERS`
+- [x] Task 6: Insert OPTIONS (204) + non-GET (405) method validation after `try {` on line 68 (H-1) ✅ June 26, 2026
+  - OPTIONS → 204 with `CORS_HEADERS` — lines 70–76
+  - non-GET → 405 with `{ ...ERROR_HEADERS, 'Allow': 'GET, OPTIONS' }` — lines 77–83
+
+- [x] Task 7: Replace 9 existing inline header objects with constants (M-1 cleanup) ✅ June 26, 2026
+  - `api/index.js` line 92 → `ERROR_HEADERS` (400: invalid type)
+  - `api/index.js` line 95 → `ERROR_HEADERS` (400: invalid subType)
+  - `api/index.js` line 98 → `ERROR_HEADERS` (400: invalid date range)
+  - `api/index.js` lines 351–353 → `SUCCESS_HEADERS` (200: avg-tier cache hit)
+  - `api/index.js` lines 409–411 → `SUCCESS_HEADERS` (200: avg-tier BigQuery result)
+  - `api/index.js` lines 419–421 → `SUCCESS_HEADERS` (200: tier-score cache hit)
+  - `api/index.js` lines 466–468 → `SUCCESS_HEADERS` (200: tier-score BigQuery result)
+  - `api/index.js` lines 517–521 → `SUCCESS_HEADERS` (200: main GA4 response)
+  - `api/index.js` lines 526–530 → `ERROR_HEADERS` (500: catch block)
 
 ---
 
@@ -790,21 +822,28 @@ These use the constants directly in their definition — no separate update need
 
 **Why this order:** npm audit must pass before touching `index.js` — no point hardening a handler on vulnerable deps. Constants defined (Task 5) before H-1 references them (Task 6). All `index.js` edits are one atomic session — partial edits leave the file in a broken state.
 
-**Verification status:** ✅ Complete — verification agent ran June 26, 2026. All corrections applied.
+**Verification status:** ✅ Complete — two rounds: Session 9 (initial) + Session 10 Haiku re-verification (June 26, 2026). All corrections applied.
 
-**Verification findings summary:**
+**Session 9 verification findings:**
 - ✅ 204 correct for OPTIONS CORS preflight
 - ✅ `Allow: GET, OPTIONS` header format correct for 405
 - ✅ Object spread `{ ...ERROR_HEADERS, 'Allow': '...' }` safe in Lambda response headers
 - ✅ Module-level constants safe for Lambda warm invocations
 - ✅ `X-Content-Type-Options: nosniff` still relevant in 2026
-- ✅ `Strict-Transport-Security` on Lambda response — defense-in-depth, harmless
+- ✅ `Strict-Transport-Security` on Lambda response — NOT redundant; HSTS is application-layer (API Gateway HTTPS is network-layer)
 - ✅ `no-store` for error responses — correct and conservative
 - ✅ Sequencing order confirmed correct
 - ❌ Fixed: `^6.1.0` → pinned `6.1.0` (floating caret risks auto-pull of unvetted minor versions)
-- ❌ Fixed: `X-Frame-Options: DENY` missing — added to all three header constants
-- ⚠️ Fixed: `Access-Control-Max-Age: '86400'` missing from `CORS_HEADERS` — added (browser was repeating preflight on every request)
-- ⚠️ Fixed: `s-maxage` removed from `SUCCESS_HEADERS` — only meaningful with CDN; no CloudFront in place yet
+- ❌ Fixed (now reversed — see Session 10): `X-Frame-Options: DENY` added to all three constants
+- ⚠️ Fixed: `Access-Control-Max-Age: '86400'` added to `CORS_HEADERS`
+- ⚠️ Fixed: `s-maxage` removed from `SUCCESS_HEADERS` — no CDN in place
+
+**Session 10 Haiku re-verification corrections:**
+- ❌ Fixed: `X-Frame-Options: DENY` **removed** from all three constants — OWASP 2026 explicitly states it is redundant on non-interactive JSON responses
+- ❌ Fixed: `Access-Control-Max-Age: '86400'` → **`'7200'`** — Chrome silently caps at 7200s; 86400 was being ignored
+- ✅ Added: `Referrer-Policy: strict-origin-when-cross-origin` to SUCCESS + ERROR (OWASP 2026 recommended)
+- ✅ Added: `Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()` to SUCCESS only (OWASP 2026 standard)
+- ⚠️ Rejected: `Cross-Origin-Resource-Policy: same-origin` (Haiku suggested it) — would break cross-origin fetch from GitHub Pages; CORS already restricts by origin; omitted
 
 **Pre-implementation blockers — confirmed June 26, 2026:**
 - [x] Lambda Node.js runtime: **Node.js 22.x** ✅ — exceeds v6 minimum of Node 18. No blocker.
