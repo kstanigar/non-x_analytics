@@ -43,11 +43,15 @@
 - **Result:** All sections load with live data; load time significantly reduced vs. sequential
 - **Note:** If AWS quota increase to 50 is ever approved, can revert to single-wave `Promise.allSettled` for max speed
 
-### P-5: Full Security Audit — PENDING
-- Review current security posture post-refactor
-- Check: CORS config, input validation, API Gateway settings, SRI hashes, error message exposure
-- Prior audit: `bc59894` (June 11, 2026) — re-audit after parallel fetch refactor + quota change
-- Output: updated `Issues_And_Bugs.md` entries + any fixes
+### P-5: Full Security Audit — ⏳ IN PROGRESS (Session 10)
+- **Audit complete** — 13 findings (1 critical, 4 high, 5 medium, 3 low)
+- **Full plan + task list:** `docs/Security_Audit_P5.md`
+- **Mandatory protocol:** research → plan → verify → approve → implement → test (no exceptions)
+- **Phase A: C-1 ✅ COMPLETE** — `api/package.json` pinned to `6.1.0`; `npm audit` = 0 vulnerabilities; `package-lock.json` generated
+- **Next — Phase B:** H-1 + M-1 in `api/index.js` (header constants + method validation — single atomic edit)
+- **Then:** H-3 (`innerHTML` → `textContent`/`createElement` in `live.html`) → H-2 (CSP meta tag) → H-4 (AWS WAF)
+- **Post-launch:** JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/M-4/L-1/L-2
+- **Last Updated:** June 26, 2026 (Session 10)
 
 ---
 

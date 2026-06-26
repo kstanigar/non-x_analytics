@@ -2,11 +2,88 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 26, 2026 (Session 8)
+**Last Updated:** June 26, 2026 (Session 9)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 26, 2026 - P-5 Security Audit (Session 10)
+
+**Status:** ⏳ IN PROGRESS — Phase A complete ✅ | Phase B next
+
+### Phase A Complete — June 26, 2026
+
+- **C-1 RESOLVED:** Upgraded `@google-analytics/data` `^4.1.0` → pinned `6.1.0` in `api/package.json`
+- **`npm audit`:** 0 vulnerabilities (was 10 HIGH/CRITICAL) ✅
+- **`package-lock.json`:** Generated — ready to commit alongside `package.json`
+- **Pre-implementation verification:** Haiku agent confirmed 6.1.0 is latest stable (no v7), zero breaking changes to `runReport()` / `runRealtimeReport()` / `BetaAnalyticsDataClient`, exact pinning + lockfile is 2026 AWS Lambda best practice
+- **Git:** Staged — `api/package.json` + `api/package-lock.json` ready for `feature/security-p5-phase-a` branch
+- **Next:** Phase B — `api/index.js` edits (H-1 method validation + M-1 header constants)
+
+---
+
+## June 26, 2026 - P-5 Security Audit (Session 9)
+
+**Status:** ✅ Planning complete — superseded by Session 10
+
+### Completed This Session
+
+- **Full security audit conducted** — 6 parallel Haiku agents researched codebase + 2026 best practices
+- **`docs/Security_Audit_P5.md` created** — complete audit findings, release plan, and implementation plan
+- **Mandatory security fix protocol established** — research → plan → verify → approve → implement → test (no exceptions)
+- **13 findings documented** (1 critical, 4 high, 5 medium, 3 low) — see `docs/Security_Audit_P5.md`
+
+### Key Findings
+
+- **C-1 CRITICAL:** 10 npm vulnerabilities in `api/` (protobufjs RCE, grpc-js DoS, form-data CRLF) — fix: upgrade `@google-analytics/data` `^4.1.0` → pinned `6.1.0`; zero code changes to `api/index.js`
+- **H-1 HIGH:** No HTTP method validation — POST/PUT/DELETE accepted by Lambda; no OPTIONS handling for CORS preflight
+- **H-2 HIGH:** No CSP — interim meta tag planned (connect-src only); full CSP requires JS extraction (post-launch P-5b)
+- **H-3 HIGH:** 7+ `innerHTML` with unsanitized API data in `live.html` — fix: `textContent`/`createElement`
+- **H-4 HIGH:** No Lambda-level rate limiting — AWS WAF planned (Phase 2, AWS console)
+- **M-1 MEDIUM:** Missing security headers in Lambda responses — fix: shared header constants
+- **L-3 LOW:** API Gateway URL in client JS — confirmed NOT a critical vulnerability for public read-only API (OWASP 2026)
+- **H-2 finding:** `frame-ancestors` in CSP meta tag doesn't work — requires HTTP header; GitHub Pages limitation; Cloudflare needed post-launch
+
+### Infrastructure Confirmed
+
+- **Lambda runtime:** Node.js 22.x ✅ — exceeds v6 minimum (Node 18)
+- **CloudFront:** None for NON-X Analytics API — two distributions exist for `nonx.standingtiger.com` (the game only)
+- **`s-maxage` excluded** from SUCCESS_HEADERS — no CDN in place
+
+### Implementation Plan: C-1 + H-1 + M-1 (unified `api/index.js` edit)
+
+**Research:** 3 parallel Haiku agents ✅
+**Plan documented:** `docs/Security_Audit_P5.md` — Implementation Plan section ✅
+**Verification:** Haiku verification agent ✅ — corrections applied (pinned version, X-Frame-Options, Access-Control-Max-Age, s-maxage removed)
+**Pre-implementation blockers:** Both cleared ✅ (Node 22.x confirmed, no CloudFront confirmed)
+**User approval:** ✅ Approved
+**Status:** ⏳ Ready to implement
+
+### Changes Queued (not yet implemented)
+
+**`api/package.json`:**
+- `"@google-analytics/data": "^4.1.0"` → `"6.1.0"` (pinned exact)
+
+**`api/index.js`:**
+- Add 3 shared header constants after line 10 (`SUCCESS_HEADERS`, `ERROR_HEADERS`, `CORS_HEADERS`)
+- Add OPTIONS (204) + non-GET (405) method validation after `try {` on line 45
+- Replace 9 existing inline header objects with constants (lines 53, 56, 59, 328–332, 389–393, 399–403, 446–450, 478–485, 490–494)
+
+### 14-Step Task List (documented + verified — ready to execute next session)
+
+- **Phase A (Tasks 1–4):** Confirm v6.1.0 stable → edit package.json → npm install → npm audit gate
+- **Phase B (Tasks 5–7):** Add header constants (line 10) → add method validation (line 45) → replace 9 inline headers
+- **Phase C (Tasks 8–14):** npm audit final → deploy Lambda → test GET/POST/OPTIONS → smoke test dashboard → update docs
+
+### Release Plan Summary
+
+**Next session:** C-1 + H-1 + M-1 (api/index.js) → then H-3 (live.html innerHTML) → H-2 (CSP meta)
+**Separate AWS session:** H-4 — WAF + rate-based rules
+**Post-launch (30 days):** JS extraction + full CSP, Cloudflare headers, M-3/M-4/L-1/L-2
+**Full plan + exact code:** `docs/Security_Audit_P5.md`
 
 ---
 
