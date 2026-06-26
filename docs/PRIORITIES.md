@@ -62,7 +62,7 @@
 4. **UX-1: Rename metrics for player clarity** ✅ — `4c91766`, live
 5. **UX-3: Clickable KPI cards + section-level tooltips** ✅ — `eac7416`, live
 6. **UX-3b: Remove individual card hover tooltips** ✅ — `2187025`, live
-7. **UX-5: Simplify Data Dictionary** ✅ — `6955128`, live
+7. **UX-5: Simplify Data Dictionary** ✅ — `dc40d80`, live
 
 **Open questions before UX-8/UX-7:**
 - Confirm leaderboard API returns per-row data (needed for UX-8)

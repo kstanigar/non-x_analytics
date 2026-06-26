@@ -12,7 +12,7 @@
 
 ## June 26, 2026 - UX Sprint: Simplify Data Dictionary (Session 8)
 
-**Status:** ✅ COMPLETE | Commit: `6955128` (amended), pending merge to main
+**Status:** ✅ COMPLETE | Commit: `dc40d80` (amended), pending merge to main
 
 ### Completed This Session
 
@@ -37,7 +37,7 @@
 4. ~~UX-1: Metric renames~~ ✅
 5. ~~UX-3: Clickable cards + section tooltips~~ ✅
 6. ~~UX-3b: Remove individual card `data-tooltip` text~~ ✅
-7. ~~UX-5: Simplify Data Dictionary~~ ✅ — `6955128`, live
+7. ~~UX-5: Simplify Data Dictionary~~ ✅ — `dc40d80`, live
 8. P-5: Security audit (AWS URL exposure flagged as first item)
 9. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)
 

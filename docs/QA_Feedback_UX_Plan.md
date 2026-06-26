@@ -336,7 +336,7 @@ Updating the constant at line 6197 automatically updates all Data Dictionary bac
 
 ### UX-5: Simplify Data Dictionary ✅ — June 26, 2026
 
-**Commit:** `6955128` | Production: ✅ live (pending merge to main)
+**Commit:** `dc40d80` | Production: ✅ live (pending merge to main)
 
 **Problem:** Data Dictionary is too dense for average players. Walls of text with technical terms (BigQuery, SQL-style formulas, endpoint names).
 
