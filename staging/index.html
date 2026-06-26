@@ -1562,6 +1562,10 @@
     .dict-meta dd { color: var(--text); margin: 0; line-height: 1.5; }
     .dict-meta dd.formula { color: var(--cyan); font-family: var(--mono); font-size: 0.72rem; }
     .dict-meta dd code { font-family: var(--mono); font-size: 0.71rem; background: rgba(0,255,255,0.07); padding: 0 4px; border-radius: 2px; color: var(--cyan); }
+    .dict-summary { margin: 4px 0 10px; color: var(--text); font-size: 0.82rem; line-height: 1.5; }
+    details.dict-technical { margin-top: 6px; }
+    details.dict-technical > summary { color: var(--text-dim); font-size: 0.70rem; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; user-select: none; }
+    details.dict-technical > summary:hover { color: var(--cyan); }
     .dict-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
     .dict-table th { color: var(--text-dim); font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); font-family: var(--mono); }
     .dict-table td { padding: 7px 10px; border-bottom: 1px solid rgba(0,255,255,0.04); color: var(--text); vertical-align: top; font-size: 0.73rem; line-height: 1.5; }
@@ -2341,92 +2345,105 @@
 
             <div class="dict-entry" id="dict-sessions">
               <div class="dict-entry-title"><h4>Total Plays</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">COUNT(game_start)</dd>
-                <dt>Source</dt><dd>platform-split endpoint</dd>
-                <dt>Format</dt><dd>Integer (e.g. 112)</dd>
-                <dt>Note</dt><dd>Uses <code>game_start</code> not <code>session_start</code> — <code>session_start</code> overcounts visitors who land without playing.</dd>
-              </dl>
+              <p class="dict-summary">How many times someone hit Play — each run counts as one, even if abandoned early.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">COUNT(game_start)</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-new-pct">
               <div class="dict-entry-title"><h4>Returning Players</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">returning game_starts / total game_starts × 100</dd>
-                <dt>Source</dt><dd>new-user-pct endpoint — filters <code>game_start</code>, groups by <code>newVsReturning</code></dd>
-                <dt>Format</dt><dd>XX% with sub-text: N new / N returning</dd>
-                <dt>Good value</dt><dd>High returning % = strong retention. New % visible in sub-text.</dd>
-              </dl>
+              <p class="dict-summary">How many players came back for another session. High % means the game is worth replaying.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">returning game_starts / total game_starts × 100</dd>
+                  <dt>Good value</dt><dd>High returning % = strong retention. New % visible in sub-text.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-winrate">
               <div class="dict-entry-title"><h4>Win %</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">player_won / game_start × 100</dd>
-                <dt>Source</dt><dd>platform-split endpoint</dd>
-                <dt>Format</dt><dd>XX.X% with sub-text: N wins / N sessions</dd>
-                <dt>Good value</dt><dd>Higher is better. Low win rate = difficulty may need tuning. Compare Music ON vs OFF on A/B tab.</dd>
-              </dl>
+              <p class="dict-summary">Out of all finished runs, how many ended in a win. A direct read on difficulty balance.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">player_won / game_start × 100</dd>
+                  <dt>Good value</dt><dd>Higher is better. Low win rate = difficulty may need tuning. Compare Music ON vs OFF on A/B tab.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-deathrate">
               <div class="dict-entry-title"><h4>Death %</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">player_death / (player_won + player_death) × 100</dd>
-                <dt>Source</dt><dd>platform-split endpoint</dd>
-                <dt>Format</dt><dd>XX.X% with sub-text: N deaths / N completed</dd>
-                <dt>Note</dt><dd>Denominator is <em>completed</em> games (wins + deaths). Abandoned sessions excluded — they have no outcome.</dd>
-              </dl>
+              <p class="dict-summary">Out of all finished runs, how many ended in death. The flip side of Win %.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">player_death / (player_won + player_death) × 100</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-replay">
               <div class="dict-entry-title"><h4>Play-Again %</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">game_start[is_replay='true'] / total game_start × 100</dd>
-                <dt>Source</dt><dd>replay-rate endpoint — <code>is_replay</code> custom dimension on <code>game_start</code></dd>
-                <dt>Format</dt><dd>XX% with sub-text: N replay / N total</dd>
-                <dt>Good value</dt><dd>Higher = players want to play again immediately after a session.</dd>
-              </dl>
+              <p class="dict-summary">How often a player immediately started another run after finishing one. High % = the game hooks people on the spot.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">game_start[is_replay='true'] / total game_start × 100</dd>
+                  <dt>Good value</dt><dd>Higher = players want to play again immediately after a session.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-survival">
               <div class="dict-entry-title"><h4>Avg Survival Time</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">avg(session_duration_seconds) across player_won + player_death events</dd>
-                <dt>Source</dt><dd>survival-time endpoint — <code>session_duration_seconds</code> custom dim</dd>
-                <dt>Format</dt><dd>X.Xm (minutes, e.g. 4.6m)</dd>
-                <dt>Good value</dt><dd>Mobile avg 6:35, Desktop avg 3:34. Mobile players survive ~2× longer.</dd>
-              </dl>
+              <p class="dict-summary">How long a typical run lasts. Mobile players currently survive about twice as long as Desktop players.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">avg(session_duration_seconds) across player_won + player_death events</dd>
+                  <dt>Good value</dt><dd>Mobile avg 6:35, Desktop avg 3:34. Mobile players survive ~2× longer.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-lbrate">
               <div class="dict-entry-title"><h4>Leaderboard Entries</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">leaderboard_submit / player_won × 100</dd>
-                <dt>Source</dt><dd>platform-split endpoint</dd>
-                <dt>Format</dt><dd>XX% with sub-text: N submissions / N wins</dd>
-                <dt>Note</dt><dd>Denominator is wins only — players can only submit after winning. High rate = score competition matters to players.</dd>
-              </dl>
+              <p class="dict-summary">Of players who won, how many submitted their score. High % = players care about competing.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">leaderboard_submit / player_won × 100</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-avglevel">
               <div class="dict-entry-title"><h4>Avg Level Reached</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">sum(level × death_count) / total_deaths</dd>
-                <dt>Source</dt><dd>progression-analysis endpoint — <code>level_reached</code> custom dim on <code>player_death</code></dd>
-                <dt>Format</dt><dd>Integer (0–12)</dd>
-                <dt>Note</dt><dd>Based on death events only. Winning players have no death level. Reflects where the typical player stops.</dd>
-              </dl>
+              <p class="dict-summary">The level where most players die. Lower numbers mean players are dropping off earlier in the game.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">sum(level × death_count) / total_deaths</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-speedlock">
               <div class="dict-entry-title"><h4>Speed Lock %</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">ai_difficulty_adjusted[speed_locked='true'] / total ai_difficulty_adjusted × 100</dd>
-                <dt>Source</dt><dd>ai-analysis endpoint — <code>speed_locked</code> custom dim</dd>
-                <dt>Format</dt><dd>XX.X%</dd>
-                <dt>Note</dt><dd>% of AI adjustments that hit a tier where bullet speed is locked. High rate = players frequently hit the difficulty ceiling.</dd>
-              </dl>
+              <p class="dict-summary">How often the AI difficulty system hits its hardest bullet-speed setting. High % = players are pushing the upper limit.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">ai_difficulty_adjusted[speed_locked='true'] / total ai_difficulty_adjusted × 100</dd>
+                </dl>
+              </details>
             </div>
 
           </div>
@@ -2441,52 +2458,62 @@
 
             <div class="dict-entry" id="dict-scorecard-rate">
               <div class="dict-entry-title"><h4>Scorecard Views</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">scorecard_viewed / game_start × 100</dd>
-                <dt>Source</dt><dd>engagement-events endpoint</dd>
-                <dt>Format</dt><dd>XX% with sub-text: N views / N sessions</dd>
-                <dt>Meaning</dt><dd>% of sessions where the player saw the end-screen scorecard. High rate = players care about their score.</dd>
-              </dl>
+              <p class="dict-summary">How many players stopped to look at their end-of-run stats. High % = players are curious about their performance.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">scorecard_viewed / game_start × 100</dd>
+                  <dt>Meaning</dt><dd>% of sessions where the player saw the end-screen scorecard. High rate = players care about their score.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-music-rate">
               <div class="dict-entry-title"><h4>Music Toggle %</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">music_toggled / game_start × 100</dd>
-                <dt>Source</dt><dd>engagement-events endpoint</dd>
-                <dt>Format</dt><dd>XX% with sub-text: N toggles / N sessions</dd>
-                <dt>Meaning</dt><dd>% of sessions where the player changed their music setting during gameplay.</dd>
-              </dl>
+              <p class="dict-summary">How often players changed the music setting during a session.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">music_toggled / game_start × 100</dd>
+                  <dt>Meaning</dt><dd>% of sessions where the player changed their music setting during gameplay.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-leave-rate">
               <div class="dict-entry-title"><h4>Drop-off Rate</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">leave_game / game_start × 100</dd>
-                <dt>Source</dt><dd>engagement-events endpoint</dd>
-                <dt>Format</dt><dd>XX% with sub-text: N exits / N sessions</dd>
-                <dt>Meaning</dt><dd>% of sessions abandoned before any outcome (win or death). High rate = early drop-off signal.</dd>
-              </dl>
+              <p class="dict-summary">Sessions that ended without a win or death — the player just quit. High % = early frustration signal.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">leave_game / game_start × 100</dd>
+                  <dt>Meaning</dt><dd>% of sessions abandoned before any outcome (win or death). High rate = early drop-off signal.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-boss-reach">
               <div class="dict-entry-title"><h4>Boss Reach %</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">boss_attempt[boss_id='1'] / game_start × 100</dd>
-                <dt>Source</dt><dd>boss-analysis endpoint (reuses Boss 1 attempt count)</dd>
-                <dt>Format</dt><dd>XX% with sub-text: N players / N sessions</dd>
-                <dt>Meaning</dt><dd>% of sessions that lasted long enough to trigger the first boss fight. Low rate = many players drop off before green phase ends.</dd>
-              </dl>
+              <p class="dict-summary">How many players lasted long enough to face the first boss. Low % = many players don't make it through the early game.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">boss_attempt[boss_id='1'] / game_start × 100</dd>
+                  <dt>Meaning</dt><dd>% of sessions that lasted long enough to trigger the first boss fight. Low rate = many players drop off before green phase ends.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-survey-rate">
               <div class="dict-entry-title"><h4>Survey Response %</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">survey_submitted / game_start × 100</dd>
-                <dt>Source</dt><dd>engagement-events endpoint</dd>
-                <dt>Format</dt><dd>XX% with sub-text: N submissions / N sessions</dd>
-                <dt>Meaning</dt><dd>% of sessions where the player completed the in-game feedback survey.</dd>
-              </dl>
+              <p class="dict-summary">How many players filled out the in-game feedback survey.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">survey_submitted / game_start × 100</dd>
+                  <dt>Meaning</dt><dd>% of sessions where the player completed the in-game feedback survey.</dd>
+                </dl>
+              </details>
             </div>
 
           </div>
@@ -2501,72 +2528,85 @@
 
             <div class="dict-entry" id="dict-avg-start-tier">
               <div class="dict-entry-title"><h4>Avg Start Tier</h4><span class="dict-badge bigquery">BigQuery</span><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">avg( FIRST_VALUE(old_tier) per ga_session_id )</dd>
-                <dt>Source</dt><dd>avg-tier endpoint (BigQuery) — session-level window function on <code>ai_difficulty_adjusted</code></dd>
-                <dt>Format</dt><dd>Decimal (e.g. 0 = Normal tier)</dd>
-                <dt>Why BQ</dt><dd>GA4 API cannot join events within the same session. BigQuery window functions allow FIRST_VALUE per session before averaging.</dd>
-                <dt>Note</dt><dd>Results update once per day — querying more frequently returns the same cached value.</dd>
-              </dl>
+              <p class="dict-summary">The difficulty tier players typically begin a session on. Tier 0 = Normal. Updates daily from BigQuery.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">avg( FIRST_VALUE(old_tier) per ga_session_id )</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-avg-final-tier">
               <div class="dict-entry-title"><h4>Avg Final Tier</h4><span class="dict-badge bigquery">BigQuery</span><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">avg( LAST_VALUE(new_tier ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) per ga_session_id )</dd>
-                <dt>Source</dt><dd>avg-tier endpoint (BigQuery) — same query as Avg Start Tier</dd>
-                <dt>Format</dt><dd>Decimal</dd>
-              </dl>
+              <p class="dict-summary">The difficulty tier players end on. Higher than Start Tier = the AI is making the game harder over time. Updates daily.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">avg( LAST_VALUE(new_tier ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) per ga_session_id )</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-avg-adjustments">
               <div class="dict-entry-title"><h4>Total Tier Adjustments</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Formula</dt><dd class="formula">COUNT(ai_difficulty_adjusted) — total events, not per-session avg</dd>
-                <dt>Source</dt><dd>ai-analysis endpoint</dd>
-                <dt>Format</dt><dd>Integer (e.g. 28)</dd>
-                <dt>Note</dt><dd>Currently shows total count. Per-session average distribution is a BigQuery backlog item (AI Adjustment Count Distribution).</dd>
-              </dl>
+              <p class="dict-summary">How many times the AI has changed the difficulty across all sessions ever played.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Formula</dt><dd class="formula">COUNT(ai_difficulty_adjusted) — total events, not per-session avg</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-ai-tier-dist">
               <div class="dict-entry-title"><h4>AI Tier Distribution Chart</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Type</dt><dd>Bar chart</dd>
-                <dt>X-axis</dt><dd>7 tiers: -3 Tutorial → +3 Master (new_tier value)</dd>
-                <dt>Y-axis</dt><dd>Count of ai_difficulty_adjusted events ending at each tier</dd>
-                <dt>Source</dt><dd>ai-analysis endpoint — new_tier dimension</dd>
-              </dl>
+              <p class="dict-summary">How often sessions end at each difficulty tier, from Tutorial (easiest) to Master (hardest).</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Type</dt><dd>Bar chart</dd>
+                  <dt>X-axis</dt><dd>7 tiers: -3 Tutorial → +3 Master (new_tier value)</dd>
+                  <dt>Y-axis</dt><dd>Count of ai_difficulty_adjusted events ending at each tier</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-tier-flow">
               <div class="dict-entry-title"><h4>Tier Progression Flow Chart</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Type</dt><dd>Bar chart (2 bars)</dd>
-                <dt>Bars</dt><dd>Tier Increases | Tier Decreases (event counts)</dd>
-                <dt>Source</dt><dd>ai-analysis endpoint — direction dimension (<code>'increase'</code> vs <code>'decrease'</code>)</dd>
-                <dt>Key finding</dt><dd>All-time v4.3: 25 increases vs 3 decreases — players trending toward harder difficulty.</dd>
-              </dl>
+              <p class="dict-summary">Whether the AI is more often increasing or decreasing difficulty. Currently: 25 increases vs 3 decreases — players are being challenged more, not less.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Type</dt><dd>Bar chart (2 bars)</dd>
+                  <dt>Bars</dt><dd>Tier Increases | Tier Decreases (event counts)</dd>
+                  <dt>Key finding</dt><dd>All-time v4.3: 25 increases vs 3 decreases — players trending toward harder difficulty.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-score-mult">
               <div class="dict-entry-title"><h4>Score Multiplier Distribution Chart</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Type</dt><dd>Bar chart</dd>
-                <dt>X-axis</dt><dd>8 buckets: 0.50× / 0.70× / 0.85× / 1.00× / 1.20× / 1.40× / 1.50× / 1.50×+</dd>
-                <dt>Source</dt><dd>ai-analysis endpoint — effective_multiplier dimension, filtered to player_won events</dd>
-                <dt>Note</dt><dd>Raw value <code>2.1875</code> from GA4 maps to 1.50×+ bucket (continuous multiplier edge case).</dd>
-              </dl>
+              <p class="dict-summary">The range of score multipliers earned by winning players. Higher multipliers mean harder difficulty settings at time of win.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Type</dt><dd>Bar chart</dd>
+                  <dt>X-axis</dt><dd>8 buckets: 0.50× / 0.70× / 0.85× / 1.00× / 1.20× / 1.40× / 1.50× / 1.50×+</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry" id="dict-death-triggers">
               <div class="dict-entry-title"><h4>Death Triggers by Phase Chart</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Type</dt><dd>Horizontal bar chart</dd>
-                <dt>Bars</dt><dd>Green phase deaths | Red phase deaths | Purple phase deaths</dd>
-                <dt>Source</dt><dd>death-triggers endpoint — death_phase dimension on <code>play_again</code> events</dd>
-                <dt>Note</dt><dd><code>death_phase</code> is sent on <code>play_again</code> (not <code>player_death</code>) — this is the game's design.</dd>
-              </dl>
+              <p class="dict-summary">Which phase of the game — Green, Red, or Purple — is killing the most players.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Type</dt><dd>Horizontal bar chart</dd>
+                  <dt>Bars</dt><dd>Green phase deaths | Red phase deaths | Purple phase deaths</dd>
+                </dl>
+              </details>
             </div>
 
           </div>
@@ -2578,6 +2618,18 @@
             Platform KPIs &amp; Table <span class="dict-arrow">▶</span>
           </div>
           <div class="dict-body" id="dict-body-platform">
+
+            <div class="dict-entry" id="dict-platform-kpis">
+              <div class="dict-entry-title"><h4>Platform KPIs</h4><span class="dict-badge live">Live</span></div>
+              <p class="dict-summary">Side-by-side win rates for Desktop vs Mobile players. Useful for spotting control-scheme difficulty differences.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Desktop Win %</dt><dd class="formula">desktop player_won / desktop game_start × 100</dd>
+                  <dt>Mobile Win %</dt><dd class="formula">mobile player_won / mobile game_start × 100</dd>
+                </dl>
+              </details>
+            </div>
 
             <div class="table-wrapper">
             <table class="dict-table">
@@ -2829,11 +2881,15 @@
 
             <div class="dict-entry">
               <div class="dict-entry-title"><h4>Music A/B Test</h4><span class="dict-badge live">Live</span></div>
-              <dl class="dict-meta">
-                <dt>Assignment</dt><dd><code>ab_music_group</code> custom dim, set on <code>game_start</code></dd>
-                <dt>Group A</dt><dd>Music ON — background music enabled by default</dd>
-                <dt>Group B</dt><dd>Music OFF — background music disabled by default</dd>
-              </dl>
+              <p class="dict-summary">Music OFF players are currently winning more often (44% vs 23%), but the sample is too small to be conclusive.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Assignment</dt><dd><code>ab_music_group</code> custom dim, set on <code>game_start</code></dd>
+                  <dt>Group A</dt><dd>Music ON — background music enabled by default</dd>
+                  <dt>Group B</dt><dd>Music OFF — background music disabled by default</dd>
+                </dl>
+              </details>
               <table class="dict-table" style="margin-top:12px">
                 <thead><tr><th>Metric</th><th>Formula</th><th>Live</th></tr></thead>
                 <tbody>
@@ -2849,11 +2905,15 @@
 
             <div class="dict-entry">
               <div class="dict-entry-title"><h4>Movement A/B Test</h4><span class="dict-badge partial">Partial</span></div>
-              <dl class="dict-meta">
-                <dt>Assignment</dt><dd><code>movement_group</code> custom dim, set on <code>game_start</code></dd>
-                <dt>Group A</dt><dd>Horizontal movement only (1.25× score multiplier bonus)</dd>
-                <dt>Group B</dt><dd>Full directional movement (standard multiplier)</dd>
-              </dl>
+              <p class="dict-summary">Comparing horizontal-only movement (with a score bonus) vs full directional movement.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Assignment</dt><dd><code>movement_group</code> custom dim, set on <code>game_start</code></dd>
+                  <dt>Group A</dt><dd>Horizontal movement only (1.25× score multiplier bonus)</dd>
+                  <dt>Group B</dt><dd>Full directional movement (standard multiplier)</dd>
+                </dl>
+              </details>
               <table class="dict-table" style="margin-top:12px">
                 <thead><tr><th>Metric</th><th>Formula</th><th>Live</th></tr></thead>
                 <tbody>
@@ -2861,17 +2921,20 @@
                   <tr><td>Win Rate</td><td>player_won / game_start by group</td><td><span class="dict-badge mock">—</span></td></tr>
                 </tbody>
               </table>
-              <p class="dict-section-note">Win Rate shows — because <code>player_won</code> events are not tagged with <code>movement_group</code> in the game code. Game-side fix required to unlock this metric.</p>
+              <p class="dict-section-note">Win Rate data pending — can be unlocked via BigQuery join on <code>ga_session_id</code> (see MT-6 backlog).</p>
               <p class="dict-section-note">Heavy imbalance: A=19 sessions, B=93 sessions. Worth reviewing A/B assignment logic in game.</p>
             </div>
 
             <div class="dict-entry">
               <div class="dict-entry-title"><h4>Statistical Significance</h4></div>
-              <dl class="dict-meta">
-                <dt>P-value target</dt><dd>0.05 (95% confidence)</dd>
-                <dt>Min sample</dt><dd>~385 sessions per group (both tests currently insufficient)</dd>
-                <dt>Status logic</dt><dd>Dynamic — group sizes read from live API; status text computed by <code>sigStatus()</code></dd>
-              </dl>
+              <p class="dict-summary">A check on whether we have enough players in each group to trust the results. Currently: no — both tests need ~385 players per group.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>P-value target</dt><dd>0.05 (95% confidence)</dd>
+                  <dt>Min sample</dt><dd>~385 sessions per group (both tests currently insufficient)</dd>
+                </dl>
+              </details>
             </div>
 
           </div>
@@ -2886,23 +2949,29 @@
 
             <div class="dict-entry">
               <div class="dict-entry-title"><h4>What Version 4.3 Means</h4></div>
-              <dl class="dict-meta">
-                <dt>Version</dt><dd><code>analytics_version = '4.3'</code></dd>
-                <dt>Active since</dt><dd>March 1, 2026</dd>
-                <dt>Why it exists</dt><dd>The game has changed mechanics across versions. Mixing v4.2 and v4.3 data skews every metric — different events, different difficulty balance, different player population. The version filter ensures all metrics reflect only the current game state.</dd>
-                <dt>v4.2 status</dt><dd>Removed from selector — no data exists in GA4 for v4.2 in current property.</dd>
-                <dt>All Versions</dt><dd>Selector option available for historical comparison, but not recommended for KPI reporting due to mechanic differences.</dd>
-              </dl>
+              <p class="dict-summary">All metrics show v4.3 data only (active since March 2026). Earlier versions used different mechanics — mixing them would distort every number.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>Version</dt><dd><code>analytics_version = '4.3'</code></dd>
+                  <dt>Active since</dt><dd>March 1, 2026</dd>
+                  <dt>Why it exists</dt><dd>The game has changed mechanics across versions. Mixing v4.2 and v4.3 data skews every metric — different events, different difficulty balance, different player population. The version filter ensures all metrics reflect only the current game state.</dd>
+                </dl>
+              </details>
             </div>
 
             <div class="dict-entry">
               <div class="dict-entry-title"><h4>Date Range Options</h4></div>
-              <dl class="dict-meta">
-                <dt>7 day</dt><dd>Last 7 days — recent trends, smallest sample</dd>
-                <dt>30 day</dt><dd>Last 30 days — balanced freshness vs sample size</dd>
-                <dt>90 day</dt><dd>Last 90 days — recommended for most analysis</dd>
-                <dt>All-time</dt><dd>All data since March 1, 2026 — largest sample, includes older sessions. Default selector.</dd>
-              </dl>
+              <p class="dict-summary">Controls how far back the data goes. All-time is the default. Note: Avg Start/Final Tier always use the full dataset regardless of this setting.</p>
+              <details class="dict-technical">
+                <summary>Technical details</summary>
+                <dl class="dict-meta">
+                  <dt>7 day</dt><dd>Last 7 days — recent trends, smallest sample</dd>
+                  <dt>30 day</dt><dd>Last 30 days — balanced freshness vs sample size</dd>
+                  <dt>90 day</dt><dd>Last 90 days — recommended for most analysis</dd>
+                  <dt>All-time</dt><dd>All data since March 1, 2026 — largest sample, includes older sessions. Default selector.</dd>
+                </dl>
+              </details>
               <p class="dict-section-note">BigQuery tier data (Avg Start/Final Tier) ignores date range — uses full dataset due to 24h export cadence and 24h Lambda cache.</p>
             </div>
 
