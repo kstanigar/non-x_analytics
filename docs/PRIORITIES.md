@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 24, 2026 (Session 5)
+**Last Updated:** June 26, 2026 (Session 8)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -62,9 +62,9 @@
 4. **UX-1: Rename metrics for player clarity** ✅ — `4c91766`, live
 5. **UX-3: Clickable KPI cards + section-level tooltips** ✅ — `eac7416`, live
 6. **UX-3b: Remove individual card hover tooltips** ✅ — `2187025`, live
-6. **UX-5: Simplify Data Dictionary** — M-L, separate session
+7. **UX-5: Simplify Data Dictionary** ✅ — `6955128`, live
 
-**Open questions before UX-3:**
+**Open questions before UX-8/UX-7:**
 - Confirm leaderboard API returns per-row data (needed for UX-8)
 - Verify `user_pseudo_id` captured on `player_won` in BigQuery (needed for UX-7)
 
@@ -83,13 +83,14 @@
 
 - **Full plan:** `docs/BigQuery_Future_Metrics.md`
 - **Priority order (when revisited):**
-  1. **Tier Delta** — `avg(final_tier - start_tier)` per session; low effort
-  2. **Sessions per User** — `COUNT(DISTINCT ga_session_id) per user_pseudo_id`; single KPI tile
-  3. **Win Rate by Starting Tier** — join `player_won` with first `ai_difficulty_adjusted` per session
-  4. **AI Adjustment Distribution** — histogram of adjustment count per session
-  5. **Exact Funnel Completion** — session-deduped funnel rates
-  6. **Player Engagement Span** — days between first + last session per user
-  7. **User Cohort Retention** — week-over-week retention curve; largest effort, highest strategic value
+  1. **Movement A/B Win Rate** — join `movement_group` from `game_start` to `player_won` via `ga_session_id`; unlocks empty Win Rate column in A/B tab; low effort
+  2. **Tier Delta** — `avg(final_tier - start_tier)` per session; low effort
+  3. **Sessions per User** — `COUNT(DISTINCT ga_session_id) per user_pseudo_id`; single KPI tile
+  4. **Win Rate by Starting Tier** — join `player_won` with first `ai_difficulty_adjusted` per session
+  5. **AI Adjustment Distribution** — histogram of adjustment count per session
+  6. **Exact Funnel Completion** — session-deduped funnel rates
+  7. **Player Engagement Span** — days between first + last session per user
+  8. **User Cohort Retention** — week-over-week retention curve; largest effort, highest strategic value
 - **Dataset:** `analytics_525680032` | **Cache:** 24h TTL | **Cap:** 500MB maxBytesBilled
 - **Dependencies:** None — BigQuery integration is already live ✅
 

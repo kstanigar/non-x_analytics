@@ -334,20 +334,127 @@ Updating the constant at line 6197 automatically updates all Data Dictionary bac
 
 ---
 
-### UX-5: Simplify Data Dictionary
+### UX-5: Simplify Data Dictionary ✅ — June 26, 2026
+
+**Commit:** `6955128` | Production: ✅ live (pending merge to main)
 
 **Problem:** Data Dictionary is too dense for average players. Walls of text with technical terms (BigQuery, SQL-style formulas, endpoint names).
 
-**Proposed approach:**
-- Lead each entry with a plain-English one-liner ("What this means for you")
-- Move technical details (source endpoint, formula, BigQuery query) into a collapsible "Technical Details" sub-section
-- Remove or soften jargon in visible labels
+**Approach (finalized June 26, 2026):**
+- Add a plain-English one-liner summary to each entry (always visible, directly below title)
+- Remove `Source`, `Format`, `Note`, `Why BQ`, and `Status logic` rows from every `<dl>`
+- Wrap remaining `<dl>` content in a `<details class="dict-technical">` collapse ("Technical details")
+- A/B comparison tables stay visible outside the collapse
+- "Chart ↗" back-links unaffected — JS-injected into `dict-entry-title`, not the `<dl>`
+- Create missing `dict-platform-kpis` entry (Desktop/Mobile Win % cards link to it but no entry exists)
 
-**Effort:** M-L — content rewrite + HTML restructure per entry (~20+ entries)
-**Files:** `live.html` — Data Dictionary accordion HTML
+**Effort:** M-L
+**Files:** `live.html` — CSS + Data Dictionary HTML (26 entries + 1 new)
 
-**Known gap to fix during UX-5:**
-- `dict-platform-kpis` entry is missing from the HTML — Desktop Win % and Mobile Win % both link to it (`data-dict="platform-kpis"`) but no dict entry exists. Create this entry covering both platform KPIs during the UX-5 content pass.
+---
+
+#### Implementation Plan (June 26, 2026)
+
+**Part 1 — CSS (insert after line 1564):**
+```css
+.dict-summary { margin: 4px 0 10px; color: var(--text); font-size: 0.82rem; line-height: 1.5; }
+details.dict-technical { margin-top: 6px; }
+details.dict-technical > summary { color: var(--text-dim); font-size: 0.70rem; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; user-select: none; }
+details.dict-technical > summary:hover { color: var(--cyan); }
+```
+
+**Part 2 — Rows to remove (47 total):**
+- Source: 21 rows — lines 2346, 2356, 2366, 2376, 2386, 2396, 2406, 2416, 2426, 2446, 2456, 2466, 2476, 2486, 2506, 2517, 2526, 2538, 2547, 2557, 2567
+- Format: 17 rows — lines 2347, 2357, 2367, 2377, 2387, 2397, 2407, 2417, 2427, 2447, 2457, 2467, 2477, 2487, 2507, 2518, 2527
+- Note: 9 rows — lines 2348, 2378, 2408, 2418, 2428, 2509, 2528, 2558, 2568
+- Why BQ: 1 row — line 2508
+- Status logic: 1 row — line 2873
+
+**Part 3 — Summary text + `<details>` wrap per entry (26 entries):**
+
+*Section 1 — Top-Line KPIs:*
+| ID | Summary |
+|----|---------|
+| `dict-sessions` | How many times someone hit Play — each run counts as one, even if abandoned early. |
+| `dict-new-pct` | How many players came back for another session. High % means the game is worth replaying. |
+| `dict-winrate` | Out of all finished runs, how many ended in a win. A direct read on difficulty balance. |
+| `dict-deathrate` | Out of all finished runs, how many ended in death. The flip side of Win %. |
+| `dict-replay` | How often a player immediately started another run after finishing one. High % = the game hooks people on the spot. |
+
+*Section 2 — Player Behavior:*
+| ID | Summary |
+|----|---------|
+| `dict-survival` | How long a typical run lasts. Mobile players currently survive about twice as long as Desktop players. |
+| `dict-lbrate` | Of players who won, how many submitted their score. High % = players care about competing. |
+| `dict-avglevel` | The level where most players die. Lower numbers mean players are dropping off earlier in the game. |
+| `dict-speedlock` | How often the AI difficulty system hits its hardest bullet-speed setting. High % = players are pushing the upper limit. |
+| `dict-scorecard-rate` | How many players stopped to look at their end-of-run stats. High % = players are curious about their performance. |
+| `dict-music-rate` | How often players changed the music setting during a session. |
+| `dict-leave-rate` | Sessions that ended without a win or death — the player just quit. High % = early frustration signal. |
+| `dict-boss-reach` | How many players lasted long enough to face the first boss. Low % = many players don't make it through the early game. |
+| `dict-survey-rate` | How many players filled out the in-game feedback survey. |
+
+*Section 3 — AI Agent:*
+| ID | Summary |
+|----|---------|
+| `dict-avg-start-tier` | The difficulty tier players typically begin a session on. Tier 0 = Normal. Updates daily from BigQuery. |
+| `dict-avg-final-tier` | The difficulty tier players end on. Higher than Start Tier = the AI is making the game harder over time. Updates daily. |
+| `dict-avg-adjustments` | How many times the AI has changed the difficulty across all sessions ever played. |
+| `dict-ai-tier-dist` | How often sessions end at each difficulty tier, from Tutorial (easiest) to Master (hardest). |
+| `dict-tier-flow` | Whether the AI is more often increasing or decreasing difficulty. Currently: 25 increases vs 3 decreases — players are being challenged more, not less. |
+| `dict-score-mult` | The range of score multipliers earned by winning players. Higher multipliers mean harder difficulty settings at time of win. |
+| `dict-death-triggers` | Which phase of the game — Green, Red, or Purple — is killing the most players. |
+
+*Section 4 — A/B Tests (dl only in collapse; tables + key finding notes stay visible):*
+| Entry | Summary |
+|-------|---------|
+| Music A/B Test | Music OFF players are currently winning more often (44% vs 23%), but the sample is too small to be conclusive. |
+| Movement A/B Test | Comparing horizontal-only movement (with a score bonus) vs full directional movement. |
+| Statistical Significance | A check on whether we have enough players in each group to trust the results. Currently: no — both tests need ~385 players per group. |
+
+*Section 5 — Version & Date:*
+| Entry | Summary |
+|-------|---------|
+| What Version 4.3 Means | All metrics show v4.3 data only (active since March 2026). Earlier versions used different mechanics — mixing them would distort every number. |
+| Date Range Options | Controls how far back the data goes. All-time is the default. Note: Avg Start/Final Tier always use the full dataset regardless of this setting. |
+
+**Part 4 — New entry (insert before line 2583):**
+```html
+<div class="dict-entry" id="dict-platform-kpis">
+  <div class="dict-entry-title"><h4>Platform KPIs</h4><span class="dict-badge live">Live</span></div>
+  <p class="dict-summary">Side-by-side win rates for Desktop vs Mobile players. Useful for spotting control-scheme difficulty differences.</p>
+  <details class="dict-technical">
+    <summary>Technical details</summary>
+    <dl class="dict-meta">
+      <dt>Desktop Win %</dt><dd class="formula">desktop player_won / desktop game_start × 100</dd>
+      <dt>Mobile Win %</dt><dd class="formula">mobile player_won / mobile game_start × 100</dd>
+    </dl>
+  </details>
+</div>
+```
+
+**Part 5 — Movement A/B note update (line 2864):**
+- Remove: "Win Rate shows — because `player_won` events are not tagged with `movement_group` in the game code. Game-side fix required to unlock this metric."
+- Replace with: "Win Rate data pending — can be unlocked via BigQuery join on `ga_session_id` (see MT-6 backlog)."
+
+#### Task List
+
+- [x] CSS: Add 4 new `.dict-summary` + `details.dict-technical` rules after line 1564
+- [x] HTML: Remove 47 Source/Format/Note/Why BQ/Status logic rows
+- [x] HTML: Insert summary + wrap dl in `<details>` — Section 1 (5 entries: dict-sessions → dict-replay)
+- [x] HTML: Insert summary + wrap dl in `<details>` — Section 2 (9 entries: dict-survival → dict-survey-rate)
+- [x] HTML: Insert summary + wrap dl in `<details>` — Section 3 (7 entries: dict-avg-start-tier → dict-death-triggers)
+- [x] HTML: Insert summary + wrap dl in `<details>` — Section 4 A/B (3 entries: Music, Movement, Statistical Significance)
+- [x] HTML: Insert summary + wrap dl in `<details>` — Section 5 Version (2 entries)
+- [x] HTML: Create new `dict-platform-kpis` entry before line 2583
+- [x] HTML: Update Movement A/B note at line 2864
+- [x] HTML: Remove Lambda API Endpoints Reference section (internal, not user-facing)
+- [x] HTML: Remove Future Metrics BigQuery Backlog section (internal dev planning)
+- [x] Verify: All 21 KPI card click-throughs scroll + glow to correct dict entry
+- [x] Verify: `dict-platform-kpis` entry exists — Desktop/Mobile Win % cards navigate to it
+- [x] Verify: "Chart ↗" back-links still appear in dict entries
+- [x] Verify: A/B comparison tables still visible outside collapse
+- [x] Verify: Dict accordion section toggles unaffected
 
 ---
 

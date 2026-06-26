@@ -2,11 +2,44 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 25, 2026 (Session 7)
+**Last Updated:** June 26, 2026 (Session 8)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 26, 2026 - UX Sprint: Simplify Data Dictionary (Session 8)
+
+**Status:** ✅ COMPLETE | Commit: `6955128` (amended), pending merge to main
+
+### Completed This Session
+
+- **UX-5: Simplify Data Dictionary** ✅ — `feature/ux-5-simplify-dict`, staging confirmed
+  - **CSS (4 new rules):** `.dict-summary` paragraph style + `details.dict-technical` + `summary` hover — inserted after line 1564
+  - **26 dict entries restructured:** Plain-English summary added to each entry; Source, Format, Note, Why BQ, Status logic rows removed (47 rows total); remaining `<dl>` wrapped in `<details class="dict-technical">` collapse
+  - **New entry created:** `dict-platform-kpis` — Desktop Win % and Mobile Win % KPI cards now link to a real dict entry (was previously missing)
+  - **Movement A/B note updated:** Removed "game-side fix required" language; replaced with BigQuery join solution reference (MT-6 backlog)
+  - **Lambda API Endpoints Reference section removed** — internal backend detail, not user-facing content
+  - **Future Metrics BigQuery Backlog section removed** — internal dev planning, not user-facing content
+  - **"Chart ↗" back-links unaffected** — JS-injected into `dict-entry-title`, not the `<dl>`
+  - Full plan: `docs/QA_Feedback_UX_Plan.md`
+
+- **BigQuery Future Metrics doc updated:** Movement A/B Win Rate added as top-priority item — `ga_session_id` join pattern, same as Avg Start Tier; unlocks empty Win Rate column in A/B tab
+
+- **Security finding flagged for P-5:** AWS API Gateway URL (`https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod`) hardcoded in JS source — inherent client-side limitation, can't be hidden in Dict; add to P-5 security audit scope
+
+### Next Priority Order
+1. ~~UX-0: Hamburger colors~~ ✅
+2. ~~UX-2: White titles~~ ✅
+3. ~~UX-4: `⊞` → "View" label~~ ✅
+4. ~~UX-1: Metric renames~~ ✅
+5. ~~UX-3: Clickable cards + section tooltips~~ ✅
+6. ~~UX-3b: Remove individual card `data-tooltip` text~~ ✅
+7. ~~UX-5: Simplify Data Dictionary~~ ✅ — `6955128`, live
+8. P-5: Security audit (AWS URL exposure flagged as first item)
+9. UX-6 + MT-6: Distinct Players + BigQuery metrics (separate session)
 
 ---
 

@@ -36,6 +36,14 @@ Already completed: Avg Start Tier + Avg Final Tier (first/last `ai_difficulty_ad
 
 ### HIGH VALUE — Session-Level Joins
 
+**0. Movement A/B Win Rate**
+- **What:** Win rate (`player_won / game_start`) grouped by `movement_group` (Group A: horizontal-only, Group B: full directional)
+- **How:** Join `game_start` events (which carry `movement_group`) to `player_won` events within the same `ga_session_id`. Player can't change movement type mid-run, so the `game_start` value applies to the full session.
+- **SQL pattern:** `SELECT g.movement_group, COUNT(w.ga_session_id)/COUNT(g.ga_session_id)*100 AS win_rate FROM game_start g LEFT JOIN player_won w USING (ga_session_id) GROUP BY g.movement_group`
+- **Value:** Unlocks the currently empty "Win Rate" column in the Movement A/B test table on the A/B tab.
+- **Effort:** Low — same `ga_session_id` join pattern as Avg Start Tier; extend existing `musicAB` or new small handler
+- **KPI location:** A/B Test tab — Movement A/B test table, Win Rate column
+
 **1. Tier Delta per Session**
 - **What:** `avg(final_tier - start_tier)` across all sessions
 - **How:** Reuse existing `avg-tier` query logic — subtract `avg_start_tier` from `avg_final_tier`, or compute per-session and average
@@ -107,13 +115,14 @@ These are in the schema but are built-in GA4 dimensions — no BigQuery needed:
 
 ## Recommended Implementation Order (when revisited)
 
-1. **Tier Delta** — lowest effort, highest insight, fits existing handler
-2. **Sessions per User** — single KPI, low effort
-3. **Win Rate by Starting Tier** — medium effort, high game design value
-4. **AI Adjustment Distribution** — medium effort, strong AI Agent tab addition
-5. **Exact Funnel Completion** — replaces existing funnel with more accurate data
-6. **Player Engagement Span** — low effort KPI
-7. **User Cohort Retention** — highest effort, highest strategic value
+1. **Movement A/B Win Rate** — low effort, unlocks broken A/B table column; same join pattern as Avg Start Tier
+2. **Tier Delta** — lowest effort, highest insight, fits existing handler
+3. **Sessions per User** — single KPI, low effort
+4. **Win Rate by Starting Tier** — medium effort, high game design value
+5. **AI Adjustment Distribution** — medium effort, strong AI Agent tab addition
+6. **Exact Funnel Completion** — replaces existing funnel with more accurate data
+7. **Player Engagement Span** — low effort KPI
+8. **User Cohort Retention** — highest effort, highest strategic value
 
 ---
 
