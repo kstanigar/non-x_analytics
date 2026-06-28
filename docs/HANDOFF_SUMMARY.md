@@ -45,12 +45,18 @@
 - Fixes verified on dev; PR dev → main still pending (blocked on 24-48h GA4 propagation confirmation)
 - Recommended: create slim `Xenon_3/docs/GA4_Event_Schema.md` (game-dev focused) referencing non-x_analytics doc as source of truth
 
+**Completed end of Session 13:**
+- `feature/security-p5-phase-a` committed (7 files, 2873 insertions) → pushed to staging → smoke test PASSED → merged to main ✅
+- Smoke test confirmed: HTTP/2 200, 6 security headers, live GA4 data returning, `player_won` event appearing in data
+- Feature branch deleted locally (no remote branch existed)
+- `lambda-package/` added to `.gitignore` → committed → pushed
+- Main branch clean ✅
+
 **Next priorities:**
 1. Xenon_3 PR dev → main (after GA4 data propagation confirms Death Triggers + Replay Rate populate)
-2. Commit `feature/security-p5-phase-a` → push staging → smoke test → merge to main
-3. H-3: `innerHTML` → `textContent`/`createElement` in `live.html`
-4. H-2: CSP meta tag
-5. H-4: AWS WAF
+2. H-3: `innerHTML` → `textContent`/`createElement` in `live.html` (XSS fix)
+3. H-2: CSP meta tag in `live.html` (`connect-src` only)
+4. H-4: AWS WAF (AWS console — AWSManagedRulesCommonRuleSet + rate-based rule)
 
 ---
 

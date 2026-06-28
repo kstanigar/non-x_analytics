@@ -43,20 +43,16 @@
 - **Result:** All sections load with live data; load time significantly reduced vs. sequential
 - **Note:** If AWS quota increase to 50 is ever approved, can revert to single-wave `Promise.allSettled` for max speed
 
-### P-5: Full Security Audit — ⚠️ PHASE C CONDITIONALLY COMPLETE (Session 12)
+### P-5: Full Security Audit — ⚠️ PHASES A–C ON MAIN, H-3/H-2/H-4 PENDING (Session 13)
 - **Audit complete** — 13 findings (1 critical, 4 high, 5 medium, 3 low)
 - **Full plan + task list:** `docs/Security_Audit_P5.md`
-- **Mandatory protocol:** research → plan → verify → approve → implement → test (no exceptions)
-- **Phase A: C-1 ✅ COMPLETE** — `api/package.json` pinned to `6.1.0`; `npm audit` = 0 vulnerabilities; `package-lock.json` generated
-- **Phase B: H-1 + M-1 ✅ COMPLETE** — `api/index.js` updated: method validation + 3 shared header constants + Permissions-Policy in ERROR_HEADERS; OWASP 2026 verified
-- **Phase C: Tasks 8–12 ✅ COMPLETE** — npm audit clean; Lambda deployed; GET/POST/OPTIONS all pass curl tests
-- **Phase C: Tasks 8–14 ✅ COMPLETE** — npm audit, Lambda deploy, GET/POST/OPTIONS curl tests, API Gateway reconfigured (ANY method), caching disabled, GA4 gaps fixed in Xenon_3
-- **Root cause resolved:** API Gateway caching (0.5GB, 300s TTL) was active despite Stage Details showing "Inactive" — disabled June 27, 2026
-- **GA4 fixes merged to Xenon_3 dev:** `death_phase` added to `player_death`; `is_replay` boolean→string — pending 24-48h data propagation
-- **Pending before Phase C fully complete:** Xenon_3 DebugView verify → dev→main PR; non-x_analytics feature branch commit + smoke test pass + merge to main
+- **Phase A: C-1 ✅ COMPLETE** — `api/package.json` pinned to `6.1.0`; `npm audit` = 0 vulnerabilities
+- **Phase B: H-1 + M-1 ✅ COMPLETE** — method validation + security headers + Permissions-Policy
+- **Phase C: Tasks 8–14 ✅ ON MAIN** — smoke test passed June 28, 2026; merged to main commit `16a1947`
+- **GA4 fixes on Xenon_3 dev:** `death_phase` + `is_replay` — DebugView verified ✅ — pending dev→main PR (waiting on 24-48h GA4 data propagation)
 - **Next:** H-3 (`innerHTML` → `textContent`/`createElement` in `live.html`) → H-2 (CSP meta tag) → H-4 (AWS WAF)
 - **Post-launch:** JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/M-4/L-1/L-2
-- **Last Updated:** June 27, 2026 (Session 12)
+- **Last Updated:** June 28, 2026 (Session 13)
 
 ---
 
