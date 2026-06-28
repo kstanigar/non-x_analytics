@@ -2,11 +2,34 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 28, 2026 (Session 13)
+**Last Updated:** June 28, 2026 (Session 14)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 28, 2026 - P-5 Audit Cleanup (Session 14)
+
+**Status:** ✅ Phase C fully documented — all checkboxes reconciled
+
+### Session 14 Summary
+
+**Completed:**
+- Reviewed `Security_Audit_P5.md` Phase C task list via Haiku agent
+- Found 4 tasks (8, 9, 11, 12) and all 8 post-implementation checklist items had stale unchecked boxes — work was done but doc not updated
+- Updated all checkboxes to `[x]` with dates and confirmation notes
+- Updated doc status header from `📋 PLAN` → `✅ PHASES A–C COMPLETE — June 28, 2026`
+- Updated current status line to reflect Phase C merged to main at commit `16a1947`
+- Committed as `0f46c41` → merged to main → pushed
+
+**Next priorities:**
+1. Xenon_3 PR dev → main (check if Death Triggers + Replay Rate now populate after 24-48h GA4 propagation)
+2. H-3: `innerHTML` → `textContent`/`createElement` in `live.html` (XSS fix — HIGH severity)
+3. H-2: CSP meta tag in `live.html` (`connect-src` only)
+4. H-4: AWS WAF (AWS console — AWSManagedRulesCommonRuleSet + rate-based rule)
+5. GA4 doc — 2 events pending: `player_won` + `survey_submitted`
 
 ---
 
