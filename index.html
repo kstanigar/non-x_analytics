@@ -14,6 +14,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    img-src 'self' data:;
+    connect-src https://6waopo3jh1.execute-api.us-east-2.amazonaws.com;
+    form-action 'none';
+    base-uri 'none';
+    object-src 'none';
+  ">
   <title>NON-X Analytics - Live Dashboard</title>
   <link rel="icon" type="image/png" href="images/st_760.png">
   <link rel="apple-touch-icon" href="images/st_760.png">
