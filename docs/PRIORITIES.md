@@ -43,7 +43,7 @@
 - **Result:** All sections load with live data; load time significantly reduced vs. sequential
 - **Note:** If AWS quota increase to 50 is ever approved, can revert to single-wave `Promise.allSettled` for max speed
 
-### P-5: Full Security Audit — ⚠️ PHASES A–C ON MAIN, H-3/H-2/H-4 PENDING (Session 14)
+### P-5: Full Security Audit — ⚠️ PHASES A–C + H-3 + H-2 ON MAIN, H-4 PENDING (Session 15)
 - **Audit complete** — 13 findings (1 critical, 4 high, 5 medium, 3 low)
 - **Full plan + task list:** `docs/Security_Audit_P5.md`
 - **Phase A: C-1 ✅ COMPLETE** — `api/package.json` pinned to `6.1.0`; `npm audit` = 0 vulnerabilities
