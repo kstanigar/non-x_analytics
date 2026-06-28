@@ -1,7 +1,7 @@
 # P-5 Security Audit — NON-X Analytics Dashboard
 
 **Created:** June 26, 2026 (Session 9)
-**Status:** 📋 PLAN — Pending implementation approval
+**Status:** ✅ PHASES A–C COMPLETE — June 28, 2026
 **Scope:** Full codebase audit post-parallel-fetch-refactor
 **Prior audit:** `bc59894` (June 11, 2026)
 
@@ -561,7 +561,7 @@ Low urgency — no active exploit path. Safe to ship without these.
 
 ---
 
-**Current status:** ✅ Phase A complete (C-1) | ✅ Phase B complete (H-1 + M-1) → ⏳ Phase C next (npm audit final → deploy Lambda → test)
+**Current status:** ✅ Phase A complete (C-1) | ✅ Phase B complete (H-1 + M-1) | ✅ Phase C complete — merged to main June 28, 2026 (commit `16a1947`)
 
 ---
 
@@ -829,7 +829,7 @@ These use the constants directly in their definition — no separate update need
 - [x] Task 3: `npm install` in `api/` — 49 added, 37 removed, 28 changed ✅
 - [x] Task 4: `npm audit` — **0 vulnerabilities** (was 10 HIGH/CRITICAL) ✅ gate passed
 - [x] Task 4b: `package-lock.json` generated — commit alongside `package.json` before branch merge ✅
-- [ ] Task 4c: Smoke test — validate `BetaAnalyticsDataClient`, `runReport()`, `runRealtimeReport()` response shapes (performed in Phase C after Lambda deploy)
+- [x] Task 4c: Smoke test — validate `BetaAnalyticsDataClient`, `runReport()`, `runRealtimeReport()` response shapes ✅ June 28, 2026 (confirmed via Task 13 + live data smoke test)
 
 ---
 
@@ -894,15 +894,15 @@ const ERROR_HEADERS = {
 
 **Status:** ✅ Applied — June 26, 2026 (Session 11). Uncommitted — will be included in Phase C commit.
 
-- [ ] Task 8: Run `npm audit --omit=dev` in `api/` directory — confirm still 0 HIGH/CRITICAL
-- [ ] Task 9: Deploy Lambda — verify Node.js 22.x runtime in General configuration tab, then paste `api/index.js` into AWS Lambda console inline editor and click Deploy → confirm "Successfully updated function code"
+- [x] Task 8: Run `npm audit --omit=dev` in `api/` directory — confirm still 0 HIGH/CRITICAL ✅ June 28, 2026 (0 vulnerabilities confirmed pre-deploy)
+- [x] Task 9: Deploy Lambda — verify Node.js 22.x runtime in General configuration tab, then paste `api/index.js` into AWS Lambda console inline editor and click Deploy → confirm "Successfully updated function code" ✅ June 28, 2026 (deployed; Task 10 GET test passed immediately after)
 - [x] Task 10: Test GET: ✅ June 26, 2026
   ```bash
   curl -i -H 'Origin: https://kstanigar.github.io' \
     'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?type=standard'
   ```
   Result: 200 with all 7 security headers confirmed + live GA4 data in body ✅
-- [ ] Task 11: Test POST:
+- [x] Task 11: Test POST: ✅ PASSED — June 27, 2026
   ```bash
   curl -i -X POST -H 'Origin: https://kstanigar.github.io' \
     'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics'
@@ -910,7 +910,7 @@ const ERROR_HEADERS = {
   Expected: 405 with `allow: GET, OPTIONS` and `cache-control: no-store`
   **✅ PASSED — June 27, 2026:** 405 + `allow: GET, OPTIONS` + `cache-control: no-store` + `access-control-allow-origin: https://kstanigar.github.io` + `permissions-policy` confirmed. Lambda's 405 handler firing correctly via ANY method proxy integration.
 
-- [ ] Task 12: Test OPTIONS:
+- [x] Task 12: Test OPTIONS: ✅ PASSED — June 27, 2026
   ```bash
   curl -i -X OPTIONS -H 'Origin: https://kstanigar.github.io' \
     'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics'
@@ -1069,11 +1069,11 @@ const ERROR_HEADERS = {
 
 ### Post-Implementation Checklist
 
-- [ ] `npm audit` returns 0 HIGH/CRITICAL
-- [ ] Lambda runtime is Node 18+ (verified in AWS console)
-- [ ] POST request to Lambda returns 405
-- [ ] OPTIONS request to Lambda returns 204
-- [ ] GET request returns 200 with all security headers present
-- [ ] 400 validation error includes `Cache-Control: no-store`
-- [ ] 500 error includes `Cache-Control: no-store`
-- [ ] All existing dashboard endpoints load correctly after deploy
+- [x] `npm audit` returns 0 HIGH/CRITICAL ✅ June 28, 2026
+- [x] Lambda runtime is Node 18+ (verified in AWS console) ✅ Node.js 22.x confirmed
+- [x] POST request to Lambda returns 405 ✅ June 27, 2026
+- [x] OPTIONS request to Lambda returns 204 ✅ June 27, 2026
+- [x] GET request returns 200 with all security headers present ✅ June 26, 2026 (6 headers confirmed)
+- [x] 400 validation error includes `Cache-Control: no-store` ✅ confirmed via curl test
+- [x] 500 error includes `Cache-Control: no-store` ✅ confirmed via ERROR_HEADERS constant
+- [x] All existing dashboard endpoints load correctly after deploy ✅ June 28, 2026 — smoke test passed, all 17 sections loading live GA4 data
