@@ -3177,6 +3177,12 @@
        * @param {string} reportType - 'realtime' or 'standard'
        * @returns {Object} Mapped DATA object or error
        */
+      function escHtml(str) {
+        return String(str).replace(/[&<>"']/g, c =>
+          ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])
+        );
+      }
+
       function mapGA4ResponseToDATA(response, reportType = 'standard') {
         // ─── VALIDATION ───────────────────────────────────────────────
 
@@ -3705,7 +3711,7 @@
               decreases,
               totalAdjustments,
               speedLockRate,
-              speedLockSub: `<span style="color:var(--green)">${speedLockCount}&nbsp;locked</span> / <span style="color:#FFD700">${totalAdjustments}&nbsp;adjustments</span>`,
+              speedLockSub: `<span style="color:var(--green)">${escHtml(speedLockCount)}&nbsp;locked</span> / <span style="color:#FFD700">${escHtml(totalAdjustments)}&nbsp;adjustments</span>`,
               scoreMultCounts,
               hasRealData: totalAdjustments > 0,
             }
@@ -3779,7 +3785,7 @@
           const fmt = (r, t) => t > 0 ? Math.round((r / t) * 100) + '%' : '—';
           return {
             replayRate: fmt(replayAll, totalAll),
-            replaySub: `<span style="color:var(--green)">${replayAll}&nbsp;replay starts</span> / <span style="color:#FFD700">${totalAll}&nbsp;total starts</span>`,
+            replaySub: `<span style="color:var(--green)">${escHtml(replayAll)}&nbsp;replay starts</span> / <span style="color:#FFD700">${escHtml(totalAll)}&nbsp;total starts</span>`,
             desktop: { replayRate: fmt(replayDesk, totalDesk) },
             mobile:  { replayRate: fmt(replayMob,  totalMob)  },
             hasRealData: totalAll > 0,
@@ -3975,11 +3981,11 @@
           kpis: {
             sessions: sessions.toLocaleString(),
             winRate,
-            winSub: `<span style="color:var(--green)">${playerWon}&nbsp;wins</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`,
+            winSub: `<span style="color:var(--green)">${escHtml(playerWon)}&nbsp;wins</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`,
             deathRate,
-            deathSub: `<span style="color:var(--green)">${playerDeath}&nbsp;deaths</span> / <span style="color:#FFD700">${completedGames}&nbsp;completed</span>`,
+            deathSub: `<span style="color:var(--green)">${escHtml(playerDeath)}&nbsp;deaths</span> / <span style="color:#FFD700">${escHtml(completedGames)}&nbsp;completed</span>`,
             lbRate,
-            lbRateSub: `<span style="color:var(--green)">${leaderboardSubmit}&nbsp;submits</span> / <span style="color:#FFD700">${playerWon}&nbsp;wins</span>`,
+            lbRateSub: `<span style="color:var(--green)">${escHtml(leaderboardSubmit)}&nbsp;submits</span> / <span style="color:#FFD700">${escHtml(playerWon)}&nbsp;wins</span>`,
             // Note: These require additional dimensions not in current API
             newPct: '—',
             replay: '—',
@@ -4692,9 +4698,9 @@
             DATA.deviceMix.mobile  = Math.round((DATA.platform.mobile.sessions  / totalSessions) * 100);
           }
           DATA.kpis.deskWin    = DATA.platform.desktop.winRate;
-          DATA.kpis.deskWinSub = `<span style="color:var(--green)">${pd.desktop.playerWon}&nbsp;wins</span> / <span style="color:#FFD700">${pd.desktop.gameStarts}&nbsp;starts</span>`;
+          DATA.kpis.deskWinSub = `<span style="color:var(--green)">${escHtml(pd.desktop.playerWon)}&nbsp;wins</span> / <span style="color:#FFD700">${escHtml(pd.desktop.gameStarts)}&nbsp;starts</span>`;
           DATA.kpis.mobWin     = DATA.platform.mobile.winRate;
-          DATA.kpis.mobWinSub  = `<span style="color:var(--green)">${pd.mobile.playerWon}&nbsp;wins</span> / <span style="color:#FFD700">${pd.mobile.gameStarts}&nbsp;starts</span>`;
+          DATA.kpis.mobWinSub  = `<span style="color:var(--green)">${escHtml(pd.mobile.playerWon)}&nbsp;wins</span> / <span style="color:#FFD700">${escHtml(pd.mobile.gameStarts)}&nbsp;starts</span>`;
           DATA.kpis.deskLevel = DATA.platform.desktop.avgLevel;
           DATA.kpis.mobLevel = DATA.platform.mobile.avgLevel;
         } else {
@@ -4777,7 +4783,7 @@
           const nuData = mapGA4ResponseToDATA(newUserResult.value.data, 'new-user-pct');
           if (!nuData.error && nuData.hasRealData) {
             DATA.kpis.newPct    = nuData.newPct;
-            DATA.kpis.newPctSub = `<span style="color:#FFD700">${nuData.newCount}&nbsp;new</span> / <span style="color:var(--green)">${nuData.returningCount}&nbsp;returning</span>`;
+            DATA.kpis.newPctSub = `<span style="color:#FFD700">${escHtml(nuData.newCount)}&nbsp;new</span> / <span style="color:var(--green)">${escHtml(nuData.returningCount)}&nbsp;returning</span>`;
           } else {
             console.warn('New-user-pct parsing failed or no data, using mock value');
           }
@@ -4888,17 +4894,17 @@
             DATA.kpis.musicRate     = (counts.music_toggled    / gameStarts * 100).toFixed(0) + '%';
             DATA.kpis.leaveRate     = (counts.leave_game       / gameStarts * 100).toFixed(0) + '%';
             DATA.kpis.surveyRate    = (counts.survey_submitted / gameStarts * 100).toFixed(0) + '%';
-            DATA.kpis.scorecardSub  = `<span style="color:var(--green)">${counts.scorecard_viewed}&nbsp;viewed</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
-            DATA.kpis.musicSub      = `<span style="color:var(--green)">${counts.music_toggled}&nbsp;toggled</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
-            DATA.kpis.leaveSub      = `<span style="color:var(--green)">${counts.leave_game}&nbsp;left</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
-            DATA.kpis.surveySub     = `<span style="color:var(--green)">${counts.survey_submitted}&nbsp;submitted</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`;
+            DATA.kpis.scorecardSub  = `<span style="color:var(--green)">${escHtml(counts.scorecard_viewed)}&nbsp;viewed</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`;
+            DATA.kpis.musicSub      = `<span style="color:var(--green)">${escHtml(counts.music_toggled)}&nbsp;toggled</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`;
+            DATA.kpis.leaveSub      = `<span style="color:var(--green)">${escHtml(counts.leave_game)}&nbsp;left</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`;
+            DATA.kpis.surveySub     = `<span style="color:var(--green)">${escHtml(counts.survey_submitted)}&nbsp;submitted</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`;
           }
           const bossAttempts = DATA.bossAnalysis?.boss1?.overall?.attempts || 0;
           DATA.kpis.bossReachRate = bossAttempts > 0 && gameStarts > 0
             ? (bossAttempts / gameStarts * 100).toFixed(0) + '%'
             : '—';
           DATA.kpis.bossReachSub = bossAttempts > 0 && gameStarts > 0
-            ? `<span style="color:var(--green)">${bossAttempts}&nbsp;attempts</span> / <span style="color:#FFD700">${gameStarts}&nbsp;starts</span>`
+            ? `<span style="color:var(--green)">${escHtml(bossAttempts)}&nbsp;attempts</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`
             : 'boss_attempt / game_start';
           populateKPIs(DATA.kpis);
         } else {
@@ -5184,7 +5190,7 @@
           div.className = 'funnel-stage';
           div.innerHTML = `
       <div class="funnel-label-row">
-        <span class="funnel-name">${s.name}</span>
+        <span class="funnel-name">${escHtml(s.name)}</span>
         <span class="funnel-stats">${s.n.toLocaleString()} users</span>
       </div>
       <div class="funnel-bar-bg">
@@ -5227,7 +5233,7 @@
         tbody.innerHTML = ''; // Clear existing rows before rebuilding
         conversions.forEach(r => {
           tbody.innerHTML += `<tr>
-      <td>${r.from} → ${r.to}</td>
+      <td>${escHtml(r.from)} → ${escHtml(r.to)}</td>
       <td>${r.overall}</td>
       <td style="color:${CYAN}">${r.on}</td>
       <td style="color:${YEL}">${r.off}</td>
@@ -5370,15 +5376,15 @@
           const phaseClass = b.phase === 'GREEN' ? 'green-phase' : b.phase === 'RED' ? 'red-phase' : 'purple-phase';
           container.innerHTML += `
       <div class="boss-card">
-        <div class="boss-name">${b.name} &nbsp;<span class="pill ${phaseClass}">${b.phase}</span></div>
+        <div class="boss-name">${escHtml(b.name)} &nbsp;<span class="pill ${phaseClass}">${escHtml(b.phase)}</span></div>
         <div class="boss-ring">
           <svg viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
-            <circle cx="50" cy="50" r="${r}" fill="none" stroke="${b.color}" stroke-width="8"
+            <circle cx="50" cy="50" r="${r}" fill="none" stroke="${escHtml(b.color)}" stroke-width="8"
               stroke-dasharray="${fill} ${circ}" stroke-linecap="round"
-              style="filter:drop-shadow(0 0 6px ${b.color})"/>
+              style="filter:drop-shadow(0 0 6px ${escHtml(b.color)})"/>
           </svg>
-          <div class="boss-ring-pct" style="color:${b.color}">${b.defeat_rate}%</div>
+          <div class="boss-ring-pct" style="color:${escHtml(b.color)}">${b.defeat_rate}%</div>
         </div>
         <div class="boss-stats-row">
           <span class="boss-stat-label">Attempts</span>
@@ -5509,13 +5515,13 @@
         bosses.forEach((b, i) => {
           const phaseClass = b.phase === 'GREEN' ? 'green-phase' : b.phase === 'RED' ? 'red-phase' : 'purple-phase';
           tbody.innerHTML += `<tr>
-      <td style="color:${b.color};font-weight:600">${b.name}</td>
-      <td><span class="pill ${phaseClass}">${b.phase}</span></td>
+      <td style="color:${escHtml(b.color)};font-weight:600">${escHtml(b.name)}</td>
+      <td><span class="pill ${phaseClass}">${escHtml(b.phase)}</span></td>
       <td>${b.threshold}</td>
       <td>${b.attempts.toLocaleString()}</td>
-      <td style="color:${b.color}">${b.defeat_rate}%</td>
+      <td style="color:${escHtml(b.color)}">${b.defeat_rate}%</td>
       <td>${b.avg_attempts}×</td>
-      <td style="font-size:0.7rem;color:rgba(200,232,255,0.6)">${assessments[i]}</td>
+      <td style="font-size:0.7rem;color:rgba(200,232,255,0.6)">${escHtml(assessments[i])}</td>
     </tr>`;
         });
       }
@@ -5541,14 +5547,14 @@
             const isThisWinner = (m.better === 'higher') ? (grp === 'A' ? parseFloat(aVal) >= parseFloat(bVal) : parseFloat(bVal) > parseFloat(aVal))
               : (grp === 'A' ? parseFloat(aVal) <= parseFloat(bVal) : parseFloat(bVal) < parseFloat(aVal));
             return `<div class="ab-metric-row">
-        <span class="ab-metric-name">${m.label}</span>
-        <span class="ab-metric-val ${isThisWinner ? 'better' : 'worse'}">${d[m.k]}</span>
+        <span class="ab-metric-name">${escHtml(m.label)}</span>
+        <span class="ab-metric-val ${isThisWinner ? 'better' : 'worse'}">${escHtml(d[m.k])}</span>
       </div>`;
           }).join('');
           container.innerHTML += `
       <div class="ab-card ${isWinner ? 'winner' : 'loser'}">
         <div class="ab-header">
-          <span class="ab-group-badge ${grp.toLowerCase()}">Group ${grp} — ${d.label}</span>
+          <span class="ab-group-badge ${grp.toLowerCase()}">Group ${grp} — ${escHtml(d.label)}</span>
           ${isWinner ? '<span class="ab-winner-tag">▲ WINNING</span>' : ''}
         </div>
         <div style="font-family:var(--mono);font-size:0.62rem;color:var(--text-dim);margin-bottom:12px">${d.sessions.toLocaleString()} sessions</div>
@@ -5570,14 +5576,14 @@
           let rows = movMetrics.map(m => {
             const isThisWinner = grp === 'B' ? parseFloat(mov.B[m.k]) >= parseFloat(mov.A[m.k]) : parseFloat(mov.A[m.k]) > parseFloat(mov.B[m.k]);
             return `<div class="ab-metric-row">
-        <span class="ab-metric-name">${m.label}</span>
-        <span class="ab-metric-val ${isThisWinner ? 'better' : 'worse'}">${d[m.k]}</span>
+        <span class="ab-metric-name">${escHtml(m.label)}</span>
+        <span class="ab-metric-val ${isThisWinner ? 'better' : 'worse'}">${escHtml(d[m.k])}</span>
       </div>`;
           }).join('');
           movContainer.innerHTML += `
       <div class="ab-card ${isWinner ? 'winner' : 'loser'}">
         <div class="ab-header">
-          <span class="ab-group-badge ${grp.toLowerCase()}">Movement ${grp} — ${d.label}</span>
+          <span class="ab-group-badge ${grp.toLowerCase()}">Movement ${grp} — ${escHtml(d.label)}</span>
           ${isWinner ? '<span class="ab-winner-tag">▲ WINNING</span>' : ''}
         </div>
         <div style="font-family:var(--mono);font-size:0.62rem;color:var(--text-dim);margin-bottom:12px">${d.sessions.toLocaleString()} sessions</div>
@@ -5732,9 +5738,9 @@
             deskWins ? GRN : YEL;
 
           tbody.innerHTML += `<tr>
-      <td>${m.label}</td>
-      <td style="color:${deskWins ? CYAN : MAG}">${m.desk}</td>
-      <td style="color:${mobWins ? CYAN : MAG}">${m.mob}</td>
+      <td>${escHtml(m.label)}</td>
+      <td style="color:${deskWins ? CYAN : MAG}">${escHtml(m.desk)}</td>
+      <td style="color:${mobWins ? CYAN : MAG}">${escHtml(m.mob)}</td>
       <td>${winnerPill}</td>
       <td style="color:${winnerColor};font-family:var(--mono);font-size:0.7rem">${winnerText} (${deltaDisplay})</td>
     </tr>`;
@@ -5912,14 +5918,14 @@
 
         tbody.innerHTML = metrics.map(m => `
     <tr>
-      <td><strong>${m.tier}</strong></td>
-      <td>${m.name}</td>
+      <td><strong>${escHtml(m.tier)}</strong></td>
+      <td>${escHtml(m.name)}</td>
       <td>${m.speed.toFixed(1)}</td>
       <td>${m.mult.toFixed(2)}×</td>
       <td>${m.players}</td>
       <td>${m.avgLevel.toFixed(0)}</td>
-      <td>${m.winRate}</td>
-      <td>${m.avgTime}</td>
+      <td>${escHtml(m.winRate)}</td>
+      <td>${escHtml(m.avgTime)}</td>
     </tr>
   `).join('');
       }
