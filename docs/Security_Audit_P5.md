@@ -595,6 +595,57 @@ Low urgency — no active exploit path. Safe to ship without these.
 - **`Referrer-Policy: strict-origin-when-cross-origin`** — OWASP 2026 recommended. Controls referrer leakage. Add to `SUCCESS_HEADERS` and `ERROR_HEADERS`.
 - **`Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()`** — OWASP 2026 standard. Disables unused browser capabilities. Add to `SUCCESS_HEADERS` only (not needed on error responses or preflight).
 
+#### Phase C Research — Session 11 (June 26, 2026) — Haiku Agent Pre-Deploy Verification
+
+**Confirmed correct (no changes needed):**
+
+- ✅ All headers in `SUCCESS_HEADERS`, `ERROR_HEADERS`, `CORS_HEADERS` — verified against OWASP 2026. No syntax changes.
+- ✅ `Referrer-Policy: strict-origin-when-cross-origin` — still OWASP 2026 best practice
+- ✅ `Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()` — `()` empty-allowlist syntax unchanged in 2026. `payment=()` directive still valid (Payment Request API still active).
+- ✅ `Cache-Control: public, max-age=86400` — appropriate for public JSON API with no PII
+- ✅ `Strict-Transport-Security: max-age=31536000; includeSubDomains` — confirmed 2026 best practice
+- ✅ `X-Content-Type-Options: nosniff` — still relevant in 2026
+- ✅ `Allow: GET, OPTIONS` in 405 response — RFC 9110 requires this; `Cache-Control: no-store` does not conflict
+- ✅ `{ error: 'Method Not Allowed' }` JSON body — acceptable; RFC 7807 Problem Details is optional, not required
+- ✅ `Access-Control-Max-Age: '7200'` — Chrome cap unchanged; still 7200s in 2026
+- ✅ npm audit command: `npm audit` (no-flag) or `npm audit --omit=dev` both valid. `--production` deprecated in npm 10+; `--omit=dev` is the correct flag.
+- ✅ Lambda console deploy procedure: paste → Deploy button → "Successfully updated function code" message → `$LATEST` auto-updated. Runtime is NOT auto-detected — must verify Node.js 22.x is set in General configuration before paste.
+- ✅ `curl -i` is correct for header verification (shows headers without verbose connection noise); include `Origin: https://kstanigar.github.io` on all three curl tests for full CORS validation
+
+**Decision 1 — OPTIONS status code (204 vs 200): ✅ KEEP 204 (June 26, 2026)**
+
+- **Conflict:** Session 9 verified 204; Session 11 Haiku agent recommended 200
+- **Authority:** RFC 9110 does not mandate a specific 2xx for OPTIONS preflight. Express.js `cors` (ecosystem standard) defaults to 204. 204 is semantically correct — no response body. Both are valid.
+- **Resolution:** Keep 204. Already implemented and committed. No change needed.
+
+**Decision 2 — Permissions-Policy in ERROR_HEADERS: ✅ ADDED (June 26, 2026)**
+
+- **Authority:** OWASP HTTP Headers Cheat Sheet — apply security headers on all responses
+- **Resolution:** `Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()` added to `ERROR_HEADERS` in `api/index.js` (Session 11)
+- **Rule added:** CLAUDE.md Rule 9 — Follow Industry Standards and Best Practices
+
+**Exact curl test commands (documented for Task 10–12):**
+
+```bash
+# Task 10: GET → 200 with security headers
+curl -i -H 'Origin: https://kstanigar.github.io' \
+  'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod?type=standard'
+
+# Task 11: POST → 405 with Allow header
+curl -i -X POST -H 'Origin: https://kstanigar.github.io' \
+  'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod'
+
+# Task 12: OPTIONS → 204 with CORS headers
+curl -i -X OPTIONS -H 'Origin: https://kstanigar.github.io' \
+  'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod'
+```
+
+**Smoke test verification targets (Task 13):**
+- All 17 parallel fetch requests return HTTP 200 (check Network tab)
+- No CORS errors in browser console
+- All dashboard sections render with live data (not empty `{}`)
+- `Promise.allSettled()` — all 17 promises settle as `{status: 'fulfilled', value: [data]}`
+
 **Confirmed correct, no change:**
 
 - ✅ HTTP 204 for OPTIONS preflight — correct per RFC and MDN 2026
@@ -810,13 +861,178 @@ These use the constants directly in their definition — no separate update need
 
 **Phase C: Verify + Deploy**
 
-- [ ] Task 8: Run `npm audit` one final time — confirm still 0 HIGH/CRITICAL
-- [ ] Task 9: Deploy Lambda — paste updated `api/index.js` into AWS Lambda console and deploy
-- [ ] Task 10: Test — GET request to any endpoint → confirm 200 with security headers present
-- [ ] Task 11: Test — POST request → confirm 405 response
-- [ ] Task 12: Test — OPTIONS request → confirm 204 response
-- [ ] Task 13: Test — all existing dashboard endpoints load correctly with live data
-- [ ] Task 14: Update `docs/Security_Audit_P5.md` — mark C-1, H-1, M-1 ✅ with commit hash
+**Research status:** ✅ Complete — Session 11: Haiku agent pre-deploy verification (June 26, 2026). See Key Research Findings → Phase C Research section.
+**Decisions resolved:** ✅ Keep 204 for OPTIONS | ✅ Permissions-Policy added to ERROR_HEADERS (api/index.js updated Session 11)
+
+### Phase C Code Change — ERROR_HEADERS Update (Session 11)
+
+**File:** `api/index.js` — `ERROR_HEADERS` constant (lines 22–28 pre-change, 22–29 post-change)
+**Authority:** OWASP 2026 — apply security headers on all responses
+
+**Before (lines 22–28):**
+```javascript
+const ERROR_HEADERS = {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'Cache-Control': 'no-store',
+    'Referrer-Policy': 'strict-origin-when-cross-origin'
+};
+```
+
+**After (lines 22–29):**
+```javascript
+const ERROR_HEADERS = {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'Cache-Control': 'no-store',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'geolocation=(), camera=(), microphone=(), payment=()'
+};
+```
+
+**Status:** ✅ Applied — June 26, 2026 (Session 11). Uncommitted — will be included in Phase C commit.
+
+- [ ] Task 8: Run `npm audit --omit=dev` in `api/` directory — confirm still 0 HIGH/CRITICAL
+- [ ] Task 9: Deploy Lambda — verify Node.js 22.x runtime in General configuration tab, then paste `api/index.js` into AWS Lambda console inline editor and click Deploy → confirm "Successfully updated function code"
+- [x] Task 10: Test GET: ✅ June 26, 2026
+  ```bash
+  curl -i -H 'Origin: https://kstanigar.github.io' \
+    'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?type=standard'
+  ```
+  Result: 200 with all 7 security headers confirmed + live GA4 data in body ✅
+- [ ] Task 11: Test POST:
+  ```bash
+  curl -i -X POST -H 'Origin: https://kstanigar.github.io' \
+    'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics'
+  ```
+  Expected: 405 with `allow: GET, OPTIONS` and `cache-control: no-store`
+  **✅ PASSED — June 27, 2026:** 405 + `allow: GET, OPTIONS` + `cache-control: no-store` + `access-control-allow-origin: https://kstanigar.github.io` + `permissions-policy` confirmed. Lambda's 405 handler firing correctly via ANY method proxy integration.
+
+- [ ] Task 12: Test OPTIONS:
+  ```bash
+  curl -i -X OPTIONS -H 'Origin: https://kstanigar.github.io' \
+    'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics'
+  ```
+  Expected: 204 with `access-control-allow-origin: https://kstanigar.github.io`, `access-control-allow-methods: GET, OPTIONS`, `access-control-max-age: 7200`
+  **✅ PASSED — June 27, 2026:** 204 + `access-control-allow-origin: https://kstanigar.github.io` + `access-control-allow-methods: GET, OPTIONS` + `access-control-max-age: 7200` confirmed. Lambda's 204 handler firing correctly. No wildcard origin.
+
+  ### Task 11 + 12 Finding — API Gateway Intercepts Before Lambda (June 26, 2026)
+
+  **Root cause:** API Gateway has two behaviors that intercept before Lambda:
+  1. **POST (and all non-GET/OPTIONS methods):** Not configured as a method on `/analytics` resource → API Gateway returns 403 instead of passing to Lambda for 405
+  2. **OPTIONS:** API Gateway has a mock OPTIONS integration (enabled when CORS was configured in console) → returns 200 with `Access-Control-Allow-Origin: *` instead of passing to Lambda for our 204 + `ALLOWED_ORIGIN`
+
+  **Security impact:**
+  - Task 11: POST blocked at 403 (not 405). RFC 9110 requires 405 + `Allow` header for unsupported methods. Security is equivalent but non-compliant.
+  - Task 12: CORS preflight returns wildcard `*` origin. Inconsistent with actual GET response (`ALLOWED_ORIGIN`). OWASP 2026: inconsistent CORS policy is a security misconfiguration. Attackers probe with `*` and assume broad access.
+
+  ---
+
+  ### Task 11 + 12 Fix Plan — API Gateway Reconfiguration (AWS Console)
+
+  **Research status:** ✅ Complete — Session 11 Haiku agent (June 26, 2026)
+  **Authority:** AWS Lambda Proxy Integration docs (2026) | RFC 9110 | OWASP WSTG
+
+  **Key finding from AWS 2026 docs:** For Lambda proxy integrations, AWS explicitly states the Lambda should handle OPTIONS — not a mock integration. The mock is recommended only for non-proxy integrations. Our setup is a proxy integration, so the mock is the wrong pattern.
+
+  **Recommended fix — `ANY` method with Lambda proxy integration:**
+
+  Replace explicit GET + mock OPTIONS with a single `ANY` method. All HTTP methods route to Lambda. Lambda already handles:
+  - `OPTIONS` → 204 + `CORS_HEADERS` (specific origin)
+  - non-GET → 405 + `Allow: GET, OPTIONS`
+  - `GET` → data responses
+
+  **Why `ANY` over keeping explicit methods:**
+  - Fixes Task 11: POST/DELETE/etc. reach Lambda → proper 405 with `Allow` header (RFC 9110 compliant)
+  - Fixes Task 12: OPTIONS reaches Lambda → 204 with specific `ALLOWED_ORIGIN` (not wildcard)
+  - Eliminates the mock OPTIONS integration conflict permanently
+  - Lambda code requires zero changes — all handlers already exist
+
+  **Trade-off:** POST/DELETE/etc. now invoke Lambda (billable) before returning 405. At this API's traffic scale, cost impact is negligible.
+
+  **Exact AWS console steps:**
+
+  **Step 1 — Delete existing GET method:**
+  1. API Gateway console → select API → Resources pane → click `/analytics`
+  2. Click **GET** method → click **Delete method** (top right) → confirm
+
+  **Step 2 — Delete mock OPTIONS method:**
+  1. Click **OPTIONS** method under `/analytics` → click **Delete method** → confirm
+
+  **Step 3 — Create ANY method with Lambda proxy:**
+  1. Select `/analytics` resource → click **Create method**
+  2. Method type: **ANY**
+  3. Integration type: **AWS Lambda**
+  4. Enable **Lambda Proxy Integration** toggle → ON
+  5. Lambda Region: `us-east-2`
+  6. Lambda Function: `non-x-analytics-api`
+  7. Click **Save** → click **OK** on permission confirmation popup
+
+  **Step 4 — Deploy:**
+  1. Click **Deploy API** (top toolbar)
+  2. Stage: `prod`
+  3. Click **Deploy** → wait for confirmation
+
+  **Step 5 — Re-run Tasks 10, 11, 12 to verify:**
+  - Task 10: GET → 200 + `ALLOWED_ORIGIN` (should be unchanged)
+  - Task 11: POST → 405 + `Allow: GET, OPTIONS` + `Cache-Control: no-store` (from Lambda ERROR_HEADERS)
+  - Task 12: OPTIONS → 204 + `access-control-allow-origin: https://kstanigar.github.io` + `access-control-max-age: 7200`
+
+  **⚠️ Risk:** Deleting and recreating methods resets any method-level settings (throttling overrides, request validators). Verify throttle settings in API Gateway after deploy. Current throttle: 20 req/s (document in `docs/AWS_Config.md` after confirming).
+
+  **Create method field configuration — verified Session 11 Haiku agent (June 27, 2026):**
+
+  | Field | Value | Action |
+  |-------|-------|--------|
+  | Method type | ANY | ✅ Correct |
+  | Integration type | Lambda function | ✅ Correct |
+  | Lambda proxy integration | ON | ✅ Correct — Lambda reads `event.httpMethod`, `event.queryStringParameters`; returns `{statusCode, headers, body}` |
+  | Response transfer mode | Buffered | ✅ Correct — Lambda returns complete JSON; no streaming |
+  | Lambda function | ARN `arn:aws:lambda:us-east-2:032614958698:function:non-x-analytics-api` | ✅ Correct |
+  | Integration timeout | 29000ms (max) | ✅ Correct — BigQuery queries can take 2-8s; max provides safety margin |
+  | Authorization | None | ✅ Correct — public API, API key removed June 8, 2026 |
+  | Request validator | None | ✅ Correct — Lambda handles all validation (whitelists lines 92-100) |
+  | API key required | Unchecked | ✅ Correct |
+  | Operation name | Leave blank | ✅ Leave blank — no OpenAPI spec generation planned |
+  | URL query string parameters | None | ✅ Correct — Lambda proxy passes all params via `event.queryStringParameters` automatically |
+  | HTTP request headers | None | ✅ Correct — Lambda proxy passes all headers automatically |
+  | Request body | None | ✅ Correct — GET-only API; non-GET returns 405 |
+
+  **Status:** ⏳ Pending user clicking Create method in AWS console
+- [x] Task 13: Smoke test ⚠️ CONDITIONALLY PASSED — June 27, 2026 (Session 12)
+
+  **Root causes found and resolved:**
+
+  **Issue 1 — API Gateway response caching (FIXED):**
+  - Edit Stage screenshots confirmed: "Provision API cache" ON, "Default method-level caching" ON, 0.5GB, 300s TTL
+  - First avg-tier response was cached and served for all subtypes within the 300s TTL window
+  - Fix: Disabled both toggles in Edit Stage → saved → confirmed "Successfully updated stage: prod"
+  - Post-fix curl tests: avg-tier ✅, platform-split ✅, music-ab ✅ — all returning distinct data
+
+  **Issue 2 — GA4 instrumentation gaps (FIXED in Xenon_3 — pending 24-48h data propagation):**
+  - `death-triggers` chart empty: `player_death` sent `phase` but dashboard queries `death_phase` (different GA4 dimension key). Fix: added `death_phase` parameter to `player_death` event in `Xenon_3/game.html` + `game_mobile.html`
+  - `replay-rate` shows `—`: `is_replay: false` (boolean) silently dropped by gtag(). Fix: changed to `isReplay ? 'true' : 'false'` (string) in `game_start` event
+  - Xenon_3 PR `feature/ga4-fix-death-phase-is-replay` → merged to `dev` ✅ — CI passed (Game Integrity Check ✅, Test Game Build ✅)
+  - `music_toggled` event: 0 occurrences in 7 days — accurate, not a bug (no one toggled music)
+
+  **Remaining console warnings (not security issues — data gaps only):**
+  - `death-triggers`: will populate after 24-48h GA4 data propagation from Xenon_3 fix
+  - `replay-rate`: same — will populate after data propagation
+  - All other sections loading correctly with live GA4 data
+
+  **AWS_Config.md updated:** Edit Stage settings documented; caching root cause recorded; change log updated.
+  **docs/GA4_Custom_Dimensions.md created:** All 31 GA4 custom dimensions documented — never needs to be re-shared from console screenshots.
+
+- [x] Task 14: Docs updated — June 27, 2026 (Session 12)
+  - `docs/Security_Audit_P5.md` — Task 13 + 14 marked complete with full root cause documentation
+  - `docs/HANDOFF_SUMMARY.md` — Session 12 entry added
+  - `docs/PRIORITIES.md` — P-5 status updated
+  - `docs/AWS_Config.md` — Edit Stage caching settings documented; root cause recorded
+  - `docs/GA4_Custom_Dimensions.md` — Created; all 31 GA4 dimensions from console screenshots
+  - `Xenon_3/docs/GA4_Tracking_Fix_Plan.md` — Created; implementation plan + CI results
+  - `Xenon_3/docs/HANDOFF_SUMMARY_2026-06-27.md` — Created; session summary
 
 ---
 

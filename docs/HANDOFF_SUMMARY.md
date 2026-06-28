@@ -2,11 +2,151 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 26, 2026 (Session 10)
+**Last Updated:** June 28, 2026 (Session 13)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 28, 2026 - GA4 Event Documentation (Session 13)
+
+**Status:** ✅ GA4 event schema documented — 15/17 events complete
+
+### Session 13 Summary
+
+**Completed:**
+- DebugView verification of all Xenon_3 GA4 fixes:
+  - `death_phase: 'green'` confirmed on dev build ✅
+  - `is_replay: 'false'` on fresh start, `'true'` on play_again ✅
+  - `phase: 'red'` / `'green'` on player_death ✅ (main + dev)
+- `GA4_Custom_Dimensions.md` massively expanded — full DebugView-verified parameter tables for 15 events
+- GA4 auto-collected events section added: `user_engagement`, `scroll`, `session_start`, `first_visit`, `page_view` flagged as metric opportunities (no new tracking needed)
+- `game_start` parameter list completed with missing params from second capture
+- `play_again` documented — rich event with `bonus_hp`, `continue`, `death_phase`, `replay_tier`
+- `leave_game` documented — `source: 'game_over'` / `'victory'` distinguishes death vs win exits
+- Unregistered parameters flagged across all events: `outcome` (game_complete), `referrer` (menu_view), `score`, `score_multiplier` — all sending but unqueryable via API
+- `ai_difficulty_adjusted` — noted `ab_music_group` absent (only event without it)
+
+**Events fully documented (15):**
+`player_death`, `game_start`, `game_complete`, `menu_view`, `play_clicked`, `session_start`, `first_visit`, `returning_user`, `wave_reached`, `boss_attempt`, `boss_defeated`, `powerup_collected`, `ai_difficulty_adjusted`, `leave_game`, `play_again`
+
+**Events still pending (2):**
+- `player_won` — requires completing a full game run
+- `survey_submitted` — seen in DebugView stream at 1:12:07 AM; click it next session to capture params
+
+**Uncommitted changes (non-x_analytics) — `feature/security-p5-phase-a`:**
+- `docs/GA4_Custom_Dimensions.md` — massively expanded with full event schema
+- `docs/HANDOFF_SUMMARY.md` — Session 13 added
+- `docs/PRIORITIES.md` — GA4 doc task added
+
+**Xenon_3 status:**
+- Fixes verified on dev; PR dev → main still pending (blocked on 24-48h GA4 propagation confirmation)
+- Recommended: create slim `Xenon_3/docs/GA4_Event_Schema.md` (game-dev focused) referencing non-x_analytics doc as source of truth
+
+**Next priorities:**
+1. Xenon_3 PR dev → main (after GA4 data propagation confirms Death Triggers + Replay Rate populate)
+2. Commit `feature/security-p5-phase-a` → push staging → smoke test → merge to main
+3. H-3: `innerHTML` → `textContent`/`createElement` in `live.html`
+4. H-2: CSP meta tag
+5. H-4: AWS WAF
+
+---
+
+## June 27, 2026 - P-5 Security Audit (Session 12)
+
+**Status:** ✅ Phase C COMPLETE (conditionally) — GA4 data propagation pending 24-48h
+
+### Session 12 Summary
+
+**Completed:**
+- API Gateway Edit Stage screenshots captured → confirmed root cause: caching WAS active (0.5GB, 300s TTL, both toggles ON despite Stage Details showing "Inactive")
+- Disabled API Gateway caching: "Provision API cache" OFF + "Default method-level caching" OFF → saved → confirmed
+- curl tests post-fix: all subtypes returning distinct data ✅ (avg-tier, platform-split, music-ab all different)
+- Diagnosed remaining console errors: `death-triggers` + `replay-rate` = GA4 instrumentation gaps, not API bugs
+- Created `docs/GA4_Custom_Dimensions.md` — all 31 GA4 custom dimensions from console screenshots, never to be re-shared
+- Confirmed `death_phase` registered since Mar 2, 2026 — game was sending `phase` not `death_phase` (different dimension keys)
+- Confirmed `is_replay: false` (boolean) silently dropped by gtag() — causing `(not set)` for all fresh game starts
+- Haiku agent researched Xenon_3 project: structure, CI/CD, exact line numbers — no test files, zero CI risk for param additions
+- Implemented 4 changes across Xenon_3 `game.html` + `game_mobile.html`:
+  - `death_phase` added to `player_death` (game.html:7036, game_mobile.html:7707)
+  - `is_replay` boolean → string (game.html:8575, game_mobile.html:9452)
+- Created `Xenon_3/docs/GA4_Tracking_Fix_Plan.md` + `Xenon_3/docs/HANDOFF_SUMMARY_2026-06-27.md`
+- PR `feature/ga4-fix-death-phase-is-replay` → `dev` merged ✅ — CI passed (Game Integrity Check ✅, Test Game Build ✅)
+- `AWS_Config.md` updated with Edit Stage settings + root cause + change log entries
+- Tasks 13 + 14 marked complete in `Security_Audit_P5.md`
+
+**Phase C status:** Conditionally complete. All API endpoints return correct data. Two dashboard metrics (`death-triggers`, `replay-rate`) will populate after 24-48h GA4 data propagation from Xenon_3 fix on dev.
+
+**Pending before Xenon_3 dev → main merge:**
+- GA4 DebugView verification: play NON-X game → confirm `death_phase` + `is_replay` appear in event parameters
+- After 24-48h: confirm Death Triggers chart + Replay Rate populate on dashboard
+
+**Uncommitted changes on `feature/security-p5-phase-a` (non-x_analytics):**
+- `api/index.js` — Permissions-Policy in ERROR_HEADERS
+- `docs/Security_Audit_P5.md` — full Phase C documentation
+- `docs/HANDOFF_SUMMARY.md` — Sessions 11 + 12
+- `docs/PRIORITIES.md` — P-5 status updates
+- `docs/AWS_Config.md` — all AWS settings + root cause
+- `docs/GA4_Custom_Dimensions.md` — new file, all 31 dimensions
+- `CLAUDE.md` — Rules 9, 10, 11
+
+**Next priorities (non-x_analytics):**
+1. Commit all above to `feature/security-p5-phase-a` → push to staging → smoke test → merge to main
+2. H-3: `innerHTML` → `textContent`/`createElement` in `live.html`
+3. H-2: CSP meta tag in `live.html`
+4. H-4: AWS WAF
+
+---
+
+## June 27, 2026 - P-5 Security Audit (Session 11)
+
+**Status:** 🔴 BLOCKED — Phase C Task 13 (smoke test) failing — diagnostic in progress
+
+### Session 11 Summary
+
+**Completed:**
+- Phase C pre-deploy research: Haiku agent verified all 13 Create method fields, all headers, curl test commands (June 27, 2026)
+- `api/index.js` — `ERROR_HEADERS` updated: `Permissions-Policy` added (OWASP 2026 compliance, Decision 2)
+- OPTIONS 204 kept as-is (Decision 1 — RFC 9110, Express.js ecosystem standard)
+- `CLAUDE.md` — Rule 9 (Industry Standards), Rule 10 (AWS Config tracking), Rule 11 (Deployment descriptions) added
+- `docs/AWS_Config.md` — created; populated with Lambda + API Gateway + Stage settings from console screenshots
+- Task 8 ✅: `npm audit --omit=dev` → 0 vulnerabilities
+- Task 9 ✅: Lambda deployed — Node.js 22.x confirmed, `api/index.js` pasted + "Successfully updated function code"
+- Task 10 ✅: GET → 200 with all 7 security headers + live GA4 data
+- Task 11 ✅ (after fix): POST → 405 + `Allow: GET, OPTIONS` + `Cache-Control: no-store` + `ALLOWED_ORIGIN`
+- Task 12 ✅ (after fix): OPTIONS → 204 + `access-control-allow-origin: https://kstanigar.github.io` + `access-control-max-age: 7200`
+- API Gateway reconfigured: explicit GET + mock OPTIONS replaced with ANY method (Lambda proxy) — fixes CORS wildcard + RFC 9110 405 compliance
+- API Gateway redeployed to prod with description
+
+**Tasks 11 + 12 root fix — API Gateway ANY method:**
+- Deleted explicit GET method and mock OPTIONS integration on `/analytics` resource
+- Created ANY method with Lambda proxy integration (`non-x-analytics-api`, us-east-2, Buffered, 29000ms timeout)
+- Deployed to prod — "Successfully created deployment for NON-X_Analytics_Gateway"
+- Stage settings captured: Rate 10000, Burst 5000, Cache cluster: Inactive
+
+### 🔴 BLOCKED — Task 13 Smoke Test (June 27, 2026)
+
+**Problem:** Dashboard shows multiple console errors — "parsing failed or no data" for music-AB, AI-analysis, death-triggers, new-user-pct, replay-rate sections.
+
+**Symptom:** Every `/analytics` endpoint returns `{"avgStartTier":2,"avgFinalTier":3}` (avg-tier BigQuery data) regardless of `?subType=` parameter. content-length: 35 on all responses.
+
+**Confirmed NOT API Gateway caching** — cache cluster is Inactive (AWS docs: no caching without provisioned cluster).
+
+**Throttling is unrelated** — Rate 10000 / Burst 5000 are rate limits, completely separate from caching.
+
+**Root cause not yet confirmed** — Haiku research (Session 11) points to Lambda receiving incorrect/null `event.queryStringParameters`. ANY method passes query params identically to GET per AWS docs — no code change needed for that.
+
+**Next diagnostic required:** CloudWatch Logs → `/aws/lambda/non-x-analytics-api` → inspect `event.queryStringParameters` in a recent platform-split invocation to confirm if `subType` is being received correctly.
+
+**Uncommitted changes on `feature/security-p5-phase-a`:**
+- `api/index.js` — Permissions-Policy added to ERROR_HEADERS (Session 11)
+- `docs/Security_Audit_P5.md` — Phase C research, findings, task status updates
+- `docs/HANDOFF_SUMMARY.md` — this entry
+- `docs/PRIORITIES.md` — pending update
+- `docs/AWS_Config.md` — new file, all AWS settings
+- `CLAUDE.md` — Rules 9, 10, 11 added
 
 ---
 
@@ -26,7 +166,7 @@
   - Lines 12–34: `SUCCESS_HEADERS`, `ERROR_HEADERS`, `CORS_HEADERS` constants inserted after `ALLOWED_ORIGIN`
   - Lines 70–83: OPTIONS (204) + non-GET (405) method validation at handler entry
   - 9 inline header objects replaced with constants throughout file
-- **Branch:** `feature/security-p5-phase-a` — uncommitted, ready to stage
+- **Commit:** `ac7c080` on `feature/security-p5-phase-a` → pushed to staging ✅
 - **Next:** Phase C — `npm audit` final → deploy Lambda → test endpoints → smoke test dashboard
 
 ### Phase A Complete — June 26, 2026

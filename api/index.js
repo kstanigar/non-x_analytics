@@ -24,7 +24,8 @@ const ERROR_HEADERS = {
     'Content-Type': 'application/json',
     'X-Content-Type-Options': 'nosniff',
     'Cache-Control': 'no-store',
-    'Referrer-Policy': 'strict-origin-when-cross-origin'
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'geolocation=(), camera=(), microphone=(), payment=()'
 };
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': ALLOWED_ORIGIN,

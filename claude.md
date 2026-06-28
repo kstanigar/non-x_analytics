@@ -2,7 +2,7 @@
 
 **Purpose:** Guidelines for all Claude agents working on this project.
 
-**Last Updated:** June 8, 2026
+**Last Updated:** June 26, 2026
 
 ---
 
@@ -67,6 +67,103 @@ Present findings to user for decision
 
 **User Input Needed:** Which approach should we take?
 ```
+
+---
+
+### **Rule 9: Follow Industry Standards and Best Practices — No Exceptions**
+
+**Rule:** All coding, deployment, security, and configuration decisions must follow established industry standards and best practices. When a standard exists, follow it. Do not invent custom approaches or make opinionated deviations without explicit user approval.
+
+**Problem:** Inconsistent research findings and conflicting agent recommendations waste time and create rework. The user should not need to re-research decisions that have an established answer.
+
+**Standards hierarchy (in order of authority):**
+1. **RFC / W3C / WHATWG spec** — binding for protocol-level behavior (HTTP status codes, CORS, headers)
+2. **OWASP Cheat Sheets (current year)** — binding for security headers, input validation, auth
+3. **AWS official documentation** — binding for Lambda, API Gateway, IAM, WAF
+4. **MDN Web Docs** — binding for browser API behavior and compatibility
+5. **npm / Node.js official docs** — binding for package management and runtime
+6. **De facto ecosystem standard** (e.g., Express.js cors defaults, GitHub Actions official examples) — follow when no spec exists
+
+**When two sources conflict:**
+- Use the higher-authority source (RFC > MDN > Stack Overflow)
+- Document the conflict in the audit plan with both sources cited
+- State which source was chosen and why
+- Do NOT present both options without a recommendation — always give a clear answer
+
+**Examples:**
+
+❌ **BAD (presenting conflict without resolution):**
+```
+"MDN says use 200, Express defaults to 204 — your call."
+```
+
+✅ **GOOD (citing authority and recommending):**
+```
+"RFC 9110 does not mandate a specific 2xx for OPTIONS preflight. Express.js cors
+(the ecosystem standard) defaults to 204. Current implementation uses 204. No change needed."
+```
+
+**Applies to:**
+- HTTP status codes
+- Security header values and syntax
+- npm commands and flags
+- Lambda configuration (runtime, handler, timeout)
+- Git workflow and branching
+- AWS service configuration
+- All HTML/JS/CSS patterns
+
+---
+
+### **Rule 11: Always Fill In AWS Deployment Descriptions**
+
+**Rule:** Every API Gateway deployment, Lambda deploy, and AWS console change must include a meaningful description. Never leave description fields blank.
+
+**Why:** Deployment history is the only audit trail for AWS console changes. Without descriptions, rollback decisions require guesswork. A good description enables instant identification of what changed and why.
+
+**Format for API Gateway deployment descriptions:**
+```
+[Task/Phase] — [What changed] — [Why / security impact if applicable]
+```
+
+**Examples:**
+```
+P-5 Security Audit Phase C — Replace GET + mock OPTIONS with ANY Lambda proxy. Fixes CORS wildcard origin.
+P-0 Concurrency Fix — Split 17 parallel fetches into 2 sub-waves of 8+9 to stay under account limit of 10.
+```
+
+**Applies to:**
+- API Gateway Deploy API modal → Deployment description field
+- Lambda function → Deploy button (add version description if prompted)
+- CloudFormation stacks, WAF rule deployments, any AWS change with a notes/description field
+
+---
+
+### **Rule 10: Track All AWS Configurations in `docs/AWS_Config.md`**
+
+**Rule:** Every AWS setting, configuration, and infrastructure change must be recorded in `docs/AWS_Config.md`. This file is the local source of truth for all AWS infrastructure. Never ask the user to check the AWS console for a setting that should already be documented.
+
+**Why:** AWS console settings are not version-controlled, not searchable, and invisible to agents. Without this file, every session that needs a config value must either guess, ask the user, or launch a Haiku agent to search files that don't have the answer.
+
+**What to record:**
+- Lambda: function name, region, runtime, handler, architecture, timeout, memory, layers, environment variable names (never values)
+- API Gateway: endpoint URL, throttle settings, burst limit, quota, CORS configuration
+- WAF: rules, rate limits, status
+- CloudFront: distributions, origins, cache behaviors (if added)
+- GitHub Actions: deploy workflow triggers, branch targets
+- Any account-level settings (concurrency limits, quotas)
+
+**When to update `docs/AWS_Config.md`:**
+- Any time a setting is created, changed, or verified in the AWS console
+- Any time the user shares a screenshot of the AWS console
+- Any time a Haiku agent or the user reports a setting value
+- After every AWS console task (H-4 WAF, quota changes, etc.)
+
+**What NOT to record:**
+- Credential values (API keys, secrets, passwords)
+- AWS account IDs (omit from ARNs)
+- Environment variable values
+
+**Format:** Update the relevant table and add a row to the Change Log at the bottom of the file.
 
 ---
 
