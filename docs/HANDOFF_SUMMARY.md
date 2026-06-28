@@ -10,26 +10,36 @@
 
 ---
 
-## June 28, 2026 - P-5 Audit Cleanup (Session 14)
+## June 28, 2026 - H-3 XSS Fix + Audit Cleanup (Session 14)
 
-**Status:** ✅ Phase C fully documented — all checkboxes reconciled
+**Status:** ✅ H-3 complete — escHtml() on all 22 API-sourced innerHTML values
 
 ### Session 14 Summary
 
 **Completed:**
+
+**Audit doc reconciliation:**
 - Reviewed `Security_Audit_P5.md` Phase C task list via Haiku agent
-- Found 4 tasks (8, 9, 11, 12) and all 8 post-implementation checklist items had stale unchecked boxes — work was done but doc not updated
-- Updated all checkboxes to `[x]` with dates and confirmation notes
-- Updated doc status header from `📋 PLAN` → `✅ PHASES A–C COMPLETE — June 28, 2026`
-- Updated current status line to reflect Phase C merged to main at commit `16a1947`
-- Committed as `0f46c41` → merged to main → pushed
+- Found 4 tasks (8, 9, 11, 12) and all 8 post-implementation checklist items had stale unchecked boxes
+- Updated all checkboxes, doc status header, and current status line — commit `0f46c41`
+
+**H-3 XSS Fix:**
+- Planned H-3 using 2 Haiku agents — first found all 30 innerHTML sites (22 vulnerable, 8 safe); second found remaining *Sub construction sites inside `mapGA4ResponseToDATA`
+- Verified escHtml() approach via third Haiku agent — confirmed OWASP 2026 compliant, all 5 required characters covered, no known bypasses, DOMPurify not required for GA4 numeric/enum data
+- Added `escHtml()` utility function before `mapGA4ResponseToDATA` (line 3180)
+- Applied 36 `escHtml()` wraps across 24 edit sites:
+  - **Task 2a** (5 lines in `mapGA4ResponseToDATA`): `speedLockSub`, `replaySub`, `winSub`, `deathSub`, `lbRateSub`
+  - **Task 2b** (10 lines in fetch handler): `deskWinSub`, `mobWinSub`, `newPctSub`, `scorecardSub`, `musicSub`, `leaveSub`, `surveySub`, `bossReachSub`
+  - **Task 3** (9 HTML builder sites): funnel chart/table, boss cards, boss table, A/B music cards + rows, movement A/B cards + rows, platform table, AI metrics table
+- Plan documented in `docs/H3_XSS_Fix_Plan.md`
+- Tested on staging → merged to main — commit `92177fd`
+- `Security_Audit_P5.md` H-3 row updated: `🔴 Open` → `✅ Fixed — June 28, 2026`
 
 **Next priorities:**
 1. Xenon_3 PR dev → main (check if Death Triggers + Replay Rate now populate after 24-48h GA4 propagation)
-2. H-3: `innerHTML` → `textContent`/`createElement` in `live.html` (XSS fix — HIGH severity)
-3. H-2: CSP meta tag in `live.html` (`connect-src` only)
-4. H-4: AWS WAF (AWS console — AWSManagedRulesCommonRuleSet + rate-based rule)
-5. GA4 doc — 2 events pending: `player_won` + `survey_submitted`
+2. H-2: CSP meta tag in `live.html` (`connect-src` only)
+3. H-4: AWS WAF (AWS console — AWSManagedRulesCommonRuleSet + rate-based rule)
+4. GA4 doc — 2 events pending: `player_won` + `survey_submitted`
 
 ---
 

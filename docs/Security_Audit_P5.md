@@ -507,7 +507,7 @@ These are the only items that present real risk to a public audience. Everything
 |---|------|------|----------------|-----------|
 | 1 | C-1: Upgrade `@google-analytics/data` to pinned `6.1.0` + `npm install` | `api/package.json` | RCE/DoS on Lambda | 20 min |
 | 2 | H-1: HTTP method validation + OPTIONS | `api/index.js` | Non-GET processed unexpectedly | 15 min |
-| 3 | H-3: `innerHTML` → `textContent`/`createElement` | `live.html` | XSS if API compromised | 45 min |
+| 3 | H-3: `innerHTML` → `escHtml()` on all API-sourced values | `live.html` | XSS if API compromised | ✅ Done — June 28, 2026 (commit `92177fd`) |
 | 4 | M-1: Security headers in Lambda responses | `api/index.js` | MIME-sniffing, no cache control | 15 min |
 | 5 | H-2: Interim CSP meta tag (connect-src only) | `live.html` | Fetch calls unrestricted by browser | 15 min |
 | 6 | H-4: AWS WAF + rate-based rules | AWS Console | Affiliate traffic could exhaust Lambda quota | 1–2 hrs |
@@ -546,7 +546,7 @@ Low urgency — no active exploit path. Safe to ship without these.
 ### Pre-Launch
 - [ ] C-1: `npm audit` returns 0 HIGH/CRITICAL after fix
 - [ ] H-1: Lambda returns 405 for POST/PUT/DELETE; OPTIONS returns 204
-- [ ] H-3: All API-sourced values use `textContent` or `createElement` — no raw `innerHTML` with template literals
+- [x] H-3: All 22 API-sourced innerHTML values wrapped with `escHtml()` ✅ June 28, 2026 — 36 wraps across 24 sites in `live.html`
 - [ ] M-1: Lambda responses include `X-Content-Type-Options: nosniff` and `Cache-Control: public, max-age=86400`
 - [ ] H-2: CSP meta tag in `<head>` with `connect-src` locked to API Gateway URL
 - [ ] H-4: AWS WAF enabled; rate-based rule active; verify in AWS console
