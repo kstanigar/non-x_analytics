@@ -18,6 +18,7 @@
 # Dependencies
 node_modules/
 api/node_modules/
+lambda-package/
 
 # Environment variables
 .env
