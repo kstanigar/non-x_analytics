@@ -82,7 +82,7 @@ Update this document
 |----|----------|---------|--------|
 | C-1 | CRITICAL | Vulnerable npm dependencies in `api/` | ✅ Fixed — June 26, 2026 |
 | H-1 | HIGH | No HTTP method validation in Lambda | ✅ Fixed — June 26, 2026 |
-| H-2 | HIGH | No Content Security Policy (CSP) | 🔴 Open |
+| H-2 | HIGH | No Content Security Policy (CSP) | ✅ Fixed — June 28, 2026 |
 | H-3 | HIGH | `innerHTML` with unsanitized API data | ✅ Fixed — June 28, 2026 |
 | H-4 | HIGH | No Lambda-level rate limiting | 🔴 Open |
 | M-1 | MEDIUM | Missing security headers in Lambda responses | ✅ Fixed — June 26, 2026 |
@@ -548,7 +548,7 @@ Low urgency — no active exploit path. Safe to ship without these.
 - [ ] H-1: Lambda returns 405 for POST/PUT/DELETE; OPTIONS returns 204
 - [x] H-3: All 22 API-sourced innerHTML values wrapped with `escHtml()` ✅ June 28, 2026 — 36 wraps across 24 sites in `live.html`
 - [ ] M-1: Lambda responses include `X-Content-Type-Options: nosniff` and `Cache-Control: public, max-age=86400`
-- [ ] H-2: CSP meta tag in `<head>` with `connect-src` locked to API Gateway URL
+- [x] H-2: CSP meta tag in `<head>` with `connect-src` locked to API Gateway URL ✅ June 28, 2026 — commit `32c1bb0` — 9 directives, verified clean on staging (zero CSP violations)
 - [ ] H-4: AWS WAF enabled; rate-based rule active; verify in AWS console
 
 ### Post-Launch

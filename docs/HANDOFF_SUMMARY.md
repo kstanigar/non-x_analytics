@@ -2,11 +2,41 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 28, 2026 (Session 14)
+**Last Updated:** June 28, 2026 (Session 15)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 28, 2026 - H-2 CSP Meta Tag (Session 15)
+
+**Status:** ✅ H-2 complete — CSP meta tag live on main, commit `32c1bb0`
+
+### Session 15 Summary
+
+**Completed:**
+
+**H-2 CSP Meta Tag:**
+- Planned H-2 using 2 Haiku agents — first researched CSP Level 3 + OWASP 2025 directives; second independently verified and caught 2 required corrections
+- **Correction 1:** `base-uri 'self'` → `base-uri 'none'` — `'self'` still allows `<base>` tag injection; dashboard has no `<base>` elements
+- **Correction 2:** Added `form-action 'none'` — navigation directives do NOT fall back to `default-src` (W3C CSP Level 3 §8.2)
+- Plan documented in `docs/H2_CSP_Plan.md`
+- Final CSP: `default-src 'none'` + `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com` + `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com` + `font-src https://fonts.gstatic.com` + `img-src 'self' data:` + `connect-src https://6waopo3jh1.execute-api.us-east-2.amazonaws.com` + `form-action 'none'` + `base-uri 'none'` + `object-src 'none'`
+- Inserted at `live.html:16` (after `<meta name="viewport">`) — 10 lines, no deletions
+- Pushed to staging → verified clean (zero CSP violations in DevTools console; only pre-existing data completeness warning)
+- Merged to main — commit `32c1bb0`
+- `Security_Audit_P5.md` H-2 row updated ✅ Fixed; verification checklist item checked
+
+**Known limitations (accepted, documented):**
+- `'unsafe-inline'` in `script-src` nullifies script injection protection — interim only; requires JS extraction to `dashboard.js` (P-5b post-launch)
+- `frame-ancestors` cannot be set via meta tag — requires HTTP header; GitHub Pages limitation (tracked M-5, Cloudflare post-launch)
+
+**Next priorities:**
+1. H-4: AWS WAF (AWS console — AWSManagedRulesCommonRuleSet + rate-based rule blocking IP > 1000 req/5 min)
+2. Xenon_3 PR dev → main (check Death Triggers + Replay Rate after 24-48h GA4 propagation)
+3. GA4 doc — 2 events pending: `player_won` + `survey_submitted`
 
 ---
 
