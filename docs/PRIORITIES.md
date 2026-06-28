@@ -50,7 +50,8 @@
 - **Phase B: H-1 + M-1 ✅ COMPLETE** — method validation + security headers + Permissions-Policy
 - **Phase C: Tasks 8–14 ✅ ON MAIN** — smoke test passed June 28, 2026; merged to main commit `16a1947`
 - **GA4 fixes on Xenon_3 dev:** `death_phase` + `is_replay` — DebugView verified ✅ — pending dev→main PR (waiting on 24-48h GA4 data propagation)
-- **Next:** H-3 (`innerHTML` → `textContent`/`createElement` in `live.html`) → H-2 (CSP meta tag) → H-4 (AWS WAF)
+- **H-3 ✅ COMPLETE** — `escHtml()` on all 22 API-sourced innerHTML values — commit `92177fd` — June 28, 2026
+- **Next:** H-2 (CSP meta tag in `live.html`) → H-4 (AWS WAF)
 - **Post-launch:** JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/M-4/L-1/L-2
 - **Last Updated:** June 28, 2026 (Session 14)
 

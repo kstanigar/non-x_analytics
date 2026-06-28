@@ -83,7 +83,7 @@ Update this document
 | C-1 | CRITICAL | Vulnerable npm dependencies in `api/` | ✅ Fixed — June 26, 2026 |
 | H-1 | HIGH | No HTTP method validation in Lambda | ✅ Fixed — June 26, 2026 |
 | H-2 | HIGH | No Content Security Policy (CSP) | 🔴 Open |
-| H-3 | HIGH | `innerHTML` with unsanitized API data | 🔴 Open |
+| H-3 | HIGH | `innerHTML` with unsanitized API data | ✅ Fixed — June 28, 2026 |
 | H-4 | HIGH | No Lambda-level rate limiting | 🔴 Open |
 | M-1 | MEDIUM | Missing security headers in Lambda responses | ✅ Fixed — June 26, 2026 |
 | M-2 | MEDIUM | No clickjacking protection | 🔴 Open |
