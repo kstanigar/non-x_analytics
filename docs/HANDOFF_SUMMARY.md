@@ -2,11 +2,32 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 28, 2026 (Session 18)
+**Last Updated:** June 29, 2026 (Session 19)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 29, 2026 - H-4 WAF Research + Deferred (Session 19)
+
+**Status:** ✅ COMPLETE (decision made — deferred)
+
+### Session 19 Summary
+
+**H-4: AWS WAF — researched, plan documented, deferred post-launch**
+- Haiku agent researched full 2026 best practice for AWS WAF v2 on REST API Gateway
+- Plan documented in `docs/Security_Audit_P5.md` — 8 console steps, exact field values, 3 rule groups (CommonRuleSet 700 WCU + KnownBadInputsRuleSet 200 WCU + AmazonIpReputationList 25 WCU = 925 WCU), rate-based rule (100 req/5-min, Source IP)
+- **Decision: deferred post-launch** — WebACL costs $5/month flat; at ~39 req/day current traffic, API Gateway throttle + budget alert provide adequate protection; risk is low until affiliate blog drives real volume
+- Trigger to revisit: visible bot patterns in CloudWatch access logs after launch
+
+**Docs updated:**
+- `docs/Security_Audit_P5.md` — H-4 stub expanded to full plan; audit table updated to ⏸️ Deferred — commit `23d6642`
+- `docs/PRIORITIES.md` — P-5 status updated; H-4 moved to post-launch list
+- `docs/HANDOFF_SUMMARY.md` — this entry
+
+**Next priority:** Xenon_3 PR — verify `death_phase` + `is_replay` GA4 data propagated (fix applied June 28; 24-48h window has passed); merge dev → main if data is populating
 
 ---
 

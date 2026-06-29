@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 28, 2026 (Session 14 — H-3 complete)
+**Last Updated:** June 29, 2026 (Session 19 — H-4 deferred post-launch)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -43,7 +43,7 @@
 - **Result:** All sections load with live data; load time significantly reduced vs. sequential
 - **Note:** If AWS quota increase to 50 is ever approved, can revert to single-wave `Promise.allSettled` for max speed
 
-### P-5: Full Security Audit — ⚠️ PHASES A–C + H-3 + H-2 ON MAIN, H-4 PENDING (Session 15)
+### P-5: Full Security Audit — ✅ ALL PRE-LAUNCH ITEMS COMPLETE (Session 19)
 - **Audit complete** — 13 findings (1 critical, 4 high, 5 medium, 3 low)
 - **Full plan + task list:** `docs/Security_Audit_P5.md`
 - **Phase A: C-1 ✅ COMPLETE** — `api/package.json` pinned to `6.1.0`; `npm audit` = 0 vulnerabilities
@@ -57,9 +57,9 @@
   - ✅ AWS Budget `analytics-dashboard-monthly` created — $0.50, 50%+100% actual thresholds — June 28, 2026
   - ✅ API Gateway prod stage description updated — June 28, 2026
 - **M-4 ✅ COMPLETE** — `function.zip` already untracked; `git ls-files` returns empty — verified June 28, 2026
-- **Next:** H-4 (AWS WAF — AWSManagedRulesCommonRuleSet + rate-based rule)
-- **Post-launch:** JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/L-1/L-2
-- **Last Updated:** June 28, 2026 (Session 18 — M-4 verified complete)
+- **H-4 ⏸️ DEFERRED POST-LAUNCH** — AWS WAF plan fully documented in `docs/Security_Audit_P5.md`; risk accepted at current traffic volume (~39 req/day); revisit after affiliate blog drives real traffic — June 29, 2026
+- **Post-launch:** H-4 WAF, JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/L-1/L-2
+- **Last Updated:** June 29, 2026 (Session 19 — H-4 deferred post-launch)
 
 ---
 

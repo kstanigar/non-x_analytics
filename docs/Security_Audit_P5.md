@@ -84,7 +84,7 @@ Update this document
 | H-1 | HIGH | No HTTP method validation in Lambda | ✅ Fixed — June 26, 2026 |
 | H-2 | HIGH | No Content Security Policy (CSP) | ✅ Fixed — June 28, 2026 |
 | H-3 | HIGH | `innerHTML` with unsanitized API data | ✅ Fixed — June 28, 2026 |
-| H-4 | HIGH | No Lambda-level rate limiting | 🔴 Open |
+| H-4 | HIGH | No Lambda-level rate limiting | ⏸️ Deferred post-launch — plan documented, risk accepted at current traffic volume |
 | M-1 | MEDIUM | Missing security headers in Lambda responses | ✅ Fixed — June 26, 2026 |
 | M-2 | MEDIUM | No clickjacking protection | 🔴 Open |
 | M-3 | MEDIUM | GitHub Actions permissions too broad | 🔴 Open |
