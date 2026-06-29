@@ -2,11 +2,28 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 29, 2026 (Session 19)
+**Last Updated:** June 29, 2026 (Session 20)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 29, 2026 - Xenon_3 GA4 Fix Merged (Session 20)
+
+**Status:** ✅ COMPLETE
+
+### Session 20 Summary
+
+**Xenon_3 PR #156 — `death_phase` + `is_replay` merged to main**
+- Verified Death Triggers by Phase chart populating on analytics dashboard (Green ~9, Red ~6, Purple ~1) — `death_phase` confirmed working
+- Verified Play-Again % showing 9% (14/153) — `is_replay` confirmed working
+- Noted Tier Performance Metrics table ("No AI difficulty data available") — pre-existing unimplemented feature, not a regression
+- Merged PR #156 `feature/ga4-fix-death-phase-is-replay` → `main` on Xenon_3 repo — 4 commits, 5 files changed, 4 checks passed
+- Cleaned up: remote + local feature branch deleted; Xenon_3 local main synced to `c615559`
+
+**Next priority:** GA4 Doc — 2 events still pending: `player_won` (requires full game win) + `survey_submitted` (seen in DebugView — capture params)
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 29, 2026 (Session 19 — H-4 deferred post-launch)
+**Last Updated:** June 29, 2026 (Session 20 — Xenon_3 GA4 fix merged)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -49,7 +49,7 @@
 - **Phase A: C-1 ✅ COMPLETE** — `api/package.json` pinned to `6.1.0`; `npm audit` = 0 vulnerabilities
 - **Phase B: H-1 + M-1 ✅ COMPLETE** — method validation + security headers + Permissions-Policy
 - **Phase C: Tasks 8–14 ✅ ON MAIN** — smoke test passed June 28, 2026; merged to main commit `16a1947`
-- **GA4 fixes on Xenon_3 dev:** `death_phase` + `is_replay` — DebugView verified ✅ — pending dev→main PR (waiting on 24-48h GA4 data propagation)
+- **GA4 fixes on Xenon_3:** `death_phase` + `is_replay` — DebugView verified ✅ — merged to Xenon_3 main via PR #156 — June 29, 2026 ✅
 - **H-3 ✅ COMPLETE** — `escHtml()` on all 22 API-sourced innerHTML values — commit `92177fd` — June 28, 2026
 - **H-2 ✅ COMPLETE** — CSP meta tag in `live.html` — 9 directives, connect-src locked to API Gateway — commit `32c1bb0` — June 28, 2026
 - **AWS Cleanup Tasks (Session 16/17):** `docs/AWS_Cleanup_Plan.md` — ✅ ALL 3 COMPLETE
