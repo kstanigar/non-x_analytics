@@ -306,19 +306,248 @@ el.innerHTML = `<span>${escHtml(value)}</span>`;
 
 ### H-4: No Lambda-Level Rate Limiting
 
-**File:** `api/index.js`
-**Risk:** Entirely dependent on API Gateway throttling; no per-IP tracking or 429 response at Lambda level
+**Risk:** Entirely dependent on API Gateway throttling; no per-IP rate limiting or WAF protection against common web attack patterns
+**This is an AWS console task — no code changes required.**
+**Estimated effort:** 1–2 hrs
 
-**Current API Gateway settings:** 10 req/sec, 1000 req/day (per inline comment, line ~3002 in `live.html`)
+---
 
-**Recommended fix:**
-- Document and verify current API Gateway throttle settings in AWS console
-- Add AWS WAF with `AWSManagedRulesCommonRuleSet` + rate-based rule (block IP > 1000 req/5 min)
-- Lambda-level rate limiting (DynamoDB/ElastiCache) is overkill for this scale — WAF is the right layer
+#### H-4 Research Findings — Haiku Agent (June 28, 2026)
 
-**This is an AWS console task, not a code change.**
+**Verdict: AWS WAF v2, 3 managed rule groups + rate-based rule, deploy in Count mode first.**
 
-**Estimated effort:** 1–2 hrs (AWS console)
+**Authority sources:** AWS WAF User Guide | AWS WAF Pricing | AWS API Gateway + WAF docs | OWASP CRS docs
+
+---
+
+##### 1. WAF Association Method
+
+- Association is done in the **WAF console only** (not API Gateway console)
+- Navigation: AWS WAF → Web ACLs → select WebACL → **Associated AWS resources** tab → Add AWS resource
+- Resource type: **API Gateway** | Region: `us-east-2` | Select API + `prod` stage
+- One WebACL can protect up to 100 API Gateway REST APIs (default quota)
+- One API stage can only have **one** WebACL associated at a time
+
+---
+
+##### 2. Rule Set Selection (Total: 925 WCU — under 1,500 limit)
+
+| Rule Group | WCU | Recommended | What it blocks |
+|-----------|-----|-------------|---------------|
+| `AWSManagedRulesCommonRuleSet` | 700 | ✅ YES | OWASP Top 10 — SQLi, XSS, file inclusion, RCE |
+| `AWSManagedRulesKnownBadInputsRuleSet` | 200 | ✅ YES | Known CVE exploits, malware signatures; complements CRS |
+| `AWSManagedRulesAmazonIpReputationList` | 25 | ✅ YES | Known malicious IPs from AWS threat intel; low cost, effective for bot traffic |
+| `AWSManagedRulesSQLiRuleSet` | 200 | ❌ NOT NEEDED | CRS already covers SQLi; no raw SQL surface in this Lambda (uses GA4 Data API) |
+| `AWSManagedRulesAnonymousIPList` | 50 | OPTIONAL | Blocks VPN/proxy users; not recommended for analytics dashboard |
+
+**Known false positive risk:** CommonRuleSet can flag legitimate JSON payloads (e.g., JSON strings containing characters that look like XSS). Mitigation: start all managed rules in Count mode.
+
+---
+
+##### 3. Rate-Based Rule
+
+| Setting | Value | Reason |
+|---------|-------|--------|
+| Rate limit | 100 requests | Allows affiliate spikes (500–1000/hr legitimate); blocks sustained bot abuse |
+| Evaluation window | 300 seconds (5 min) | Standard for low-volume APIs; catches bots without false positives |
+| Request aggregation | **Source IP address** | Correct for API Gateway without CloudFront; X-Forwarded-For not reliable here |
+| Rule action | **Count** (first 24-48h), then Block | 2026 best practice: baseline traffic in Count mode before enforcing Block |
+| Priority | After managed rule groups (priority 4) | Let CRS/KBI block obvious attacks first; rate-limit remaining traffic |
+| WCU cost | 2 WCU | Included in WebACL |
+
+**Note:** Rate-based rules are not precision tools — AWS applies the limit "near" the threshold (±5–10%). Designed for DDoS mitigation, not exact quota enforcement.
+
+---
+
+##### 4. WAF Logging
+
+- **Recommended:** CloudWatch Logs (easiest integration, queryable in WAF console)
+- **Log group naming — CRITICAL:** Must start with `aws-waf-logs-` or WAF will reject it
+  - Use: `aws-waf-logs-non-x-analytics-api`
+  - Log group must be **created before** enabling WAF logging
+- At 1,200 requests/month, logging is well within free tier (under 500 MB per 1M requests)
+- Logging is optional but strongly recommended for production — enables investigation of false positives
+
+---
+
+##### 5. Pricing
+
+| Component | Monthly Cost |
+|-----------|-------------|
+| WebACL (1 ACL) | $5.00 |
+| AWS Managed Rules (3 groups) | $0.00 (free) |
+| Rate-based rule | Included in WebACL |
+| Request processing (1,200/month) | ~$0.001 (negligible) |
+| CloudWatch Logs | $0.00 (under free tier) |
+| **Total** | **~$5.00/month** |
+
+---
+
+##### 6. Gotchas / Known Issues
+
+1. **WAF fires before Lambda** — blocked requests never reach Lambda; your OPTIONS → 204 handler is unaffected (WAF allows OPTIONS by default)
+2. **WAF fires before API Gateway throttling** — if you hit the WAF rate limit and the API Gateway throttle, WAF blocks first; WAF limit (100/5-min) vs API Gateway (10 req/s burst) are independent
+3. **Block response format** — WAF returns `HTTP 403` with plain HTML body (not JSON). Dashboard JS sees a non-JSON 403; this is fine for a GET API (no user-facing error parsing needed). Optional: configure a custom JSON block response in WAF settings.
+4. **Propagation delay** — WAF rule changes take 2–5 minutes to propagate; wait before testing
+5. **REST API only** — this plan is for REST API (v1). HTTP API has a different association path. Do not follow HTTP API guides.
+6. **CommonRuleSet false positives** — start ALL managed rules in Count mode; review sampled requests before switching to Block
+
+---
+
+#### H-4 Implementation Plan — AWS Console Steps
+
+**Pre-condition:** WebACL name chosen: `non-x-analytics-api-prod-waf`
+
+---
+
+**Step 1 — Create WAF CloudWatch log group**
+
+The existing log group `/aws/apigateway/non-x-analytics` is for API Gateway access logs — it cannot be reused. WAF requires a separate log group with a name starting with `aws-waf-logs-` (hard requirement; AWS rejects any other prefix).
+
+1. CloudWatch console → Log groups → **Create log group**
+2. Name: `aws-waf-logs-non-x-analytics-api`
+3. Retention: 30 days
+4. Click **Create**
+
+---
+
+**Step 2 — Create WebACL**
+
+1. Open [AWS WAF console](https://console.aws.amazon.com/wafv2/) → **Web ACLs** → **Create web ACL**
+2. Fill fields:
+
+| Field | Value |
+|-------|-------|
+| Name | `non-x-analytics-api-prod-waf` |
+| Description | `WAF for NON-X Analytics REST API — Prod stage` |
+| CloudWatch metric name | `NonXAnalyticsApiProdWAF` |
+| Region | `us-east-2` |
+| Resource type | Skip for now (associate in Step 4) |
+
+3. Click **Next**
+
+---
+
+**Step 3 — Add Rules**
+
+**3a — Add managed rule groups:**
+
+Click **Add rules** → **Add managed rule groups**
+
+For each group below, toggle **Add to web ACL** ON, then click **Edit** → set all rule actions to **Count** (for 24-48h testing period):
+
+- Core rule set (`AWSManagedRulesCommonRuleSet`) — 700 WCU
+- Known bad inputs (`AWSManagedRulesKnownBadInputsRuleSet`) — 200 WCU
+- Amazon IP reputation list (`AWSManagedRulesAmazonIpReputationList`) — 25 WCU
+
+Click **Add rules**
+
+**3b — Add rate-based rule:**
+
+Click **Add rules** → **Add my own rules and rule groups** → **Rule builder**
+
+| Field | Value |
+|-------|-------|
+| Name | `RateLimit-100-Per-5Min` |
+| Type | Rate-based rule |
+| Evaluation window | 300 seconds (5 minutes) |
+| Rate limit | 100 |
+| Request aggregation | Source IP address |
+| Action | **Count** (switch to Block after 24-48h baseline) |
+
+Click **Add rule**
+
+**3c — Set rule priority:**
+
+Drag to this order:
+1. Core rule set (priority 1)
+2. Known bad inputs (priority 2)
+3. Amazon IP reputation list (priority 3)
+4. RateLimit-100-Per-5Min (priority 4)
+
+Click **Next**
+
+---
+
+**Step 4 — Configure Metrics + Logging**
+
+- CloudWatch metrics: enabled (default)
+- Sampled requests: enabled (default)
+- If logging: enable logging → select CloudWatch Logs → choose `aws-waf-logs-non-x-analytics-api`
+
+Click **Next**
+
+---
+
+**Step 5 — Set Default Action + Create**
+
+- Default action: **Allow**
+- Click **Next** → review → **Create web ACL**
+
+---
+
+**Step 6 — Associate WebACL with API Gateway Stage**
+
+1. WAF console → **Web ACLs** → select `non-x-analytics-api-prod-waf`
+2. Tab: **Associated AWS resources** → **Add AWS resource**
+3. Fields:
+
+| Field | Value |
+|-------|-------|
+| Resource type | API Gateway |
+| Region | us-east-2 |
+| Available resources | Select `non-x-analytics-api` → stage `prod` |
+
+4. Click **Add**
+5. Confirm green checkmark appears under Associated AWS resources
+
+---
+
+**Step 7 — Verify + Baseline (24-48h in Count mode)**
+
+**Verify association:**
+- API Gateway console → Stages → `prod` → Settings tab → scroll to "WAF and Shield Advanced" → confirm `non-x-analytics-api-prod-waf` shows as associated
+
+**Test WAF is intercepting (Count mode — no blocks yet):**
+```bash
+# Normal GET — should pass (200)
+curl -i -H 'Origin: https://kstanigar.github.io' \
+  'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?type=standard'
+
+# SQLi probe — should be counted (not blocked in Count mode); check WAF sampled requests
+curl -i 'https://6waopo3jh1.execute-api.us-east-2.amazonaws.com/prod/analytics?id=1%27%20OR%20%271%27=%271'
+```
+
+**Monitor in WAF console:**
+- Web ACL → **Traffic overview** → confirm requests are being inspected
+- Web ACL → **Sampled requests** → review any Count hits for false positives
+
+---
+
+**Step 8 — Switch to Block Mode (after 24-48h review)**
+
+For each rule with no false positives:
+1. WAF console → Web ACL → Rules tab → click rule name → Edit
+2. Change Override action: **No override** (uses rule's default Block action)
+3. Rate-based rule: change action to **Block**
+4. Click **Save**
+5. Wait 5 minutes for propagation, then re-run Step 7 curl tests
+6. SQLi probe should now return `HTTP 403`
+
+---
+
+#### Verification Checklist
+
+- [ ] WebACL `non-x-analytics-api-prod-waf` created in `us-east-2`
+- [ ] 3 managed rule groups added (CommonRuleSet, KnownBadInputs, IPReputationList) — 925 WCU total
+- [ ] Rate-based rule added: 100 req/5-min, Source IP
+- [ ] Default action: Allow
+- [ ] WebACL associated with `prod` stage — confirmed in API Gateway console → Settings tab
+- [ ] Normal GET request returns 200 (WAF not blocking legitimate traffic)
+- [ ] 24-48h Count mode baseline — no false positives in sampled requests
+- [ ] All rules switched to Block mode
+- [ ] SQLi probe returns 403 after Block mode enabled
+- [ ] `docs/AWS_Config.md` updated with WAF WebACL name and association
 
 ---
 
