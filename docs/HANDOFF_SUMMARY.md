@@ -2,11 +2,118 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 28, 2026 (Session 15)
+**Last Updated:** June 28, 2026 (Session 18)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 28, 2026 - M-4 Security Audit (Session 18)
+
+**Status:** ✅ COMPLETE
+
+### Session 18 Summary
+
+**M-4: `function.zip` untracked from git**
+- Haiku agent researched correct fix: `git rm --cached function.zip` + no history purge needed (non-sensitive build artifact, single-developer repo, OWASP 2026 only flags secrets in history)
+- On execution, `git ls-files function.zip` returned empty — file was already untracked; no git commands required
+- `function.zip` (15MB) still exists locally; `.gitignore` `*.zip` rule prevents re-addition on any future `git add .`
+- `docs/Security_Audit_P5.md` M-4 section expanded with full Haiku-researched plan + marked ✅ resolved
+
+**Docs updated:**
+- `docs/Security_Audit_P5.md` — M-4 status updated to ✅, full implementation plan documented, post-launch checklist item checked
+- `docs/PRIORITIES.md` — M-4 marked ✅ complete, post-launch list updated (M-4 removed from backlog)
+- `docs/HANDOFF_SUMMARY.md` — this entry
+
+**Next priority:** H-4 (AWS WAF — AWSManagedRulesCommonRuleSet + rate-based rule)
+
+---
+
+## June 28, 2026 - Access Logs Setup + Cost Anomaly (Session 16)
+
+**Status:** 🟡 IN PROGRESS — Access logs partially configured; ARN format error on final save
+
+### Session 16 Agent Error Log
+
+**The following are confirmed agent errors and hallucinations in this session, documented per user request:**
+
+| # | Error | Rule Violated |
+|---|-------|---------------|
+| 1 | Said "Logs and tracing" was in the Edit Stage modal — it's on the Stage detail view | Rule 1 — hallucination |
+| 2 | Said custom time range was "top-right" in CloudWatch — incorrect location | Rule 1 — hallucination |
+| 3 | Said "Actions → Edit graph" exists in CloudWatch — that option does not exist | Rule 1 — hallucination |
+| 4 | Said ARN/format fields appear "below X-Ray tracing" — incorrect | Rule 1 — hallucination |
+| 5 | Said a hard refresh would make ARN fields appear — incorrect | Rule 1 — hallucination |
+| 6 | Repeatedly guessed next steps instead of using Haiku agent to research | Rule 1 + Rule 2 |
+| 7 | Provided ARN with `:*` suffix — caused console validation error on final save | Rule 1 — hallucination |
+
+**Impact:** Significant time wasted navigating incorrect instructions. User had to correct agent repeatedly and explicitly demand Haiku agent research multiple times.
+
+**Root cause of errors:** Agent violated Rule 1 by guessing AWS console navigation steps instead of launching Haiku agents to research verified answers before responding.
+
+### Session 16 Summary
+
+**Investigated:**
+
+**Hardcoded API URL audit (Haiku agent):**
+- API Gateway URL found in `live.html:23` (CSP `connect-src`) and `live.html:3006` (`API_CONFIG.baseURL`)
+- No API keys or secrets hardcoded — all credentials are Lambda environment variables
+- URL exposure is NOT a standalone security issue: URL is discoverable via DevTools regardless, CORS locked to `kstanigar.github.io`, no credentials exposed
+- Already assessed as acceptable in `Security_Audit_P5.md` — no code changes needed
+
+**API Gateway cost anomaly (Haiku agent + CloudWatch CSV analysis):**
+- AWS Cost Anomaly Detection flagged 2 anomalies, both root-caused to API Gateway:
+  - June 10: 1 day, $0.01
+  - June 12–15: 4 days, $1.71, 4375% above baseline
+- **Initial hypothesis (bot traffic) was DISPROVEN** by CloudWatch CSV data:
+  - Max requests in any 5-min window: **1**
+  - Total requests June 10–15: **232** (~39/day) — cannot produce $1.71 in API Gateway request charges
+- **Confirmed root cause: API Gateway cache cost**
+  - 0.5GB cache = $0.020/hour = $0.48/day; cache enabled ~June 12 (prior baseline: $0.00)
+  - 4 days × $0.48 ≈ $1.92 — matches anomaly
+  - No bot attack; normal legitimate traffic throughout
+- WAF still needed for pre-launch security, but not an urgent cost issue
+- Documented as ISSUE-011 in `docs/Issues_And_Bugs.md`
+
+**Documentation updated:**
+- `docs/Issues_And_Bugs.md` — ISSUE-011 added (medium severity, open)
+- `docs/AWS_Config.md` — Cost Anomaly Detection section added, WAF threshold documented, AWS Budgets section added
+
+**Resolved:**
+- CloudWatch CSV downloaded (Count Average, June 10–15): max 1 req/5-min window, 232 total requests = $0.001 in request charges — bots ruled out
+- Cost Explorer → Group by Usage Type confirmed `USE2-ApiGatewayCache-0.5GB` as cost driver
+- **API Gateway cache turned OFF** (June 28, 2026) — was charging $0.020/hr regardless of traffic; cache key bug also made it unreliable
+- ISSUE-011 closed ✅
+
+**Still pending (optional but recommended):**
+- Step 2: CloudWatch Sum statistic re-download — **no longer needed**; Cost Explorer confirmed cache cost definitively; bots are ruled out
+- Step 3: Enable API Gateway Access Logs — still recommended (free, 5 min); provides IP/userAgent visibility for future incidents
+- Set AWS Budget alert at $0.50 — still recommended (free, early warning)
+- Update stale stage description in API Gateway console (still says "caching enabled")
+
+**Access Logs setup — current state (incomplete):**
+- ✅ CloudWatch Log Group created: `/aws/apigateway/non-x-analytics` (30-day retention)
+- ✅ IAM Role created: `APIGatewayCloudWatchLogsRole` with `aws:SourceAccount` condition
+- ✅ Role ARN set in API Gateway → Settings → CloudWatch log role ARN
+- ✅ CloudWatch logs: "Errors and info logs" saved on prod stage
+- ✅ Custom access logging: ON
+- ✅ ARN saved (June 28, 2026): `arn:aws:logs:us-east-2:032614958698:log-group:/aws/apigateway/non-x-analytics`
+- ✅ Log format saved — single-line JSON with all `$context` variables
+- AWS console confirmed: "Successfully updated logging and tracing settings for 'prod'"
+
+**Completed (Session 16/17):**
+1. ✅ Fix access log ARN — saved June 28, 2026; CloudWatch log group active
+2. ✅ AWS Budget alert — `analytics-dashboard-monthly`, $0.50, 50% + 100% actual thresholds, email: stanigarkeith@gmail.com
+3. ✅ API Gateway prod stage description updated — `Cache OFF (June 28, 2026) — previously P-5 Security Audit Phase C deployment`
+
+**Next priority:** H-4 (AWS WAF — pre-launch security blocker)
+
+**⚠️ Session Performance Warning — documented per user request:**
+Sessions 16 and 17 were unacceptably inefficient. ~12 minutes of simple AWS console tasks took multiple sessions due to repeated Rule 1 violations (agent guessing instead of researching). 7 confirmed hallucinations in Session 16. User has stated that if this level of inefficiency continues, they will cancel their Anthropic paid subscription and request a refund. All future AWS tasks must be fully Haiku-researched before the user touches the console. See full note in `docs/AWS_Cleanup_Plan.md`.
+
+**Plan document:** `docs/AWS_Cleanup_Plan.md` — Haiku-researched, all steps verified against official AWS docs, URLs included
 
 ---
 

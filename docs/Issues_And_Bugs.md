@@ -2,7 +2,7 @@
 
 **Purpose:** Centralized tracking for bugs, data accuracy issues, and technical problems across the NON-X Analytics platform.
 
-**Last Updated:** June 10, 2026, 3:55 AM
+**Last Updated:** June 28, 2026 (Session 16)
 
 ---
 
@@ -315,6 +315,93 @@ const playerDeath = eventCounts['player_death'] || 0;
 ---
 
 ## 🟡 MEDIUM PRIORITY ISSUES
+
+### ISSUE-011: API Gateway Cost Anomaly — Suspected Bot/Scraper Traffic
+
+**Status:** ✅ RESOLVED — cache turned off June 28, 2026 (WAF still planned for pre-launch security)
+**Severity:** MEDIUM
+**Found:** June 28, 2026 (Session 16 — AWS Cost Anomaly Detection alert)
+**Affected Component:** API Gateway — `NON-X_Analytics_Gateway` (us-east-2)
+
+#### Description
+
+AWS Cost Anomaly Detection flagged 2 API Gateway anomalies, both root-caused to `Amazon API Gateway`:
+
+| Event | Date | Duration | Cost Impact | Impact % |
+|-------|------|----------|-------------|----------|
+| Anomaly 1 | June 10, 2026 | 1 day | $0.01 | N/A |
+| Anomaly 2 | June 12–15, 2026 | **4 days** | **$1.71** | **4375%** |
+
+Total YTD AWS spend: $7.30 (majority is API Gateway). Normal baseline is near $0.00/month.
+
+#### Root Cause — CONFIRMED: API Gateway Cache Cost
+
+**CloudWatch CSV analysis (June 28, 2026) ruled out bot traffic.** The Count metric for June 10–15 shows:
+- Max requests in any 5-minute window: **1**
+- Total requests June 10–15: **232** (~39/day average)
+- No spike pattern anywhere — flat, low traffic throughout
+
+At $3.50 per million API Gateway requests, 232 requests = **$0.0008** — cannot produce a $1.71 charge.
+
+**Actual cause: API Gateway cache billing.** The 0.5GB cache enabled on the prod stage costs **$0.020/hour = $0.48/day**. The cache was turned on around June 12 (previously $0.00 baseline), creating a 4375% cost spike. 4 days × $0.48/day = **~$1.92** — matches the $1.71 anomaly.
+
+This is documented in `docs/AWS_Config.md`: the 0.5GB cache at 300s TTL was confirmed active. The cache also had a bug (cache key missing `subType` parameter — all subtypes returned avg-tier cached response), which was root-caused separately in Session 12.
+
+**No bot attack occurred. Normal legitimate traffic throughout the anomaly window.**
+
+#### Impact
+
+- $1.72 unexpected charges over 4 days
+- Lambda invocations being billed for non-legitimate traffic
+- No protection if abuse scales up before H-4 (WAF) is deployed
+
+#### Investigation Steps (for CloudWatch check in progress)
+
+1. **CloudWatch metrics** — `CloudWatch → Metrics → API Gateway → By Stage`
+   - Pull `Count` metric at 1-minute granularity for June 10–15
+   - Pull `4XXError` — high rate = bots probing non-existent paths
+   - High `Count` with near-zero `4XXError` = legitimate-looking bot traffic
+
+2. **Access Logs** — confirm whether enabled
+   - `API Gateway → NON-X_Analytics_Gateway → Stages → prod → Logs/Tracing tab`
+   - Logs `sourceIp` and `userAgent` — reveals bot IPs
+   - **Note:** Access logs were likely OFF during June 12–15 — no forensic data for that window
+
+#### Remediation Plan
+
+| Priority | Action | Type | Effort |
+|----------|--------|------|--------|
+| **Immediate** | Enable API Gateway Access Logs | AWS console | 5 min |
+| **Immediate** | Set AWS Budget alert at $0.50 | AWS console | 5 min |
+| **Next task** | Deploy H-4 WAF (AWSManagedRulesCommonRuleSet + rate-based rule) | AWS console | 1–2 hrs |
+| **Post-launch** | CloudFront + secret `x-origin-verify` header — hides API GW URL entirely | Architecture | Medium |
+
+**WAF rate limit threshold:** Set to 2–3x expected peak legitimate RPS over 5 minutes. For this low-traffic dashboard (~5 req/5min normal), recommend block threshold of **15–20 req/5min**.
+
+#### Key Research Finding — AWS Throttle Limitation
+
+> "Both throttles and quotas are applied on a best-effort basis and should be thought of as targets rather than guaranteed request ceilings." — API Gateway Throttling docs
+
+WAF is the only AWS-endorsed mechanism for reliable cost control. Stage-level throttling does NOT guarantee blocking.
+
+#### Hardcoded URL Assessment
+
+Haiku agent confirmed (June 28, 2026): API Gateway URL appears in `live.html:23` (CSP `connect-src`) and `live.html:3006` (`API_CONFIG.baseURL`). **This is NOT a standalone security issue** — the URL is discoverable via DevTools regardless of source code, no credentials are exposed, and CORS is locked to `kstanigar.github.io`. The real risk is unauthenticated access by non-browser clients (curl, bots), which WAF addresses.
+
+#### Action Items
+
+- [ ] Check CloudWatch `Count` metric for June 10–15 (in progress — user checking)
+- [ ] Enable API Gateway Access Logs (`API Gateway → prod stage → Logs/Tracing`)
+- [ ] Set AWS Budget alert at $0.50 (`AWS Budgets → Create budget`)
+- [ ] Deploy H-4 (WAF) — primary fix; see `docs/Security_Audit_P5.md`
+- [ ] Record CloudWatch findings here once user reports back
+- [ ] Post-launch: evaluate CloudFront + secret header architecture
+
+#### Related
+
+- H-4 WAF in `docs/Security_Audit_P5.md` — the planned fix
+- `docs/AWS_Config.md` — infrastructure context
+- ISSUE-009 — prior API key security investigation (June 10, 2026)
 
 ### ISSUE-008: AI Tier Flow Chart Shows Zero — Wrong Direction String in Parser
 

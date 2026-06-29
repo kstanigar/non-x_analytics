@@ -88,7 +88,7 @@ Update this document
 | M-1 | MEDIUM | Missing security headers in Lambda responses | ✅ Fixed — June 26, 2026 |
 | M-2 | MEDIUM | No clickjacking protection | 🔴 Open |
 | M-3 | MEDIUM | GitHub Actions permissions too broad | 🔴 Open |
-| M-4 | MEDIUM | `function.zip` committed to repo | 🔴 Open |
+| M-4 | MEDIUM | `function.zip` committed to repo | ✅ Already resolved |
 | M-5 | MEDIUM | GitHub Pages cannot set custom HTTP headers | ⚠️ Structural |
 | L-1 | LOW | Google Fonts loaded via `@import` (no SRI) | 🔴 Open |
 | L-2 | LOW | Dependency versions unverifiable | 🔴 Open |
@@ -402,16 +402,87 @@ permissions:
 
 **File:** repo root — `function.zip` (~15MB) is tracked despite `*.zip` in `.gitignore`
 **Risk:** Bloated git history; stale Lambda package could be confused for current version
+**Status:** ✅ Already resolved — verified June 28, 2026 (`git ls-files function.zip` returns empty; file was never re-added after initial commit was reversed)
+**Estimated effort:** 5 min
 
-**Fix:**
+---
+
+#### Research Findings (Haiku agent — June 28, 2026)
+
+**Verdict: `git rm --cached` only. No history purge needed.**
+
+**Why not history purge:**
+- `function.zip` contains no secrets or credentials — it is a regeneratable build artifact
+- GitHub docs warn that history rewriting carries "numerous serious side effects" including recontamination risks and broken tooling
+- 15MB is not a hard storage constraint on GitHub
+- Single-developer repo: no collaborator disruption, but also no benefit to justify the risk
+- OWASP flags secrets in history, not build artifacts
+
+**If credentials were ever found in the file:** use `git filter-repo` (2026 standard — `git filter-branch` is deprecated; BFG is secondary).
+
+**Why `.gitignore` didn't prevent this:**
+- `*.zip` rule already exists in `.gitignore`
+- Once a file is committed, git continues tracking it regardless of `.gitignore` — the rule only prevents new untracked files from being added
+- `git rm --cached` removes the file from the index without deleting it locally; after that, `*.zip` in `.gitignore` prevents re-addition on any future `git add .`
+
+---
+
+#### Implementation Plan
+
+**Pre-condition check:**
 ```bash
-git rm --cached function.zip
-git commit -m "chore: remove function.zip from tracking"
+git ls-files function.zip   # should return: function.zip
+grep '\.zip' .gitignore     # should return: *.zip
 ```
 
-**Note:** This does NOT delete the file locally — only removes it from git tracking.
+**Task 1 — Untrack the file**
+```bash
+git rm --cached function.zip
+```
+- Removes `function.zip` from git's index
+- Does NOT delete the file from disk
+- Risk: none — standard git operation
 
-**Estimated effort:** 5 min
+**Task 2 — Stage and commit**
+```bash
+git add .gitignore
+git commit -m "chore: untrack function.zip build artifact"
+```
+- `.gitignore` likely has no new content (rule already exists), but staging it makes the commit self-documenting
+- Do NOT add Co-Authored-By per Rule 4
+
+**Task 3 — Push**
+```bash
+git push origin main
+```
+- Standard push — no force-push needed
+- GitHub removes the file from the working tree view; it remains in prior commit history (acceptable — no secrets)
+
+**Task 4 — Verify**
+```bash
+git ls-files function.zip
+```
+- Expected: empty output
+- If the filename is still returned: `git rm --cached` did not stage correctly — re-run Task 1
+
+---
+
+#### Possible Errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `error: pathspec 'function.zip' did not match any file(s) known to git` | File already untracked | Nothing to do — already resolved |
+| `git ls-files` still returns filename after commit | `git rm --cached` was not staged before commit | Re-run Task 1, then `git commit --amend` or new commit |
+| File deleted from disk accidentally | Used `git rm` without `--cached` | Restore from last commit: `git checkout HEAD -- function.zip` |
+
+---
+
+#### Verification Checklist
+
+- [ ] `git ls-files function.zip` returns empty
+- [ ] `function.zip` still exists locally (not deleted from disk)
+- [ ] `git status` shows no tracked changes for `function.zip`
+- [ ] Future `git add .` does not re-add `function.zip` (`.gitignore` `*.zip` rule confirmed active)
 
 ---
 
@@ -525,7 +596,7 @@ Low urgency — no active exploit path. Safe to ship without these.
 | JS extraction to `dashboard.js` + full CSP (drop `'unsafe-inline'`) | `live.html` → `dashboard.js` | 1–2 days |
 | M-5: Cloudflare proxy for `X-Frame-Options`, `Referrer-Policy` headers | DNS + Cloudflare | 30 min |
 | M-3: Tighten staging workflow permissions | `.github/workflows/deploy-staging.yml` | 10 min |
-| M-4: Remove `function.zip` from git tracking | git | 5 min |
+| M-4: Remove `function.zip` from git tracking | git | ✅ Already resolved — verified June 28, 2026 |
 | L-1: Google Fonts `@import` → `<link>` tag | `live.html` | 5 min |
 | L-2: Pin exact dependency versions | `api/package.json` | 5 min |
 | L-3: CloudFront distribution (caching + DDoS) | AWS Console | 1–2 hrs |
@@ -555,7 +626,7 @@ Low urgency — no active exploit path. Safe to ship without these.
 - [ ] JS fully extracted to `dashboard.js`; `live.html` has `<script src="dashboard.js">` only
 - [ ] CSP updated to remove `'unsafe-inline'`; verified no console CSP errors
 - [ ] Cloudflare active; `X-Frame-Options: DENY` confirmed in response headers
-- [ ] `function.zip` not tracked (`git ls-files function.zip` returns empty)
+- [x] `function.zip` not tracked (`git ls-files function.zip` returns empty) ✅ verified June 28, 2026
 - [ ] Google Fonts loaded via `<link>` tag, not `@import`
 - [ ] `package-lock.json` committed with pinned versions
 

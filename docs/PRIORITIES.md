@@ -52,9 +52,14 @@
 - **GA4 fixes on Xenon_3 dev:** `death_phase` + `is_replay` — DebugView verified ✅ — pending dev→main PR (waiting on 24-48h GA4 data propagation)
 - **H-3 ✅ COMPLETE** — `escHtml()` on all 22 API-sourced innerHTML values — commit `92177fd` — June 28, 2026
 - **H-2 ✅ COMPLETE** — CSP meta tag in `live.html` — 9 directives, connect-src locked to API Gateway — commit `32c1bb0` — June 28, 2026
+- **AWS Cleanup Tasks (Session 16/17):** `docs/AWS_Cleanup_Plan.md` — ✅ ALL 3 COMPLETE
+  - ✅ API Gateway access logs ARN fixed + log format saved — June 28, 2026
+  - ✅ AWS Budget `analytics-dashboard-monthly` created — $0.50, 50%+100% actual thresholds — June 28, 2026
+  - ✅ API Gateway prod stage description updated — June 28, 2026
+- **M-4 ✅ COMPLETE** — `function.zip` already untracked; `git ls-files` returns empty — verified June 28, 2026
 - **Next:** H-4 (AWS WAF — AWSManagedRulesCommonRuleSet + rate-based rule)
-- **Post-launch:** JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/M-4/L-1/L-2
-- **Last Updated:** June 28, 2026 (Session 14 — H-3 complete)
+- **Post-launch:** JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/L-1/L-2
+- **Last Updated:** June 28, 2026 (Session 18 — M-4 verified complete)
 
 ---
 
