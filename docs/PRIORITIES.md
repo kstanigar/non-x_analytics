@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 30, 2026 (Session 21 — full codebase audit; P1/P2 restructure)
+**Last Updated:** June 30, 2026 (Session 21 cont. — UX-8 leaderboard plan documented; Edit 1 of 9 complete)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -21,7 +21,7 @@
 | # | Item | Question | Impact |
 |---|------|----------|--------|
 | P1-A | **Movement A/B Win Rate** | ✅ RESOLVED — Live data confirmed (0% both groups); mock badge removed from Data Dictionary `live.html:2932` — June 30, 2026 | MT-6 #1 closed |
-| P1-B | **Leaderboard API (UX-8)** | No handler exists in Lambda — the QA plan note "already exists" is outdated. What should it return: (A) per-row player records (name, score, rank, date) or (B) aggregate top-N summary? Determines scope of build. | Blocks UX-8 entirely |
+| P1-B | **Leaderboard API (UX-8)** | ✅ RESOLVED — Full plan written: `docs/Leaderboard_Tab_Plan.md`. Leaderboard is Firebase Firestore (not Lambda). Dashboard will query Firestore directly (Option A). Pre-implementation blocker: verify Firestore security rules allow public reads from `kstanigar.github.io`. — June 30, 2026 | UX-8 plan ready |
 | P1-C | **`menu_view` not firing in Xenon_3** | No `fireEvent('menu_view')` call found in game.html or game_mobile.html. Was this event removed intentionally, or is it a Xenon_3 bug? `referrer` param registration is moot until resolved. | Affects GA4 traffic-source tracking |
 
 ---
@@ -53,7 +53,7 @@
 **Dashboard UX:**
 - UX-6: Distinct Players KPI (BigQuery handler + tile)
 - UX-7: Player Performance page (unblocked — `user_pseudo_id` confirmed available)
-- UX-8: Leaderboard tab (pending P1-B format decision)
+- UX-8: Leaderboard tab — **🔨 IN PROGRESS** — plan: `docs/Leaderboard_Tab_Plan.md`; Edit 1/9 complete (CSP); edits 2–9 pending user approval to proceed
 - Tier Performance Metrics: `DATA.aiAgent.tierMetrics` never populated — decision needed: BigQuery handler vs CSV approach
 
 **Xenon_3:**

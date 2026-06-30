@@ -2,11 +2,42 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 30, 2026 (Session 21 — full codebase + Xenon_3 audit; P1/P2 restructure)
+**Last Updated:** June 30, 2026 (Session 21 cont. — UX-8 Leaderboard plan complete; implementation in progress)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 30, 2026 - UX-8 Leaderboard Tab (Session 21 cont.)
+
+**Status:** 🔨 IN PROGRESS — Plan documented, Edit 1 of 9 complete
+
+### Summary
+
+**Research (Haiku agent):** Xenon_3 leaderboard is Firebase Firestore — NOT part of Lambda/GA4 pipeline. Collection: `leaderboard` in project `nonx---game`. Fields per entry: `score`, `instagram` (player handle), `platform`, `movement_group`, `player_id`, `date` (server timestamp). Each player has one entry (personal best only). Top 25 ordered by score desc.
+
+**Architecture decision:** Query Firestore directly from dashboard client using Firebase compat SDK v10.8.0 (same API key already public in game.html). No new Lambda handler needed.
+
+**Plan doc:** `docs/Leaderboard_Tab_Plan.md` — 9 edits to `live.html` only, fully documented with exact line numbers and code.
+
+**P1-B resolved:** Leaderboard is per-row player records (rank, handle, score, platform, movement, date) — top 25.
+
+**Completed so far:**
+- Edit 1 ✅ — CSP updated: `script-src` + `https://www.gstatic.com`; `connect-src` + `https://firestore.googleapis.com` (`live.html:19,23`)
+
+**Remaining (edits 2–9 — all in `live.html`):**
+- Edit 2: Firebase compat SDK `<script>` tags (after Chart.js, line 33)
+- Edit 3: Firebase init + `_db` variable in main JS block
+- Edit 4: Desktop nav tab button (between A/B Tests and Platform, line 1721)
+- Edit 5: Mobile nav tab button (same position, line 1745)
+- Edit 6: `DATA.leaderboard = []` in DATA object (line 3035)
+- Edit 7: Page section HTML (between page-ab and page-platform, line 2157)
+- Edit 8: `fetchLeaderboard()` + `buildLeaderboardTable()` functions
+- Edit 9: Call `fetchLeaderboard()` in `loadAllData()` + add `'leaderboard'` to `switchTab` tabNames
+
+**Next step:** User approves plan → apply edits 2–9 → test on staging → commit
 
 ---
 
