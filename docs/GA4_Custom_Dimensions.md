@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all GA4 custom dimensions registered in the NON-X analytics property. Cross-reference when building API queries, parsing Lambda responses, or debugging `(not set)` values.
 
-**Last Updated:** June 28, 2026 (Session 13 — DebugView verified: 15 custom events; 2 pending: player_won, survey_submitted)
+**Last Updated:** June 29, 2026 (Session 20 — death_phase + is_replay confirmed live; 2 pending: player_won, survey_submitted)
 
 **Total dimensions:** 31 (all Event-scoped)
 
@@ -52,7 +52,7 @@
 
 | Dashboard Metric | GA4 Query Dimension | Status |
 |-----------------|---------------------|--------|
-| Death Triggers chart | `customEvent:death_phase` | ⚠️ Fix deployed to Xenon_3 `dev` — pending merge to `main` + 24-48h GA4 propagation |
+| Death Triggers chart | `customEvent:death_phase` | ✅ LIVE — merged to Xenon_3 `main` via PR #156; chart populating June 29, 2026 |
 | Replay Rate | `customEvent:is_replay` | ✅ FIXED — DebugView verified June 28, 2026: `'false'` on fresh start, `'true'` on play_again |
 | Music A/B split | `customEvent:ab_music_group` | ✅ Returns data |
 | Platform split | `customEvent:platform` | ✅ Returns data |
@@ -527,15 +527,15 @@ These events fire automatically without any game code. They appear in DebugView 
 
 ## Known Issues (updated June 28, 2026)
 
-### `death_phase` — fix verified on dev, pending merge to main
+### `death_phase` — ✅ FIXED (June 28, 2026)
 
 - **Dimension registered:** ✅ Yes (Mar 2, 2026)
 - **Expected values:** `green`, `red`, `purple`
 - **Root cause:** Game was sending `phase` (Game Phase dimension) not `death_phase` (Death Phase dimension) — two different GA4 parameter keys
 - **Fix:** Added `'death_phase': purplePhase ? 'purple' : redPhase ? 'red' : 'green'` alongside `'phase'` in `player_death` fireEvent calls in `game.html` and `game_mobile.html`
-- **Deploy status:** Merged to Xenon_3 `dev` branch, CI passed ✅ — **pending PR dev → main**
-- **DebugView (June 28, 2026):** `death_phase: 'green'` ✅ CONFIRMED on dev build. Live game (main) still absent — expected.
-- **Impact:** Death Triggers chart empty — will populate after dev → main merge + 24-48h GA4 propagation
+- **Deploy status:** ✅ Merged to Xenon_3 `main` via PR #156 — June 29, 2026
+- **DebugView (June 28, 2026):** `death_phase: 'green'` ✅ CONFIRMED
+- **Dashboard:** Death Triggers by Phase chart populating ✅ — confirmed June 29, 2026 (Green ~9, Red ~6, Purple ~1)
 
 ### `is_replay` — ✅ FIXED (June 27, 2026)
 
@@ -543,8 +543,8 @@ These events fire automatically without any game code. They appear in DebugView 
 - **Root cause:** JavaScript boolean `false` silently dropped by gtag() — only `true` (replays) was ever recorded
 - **Fix:** Changed to `isReplay ? 'true' : 'false'` — always sends a non-empty string
 - **DebugView verified:** `is_replay: 'false'` on fresh `game_start` ✅ | `is_replay: 'true'` on play_again → `game_start` ✅
-- **Deploy status:** Merged to Xenon_3 `dev` — **pending PR dev → main**
-- **Dashboard:** Replay Rate will populate after dev → main merge + 24-48h propagation
+- **Deploy status:** ✅ Merged to Xenon_3 `main` via PR #156 — June 29, 2026
+- **Dashboard:** Play-Again % showing 9% (14/153) ✅ — confirmed June 29, 2026
 
 ### `music_toggled` — event not appearing in GA4 at all
 
