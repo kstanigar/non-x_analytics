@@ -20,7 +20,7 @@
 
 | # | Item | Question | Impact |
 |---|------|----------|--------|
-| P1-A | **Movement A/B Win Rate** | API handler + Win % UI column already exist (`api/index.js:325`, `live.html:5578`). Is the Win % column showing live data on the dashboard, or is it returning `—`? If live → only the mock badge in Data Dictionary needs removing. If not live → debug the handler. | Could close MT-6 #1 immediately |
+| P1-A | **Movement A/B Win Rate** | ✅ RESOLVED — Live data confirmed (0% both groups); mock badge removed from Data Dictionary `live.html:2932` — June 30, 2026 | MT-6 #1 closed |
 | P1-B | **Leaderboard API (UX-8)** | No handler exists in Lambda — the QA plan note "already exists" is outdated. What should it return: (A) per-row player records (name, score, rank, date) or (B) aggregate top-N summary? Determines scope of build. | Blocks UX-8 entirely |
 | P1-C | **`menu_view` not firing in Xenon_3** | No `fireEvent('menu_view')` call found in game.html or game_mobile.html. Was this event removed intentionally, or is it a Xenon_3 bug? `referrer` param registration is moot until resolved. | Affects GA4 traffic-source tracking |
 
@@ -168,7 +168,7 @@
 
 | # | Metric | Status | Notes |
 |---|--------|--------|-------|
-| 1 | Movement A/B Win Rate | ⚠️ P1 CLARIFY | API handler + UI Win % column exist (`api/index.js:325`, `live.html:5578`); Data Dict still shows mock badge — need to verify if live data populates |
+| 1 | Movement A/B Win Rate | ✅ COMPLETE | Live data confirmed on dashboard (0% both groups — low sample); mock badge removed from Data Dict `live.html:2932` — June 30, 2026 |
 | 2 | Tier Delta | ❌ P2 | Not implemented; avg/final tier exist separately |
 | 3 | Sessions per User | ❌ P2 | Not implemented |
 | 4 | Win Rate by Starting Tier | ❌ P2 | Not implemented |
