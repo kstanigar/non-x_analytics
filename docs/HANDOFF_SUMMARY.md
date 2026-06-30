@@ -2,11 +2,28 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 29, 2026 (Session 20)
+**Last Updated:** June 29, 2026 (Session 20 — GA4-DOC complete)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 29, 2026 - GA4-DOC Complete (Session 20 cont.)
+
+**Status:** ✅ COMPLETE
+
+### Session 20 (continued) Summary
+
+**GA4-DOC: All 17 events documented — 17/17 ✅**
+- Queried BigQuery (`non-x-analytics-server.analytics_525680032.events_*`) for historical `player_won` + `survey_submitted` params — no game replay needed
+- `player_won` — 6 historical wins found; confirmed params: `score`, `final_score`, `tier`, `health_remaining_bonus`, `session_duration_seconds`, `movement_multiplier`, `tier_multiplier` (float), `effective_multiplier` (float), `music_variant`, `ab_music_group`, `platform`
+- `survey_submitted` — 2 historical submissions; confirmed params: `games_played`, `ab_music_group`, `platform`, `music_variant`; `instagram_provided` + `rank` were NOT present (earlier expectation incorrect)
+- `docs/GA4_Custom_Dimensions.md` updated — both events documented with param tables; Last Updated bumped — commit `ce459e9`
+- `docs/PRIORITIES.md` — GA4-DOC marked ✅ 17/17 complete
+
+**Next priority:** Post-launch backlog — UX-6/7/8 player metrics, MT-6 BigQuery, or H-4 WAF (when traffic warrants)
 
 ---
 
