@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all GA4 custom dimensions registered in the NON-X analytics property. Cross-reference when building API queries, parsing Lambda responses, or debugging `(not set)` values.
 
-**Last Updated:** June 29, 2026 (Session 20 — death_phase + is_replay confirmed live; 2 pending: player_won, survey_submitted)
+**Last Updated:** June 29, 2026 (Session 20 — all 17 events documented via BigQuery historical query)
 
 **Total dimensions:** 31 (all Event-scoped)
 
@@ -488,15 +488,42 @@ Fires when the player clicks Play Again after dying. Rich event — captures dea
 
 ---
 
-### `player_won` — PENDING
+### `player_won` — ✅ DOCUMENTED (BigQuery historical — June 29, 2026)
 
-Not yet captured in DebugView — requires completing a full game run. Expected parameters: similar to `game_complete` with win-specific values.
+6 historical wins found in BigQuery. Confirmed custom params:
+
+| Parameter | Type | Example Values | Notes |
+|-----------|------|----------------|-------|
+| `score` | int | 3432, 5574, 6586, 7039, 10738 | Final score at win |
+| `final_score` | int | 3432, 6586, 10738 | Appears identical to `score` — may be duplicate |
+| `tier` | int | 1, 2, 3 | AI difficulty tier at time of win |
+| `health_remaining_bonus` | int | 190, 210, 220, 235, 250 | HP remaining at win |
+| `session_duration_seconds` | int | 430–640 | Session length in seconds |
+| `movement_multiplier` | int | 1 | Movement scheme multiplier |
+| `tier_multiplier` | float | — | Present but float — not captured by int/string query |
+| `effective_multiplier` | float | — | Present but float — not captured by int/string query |
+| `analytics_version` | string | — | Present but value null in query — may be float or unset |
+| `music_variant` | string | `on` | Music state at win |
+| `ab_music_group` | string | `A`, `B` | A/B test group |
+| `platform` | string | `desktop`, `mobile` | 4 mobile wins, 2 desktop wins observed |
+
+**⚠️ Note:** `tier_multiplier` and `effective_multiplier` returned null — they are likely float values. Run a follow-up query with `ep.value.float_value` to confirm.
 
 ---
 
-### `survey_submitted` — PENDING
+### `survey_submitted` — ✅ DOCUMENTED (BigQuery historical — June 29, 2026)
 
-Not yet captured in DebugView — requires submitting Instagram handle on leaderboard. Expected parameters: `ab_music_group`, `analytics_version`, `instagram_provided`, `platform`, `rank`.
+2 historical submissions found in BigQuery. Confirmed custom params:
+
+| Parameter | Type | Example Values | Notes |
+|-----------|------|----------------|-------|
+| `games_played` | int | 5, 6 | Number of games played before submitting |
+| `ab_music_group` | string | `A`, `B` | A/B test group |
+| `platform` | string | `desktop` | Both submissions were desktop |
+| `music_variant` | string | `on` | Music state at submission |
+| `analytics_version` | string | — | Present but null in query |
+
+**⚠️ Note:** `instagram_provided` and `rank` were NOT present in either historical submission — earlier expectation was incorrect. Both submissions were from desktop only; mobile behavior unconfirmed.
 
 ---
 

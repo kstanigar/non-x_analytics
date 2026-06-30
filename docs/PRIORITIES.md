@@ -63,11 +63,11 @@
 
 ---
 
-### GA4-DOC: GA4 Event Schema Documentation — ⚠️ 15/17 COMPLETE (Session 13)
+### GA4-DOC: GA4 Event Schema Documentation — ✅ 17/17 COMPLETE (Session 20)
 
 - **Full doc:** `docs/GA4_Custom_Dimensions.md`
-- **Completed (15):** `player_death`, `game_start`, `game_complete`, `menu_view`, `play_clicked`, `session_start`, `first_visit`, `returning_user`, `wave_reached`, `boss_attempt`, `boss_defeated`, `powerup_collected`, `ai_difficulty_adjusted`, `leave_game`, `play_again`
-- **Pending (2):** `player_won` (requires full game win), `survey_submitted` (seen in stream — capture params next session)
+- **Completed (17):** `player_death`, `game_start`, `game_complete`, `menu_view`, `play_clicked`, `session_start`, `first_visit`, `returning_user`, `wave_reached`, `boss_attempt`, `boss_defeated`, `powerup_collected`, `ai_difficulty_adjusted`, `leave_game`, `play_again`, `player_won`, `survey_submitted`
+- **`player_won` + `survey_submitted` documented via BigQuery historical query — June 29, 2026 ✅**
 - **Action items from documentation:**
   - `outcome` on `game_complete` — unregistered, register in GA4 Admin to enable win/loss rate queries
   - `referrer` on `menu_view` — unregistered, could track traffic source
