@@ -16,11 +16,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
-    script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+    script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.gstatic.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src https://fonts.gstatic.com;
     img-src 'self' data:;
-    connect-src https://6waopo3jh1.execute-api.us-east-2.amazonaws.com;
+    connect-src https://6waopo3jh1.execute-api.us-east-2.amazonaws.com https://firestore.googleapis.com;
     form-action 'none';
     base-uri 'none';
     object-src 'none';
@@ -31,6 +31,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
     integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw=="
     crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap');
 
@@ -1720,6 +1722,7 @@
       <div class="tab" onclick="switchTab('ai')">AI Agent</div>
       <div class="tab" onclick="switchTab('ab')">A/B Tests</div>
       <div class="tab" onclick="switchTab('platform')">Platform</div>
+      <div class="tab" onclick="switchTab('leaderboard')">Leaderboard</div>
       <div class="tab" onclick="switchTab('case-study')">Case Study</div>
       <div class="tab" onclick="switchTab('data-dict')">Data Dict</div>
     </nav>
@@ -1744,6 +1747,7 @@
         <div class="tab" onclick="switchTab('ai'); closeMobileMenu()">🤖 AI Agent</div>
         <div class="tab" onclick="switchTab('ab'); closeMobileMenu()">🧪 A/B Tests</div>
         <div class="tab" onclick="switchTab('platform'); closeMobileMenu()">📱 Platform</div>
+        <div class="tab" onclick="switchTab('leaderboard'); closeMobileMenu()">🏆 Leaderboard</div>
         <div class="tab" onclick="switchTab('case-study'); closeMobileMenu()">📋 Case Study</div>
         <div class="tab" onclick="switchTab('data-dict'); closeMobileMenu()">📖 Data Dict</div>
       </nav>
@@ -2152,6 +2156,54 @@
         <strong>💡 Decision Framework:</strong> If Music ON (Group A) wins on win rate + replay: keep ON as default. If
         Music OFF (Group B) wins or no difference: default OFF (respects user autonomy). For movement, measure avg level
         reached and session duration as primary signals. Minimum 200 sessions per group before concluding.
+      </div>
+
+    </div>
+
+    <!-- ════════════════════════════════════════
+       PAGE 5B: LEADERBOARD
+  ═══════════════════════════════════════════ -->
+    <div class="page" id="page-leaderboard">
+
+      <div class="section-label">All-Time Top 50 — Personal Bests</div>
+      <div class="kpi-grid" id="leaderboard-kpis">
+        <div class="kpi"><div class="kpi-label">Total Entries</div><div class="kpi-value" id="lb-total">—</div></div>
+        <div class="kpi"><div class="kpi-label">Top Score</div><div class="kpi-value" id="lb-top">—</div></div>
+        <div class="kpi"><div class="kpi-label">Desktop Players</div><div class="kpi-value" id="lb-desktop">—</div></div>
+        <div class="kpi"><div class="kpi-label">Full Direction %</div><div class="kpi-value" id="lb-movement">—</div></div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 32px; margin-top:16px">
+        <table style="width:100%; border-collapse:collapse; font-size:13px">
+          <thead>
+            <tr style="color:var(--cyan); text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)">
+              <th style="padding:8px 12px">#</th>
+              <th style="padding:8px 12px">Player</th>
+              <th style="padding:8px 12px; text-align:right">Score</th>
+              <th style="padding:8px 12px">Platform</th>
+              <th style="padding:8px 12px">Movement</th>
+              <th style="padding:8px 12px">Date</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody-left">
+            <tr><td colspan="6" style="padding:24px; text-align:center; opacity:0.5">Loading leaderboard...</td></tr>
+          </tbody>
+        </table>
+        <table style="width:100%; border-collapse:collapse; font-size:13px">
+          <thead>
+            <tr style="color:var(--cyan); text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)">
+              <th style="padding:8px 12px">#</th>
+              <th style="padding:8px 12px">Player</th>
+              <th style="padding:8px 12px; text-align:right">Score</th>
+              <th style="padding:8px 12px">Platform</th>
+              <th style="padding:8px 12px">Movement</th>
+              <th style="padding:8px 12px">Date</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody-right">
+            <tr><td colspan="6" style="padding:24px; text-align:center; opacity:0.5"></td></tr>
+          </tbody>
+        </table>
       </div>
 
     </div>
@@ -2929,7 +2981,7 @@
                 <thead><tr><th>Metric</th><th>Formula</th><th>Live</th></tr></thead>
                 <tbody>
                   <tr><td>Sessions</td><td>game_start count by group</td><td><span class="dict-badge live">Live</span></td></tr>
-                  <tr><td>Win Rate</td><td>player_won / game_start by group</td><td><span class="dict-badge mock">—</span></td></tr>
+                  <tr><td>Win Rate</td><td>player_won / game_start by group</td><td><span class="dict-badge live">Live</span></td></tr>
                 </tbody>
               </table>
               <p class="dict-section-note">Win Rate data pending — can be unlocked via BigQuery join on <code>ga_session_id</code> (see MT-6 backlog).</p>
@@ -3031,8 +3083,20 @@
       let lastUpdateTime = null;      // Timestamp of last successful data fetch
       let isRefreshing = false;       // Flag to prevent concurrent refresh calls
 
+      // ── FIREBASE (leaderboard — Firestore direct read, separate from Lambda pipeline) ──
+      const _fbApp = firebase.initializeApp({
+        apiKey: "AIzaSyDumeBRk__-lcKFJA2WLD7Wi-0y6OuFZlo",
+        authDomain: "nonx---game.firebaseapp.com",
+        projectId: "nonx---game",
+        storageBucket: "nonx---game.firebasestorage.app",
+        messagingSenderId: "404220834268",
+        appId: "1:404220834268:web:6cb71367bf62569ad5df19"
+      });
+      const _db = firebase.firestore();
+
       // ── SAMPLE DATA (replace with GA4 exports) ──────────────────────
       const DATA = {
+        leaderboard: [],
         kpis: {
           sessions: '2,841',
           newPct: '73%',
@@ -4935,6 +4999,8 @@
           console.warn('Music-Funnel fetch failed:', musicFunnelResult.reason ?? musicFunnelResult.value?.error);
         }
 
+        fetchLeaderboard(); // Firebase Firestore — independent of Lambda concurrency limit
+
         // Re-render all charts
         reinitAllCharts();
 
@@ -4972,6 +5038,60 @@
 
         // Trigger refresh with new version and date range filters
         await loadAndRenderGA4Data('standard');
+      }
+
+      // ── LEADERBOARD (Firebase Firestore) ──────────────────────────────────────
+      async function fetchLeaderboard() {
+        try {
+          const snap = await _db.collection('leaderboard').orderBy('score', 'desc').limit(50).get();
+          DATA.leaderboard = snap.docs.map(d => d.data());
+        } catch (e) {
+          console.warn('Leaderboard fetch failed:', e);
+          DATA.leaderboard = [];
+        }
+        buildLeaderboardTable();
+      }
+
+      function buildLeaderboardTable() {
+        const entries = DATA.leaderboard;
+        const tbodyLeft = document.getElementById('leaderboard-tbody-left');
+        const tbodyRight = document.getElementById('leaderboard-tbody-right');
+        if (!tbodyLeft || !tbodyRight) return;
+
+        if (!entries.length) {
+          tbodyLeft.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;opacity:0.5">No leaderboard data available.</td></tr>';
+          tbodyRight.innerHTML = '';
+          return;
+        }
+
+        const total = entries.length;
+        document.getElementById('lb-total').textContent = total;
+        document.getElementById('lb-top').textContent = entries[0].score.toLocaleString();
+        document.getElementById('lb-desktop').textContent = Math.round(entries.filter(e => e.platform === 'desktop').length / total * 100) + '%';
+        document.getElementById('lb-movement').textContent = Math.round(entries.filter(e => e.movement_group === 'B').length / total * 100) + '%';
+
+        function renderRows(slice, startRank) {
+          return slice.map((e, i) => {
+            const rank = startRank + i;
+            const player = escHtml(e.instagram || 'Anonymous');
+            const score = (e.score || 0).toLocaleString();
+            const platform = e.platform === 'desktop' ? 'Desktop' : 'Mobile';
+            const movement = e.movement_group === 'B' ? 'Full Dir' : 'Horizontal';
+            const date = e.date ? e.date.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+            const rowStyle = rank <= 3 ? 'color:var(--cyan)' : '';
+            return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05); ${rowStyle}">
+              <td style="padding:7px 12px; opacity:0.6">${rank}</td>
+              <td style="padding:7px 12px; font-weight:${rank <= 3 ? 'bold' : 'normal'}">${player}</td>
+              <td style="padding:7px 12px; text-align:right">${score}</td>
+              <td style="padding:7px 12px; opacity:0.7">${platform}</td>
+              <td style="padding:7px 12px; opacity:0.7">${movement}</td>
+              <td style="padding:7px 12px; opacity:0.5">${date}</td>
+            </tr>`;
+          }).join('');
+        }
+
+        tbodyLeft.innerHTML = renderRows(entries.slice(0, 25), 1);
+        tbodyRight.innerHTML = renderRows(entries.slice(25), 26);
       }
 
       /**
@@ -5970,6 +6090,7 @@
           'bosses': 'BOSS ANALYSIS',
           'ai': 'AI AGENT',
           'ab': 'A/B TESTS',
+          'leaderboard': 'LEADERBOARD',
           'platform': 'PLATFORM',
           'case-study': 'CASE STUDY',
           'data-dict': 'DATA DICTIONARY'
