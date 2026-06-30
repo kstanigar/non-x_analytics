@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all GA4 custom dimensions registered in the NON-X analytics property. Cross-reference when building API queries, parsing Lambda responses, or debugging `(not set)` values.
 
-**Last Updated:** June 30, 2026 (Session 21 — outcome values confirmed from Xenon_3 source; menu_view gap documented)
+**Last Updated:** June 30, 2026 (Session 21 cont. — P1-C closed; traffic source approach updated to use GA4 built-in sessionSource/sessionDefaultChannelGroup)
 
 **Total dimensions:** 31 (all Event-scoped)
 
@@ -141,7 +141,9 @@ Two captures combined (fresh start + play_again replay) for full parameter list.
 | `platform` | `desktop` / `mobile` | Platform | Custom | ✅ Sending |
 | `referrer` | `direct` | — | Custom (unregistered) | ⚠️ Sending but NOT registered as a custom dimension — value `direct` confirmed |
 
-**Note:** `referrer` parameter is documented here, but a June 30, 2026 audit of Xenon_3 source found NO `fireEvent('menu_view')` call in game.html or game_mobile.html. The event may have been seen in DebugView from a now-removed code path. This is a Xenon_3 gap — the event is not currently being fired. `referrer` registration is moot until the event itself is restored.
+**Note:** `referrer` parameter only ever showed `direct` in DebugView. June 30 audit confirmed no `fireEvent('menu_view')` call exists in Xenon_3 source — the event was removed from a prior code path.
+
+**P1-C CLOSED — June 30, 2026:** Restoring `menu_view` is NOT the right approach for traffic source tracking. GA4 auto-collects `sessionSource`, `sessionMedium`, and `sessionDefaultChannelGroup` on every session without any Xenon_3 changes. These standard dimensions already contain the traffic source data (organic / direct / referral / social) and are queryable via the GA4 Data API. A new P2 task (UX-9) has been added to the dashboard to surface this data. No changes to Xenon_3 needed.
 
 ---
 

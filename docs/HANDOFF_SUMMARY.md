@@ -2,7 +2,7 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 30, 2026 (Session 21 cont. — UX-8 Leaderboard plan complete; implementation in progress)
+**Last Updated:** June 30, 2026 (Session 21 cont. — UX-8 complete; ISSUE-010 Firebase key exposure found; next: security fix)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
@@ -10,34 +10,52 @@
 
 ---
 
-## June 30, 2026 - UX-8 Leaderboard Tab (Session 21 cont.)
+## June 30, 2026 - ISSUE-010 Firebase API Key Security (Session 21 cont.)
 
-**Status:** 🔨 IN PROGRESS — Plan documented, Edit 1 of 9 complete
+**Status:** 🔴 NEXT PRIORITY — Plan pending (Haiku agent research scheduled next session)
 
 ### Summary
 
-**Research (Haiku agent):** Xenon_3 leaderboard is Firebase Firestore — NOT part of Lambda/GA4 pipeline. Collection: `leaderboard` in project `nonx---game`. Fields per entry: `score`, `instagram` (player handle), `platform`, `movement_group`, `player_id`, `date` (server timestamp). Each player has one entry (personal best only). Top 25 ordered by score desc.
+**Trigger:** GitHub Secret Scanning flagged `AIzaSyDumeBRk__-lcKFJA2WLD7Wi-0y6OuFZlo` in `live.html:3088` (commit `5f624efc`) when UX-8 leaderboard code was pushed to main.
 
-**Architecture decision:** Query Firestore directly from dashboard client using Firebase compat SDK v10.8.0 (same API key already public in game.html). No new Lambda handler needed.
+**Root cause:** Firebase compat SDK requires the full config object (including `apiKey`) in client-side JS. This is by Firebase design — the key is intentionally public — but GitHub's scanner flags all `AIzaSy...` patterns.
 
-**Plan doc:** `docs/Leaderboard_Tab_Plan.md` — 9 edits to `live.html` only, fully documented with exact line numbers and code.
+**Real risk:** Firestore security rules may NOT be locked to read-only. If writes are open, anyone with the key can write/spam the leaderboard. Key exposure is secondary; Firestore rules are the actual attack surface.
 
-**P1-B resolved:** Leaderboard is per-row player records (rank, handle, score, platform, movement, date) — top 25.
+**Documented in:** `docs/Issues_And_Bugs.md` — ISSUE-010
 
-**Completed so far:**
-- Edit 1 ✅ — CSP updated: `script-src` + `https://www.gstatic.com`; `connect-src` + `https://firestore.googleapis.com` (`live.html:19,23`)
+**Planned fix (Options 1 + 2 — console changes only, no code):**
+- Option 1: Restrict API key HTTP referrers in Google Cloud Console to `kstanigar.github.io/*` + `nonx.standingtiger.com/*`
+- Option 2: Tighten Firestore security rules — allow public reads, restrict writes
 
-**Remaining (edits 2–9 — all in `live.html`):**
-- Edit 2: Firebase compat SDK `<script>` tags (after Chart.js, line 33)
-- Edit 3: Firebase init + `_db` variable in main JS block
-- Edit 4: Desktop nav tab button (between A/B Tests and Platform, line 1721)
-- Edit 5: Mobile nav tab button (same position, line 1745)
-- Edit 6: `DATA.leaderboard = []` in DATA object (line 3035)
-- Edit 7: Page section HTML (between page-ab and page-platform, line 2157)
-- Edit 8: `fetchLeaderboard()` + `buildLeaderboardTable()` functions
-- Edit 9: Call `fetchLeaderboard()` in `loadAllData()` + add `'leaderboard'` to `switchTab` tabNames
+**Next step (next session):** Haiku agent researches exact steps for Options 1 + 2 → plan doc → implement
 
-**Next step:** User approves plan → apply edits 2–9 → test on staging → commit
+---
+
+## June 30, 2026 - UX-8 Leaderboard Tab (Session 21 cont.)
+
+**Status:** ✅ COMPLETE — All 9 edits applied to `live.html`; uncommitted
+
+### Summary
+
+**Research (Haiku agent):** Xenon_3 leaderboard is Firebase Firestore — NOT part of Lambda/GA4 pipeline. Collection: `leaderboard` in project `nonx---game`. Fields per entry: `score`, `instagram` (player handle), `platform`, `movement_group`, `player_id`, `date` (server timestamp). Each player has one entry (personal best only). Top 50 ordered by score desc.
+
+**Architecture decision:** Query Firestore directly from dashboard client using Firebase compat SDK v10.8.0. No new Lambda handler needed.
+
+**Plan doc:** `docs/Leaderboard_Tab_Plan.md`
+
+**All edits complete (live.html):**
+- Edit 1 ✅ — CSP: `script-src` + `https://www.gstatic.com`; `connect-src` + `https://firestore.googleapis.com`
+- Edit 2 ✅ — Firebase compat SDK `<script>` tags (after Chart.js)
+- Edit 3 ✅ — Firebase init + `_db` variable (`live.html:3034`)
+- Edit 4 ✅ — Desktop nav tab: Leaderboard between Platform and Case Study
+- Edit 5 ✅ — Mobile nav tab: same position
+- Edit 6 ✅ — `DATA.leaderboard = []` in DATA object
+- Edit 7 ✅ — Page section HTML (`page-leaderboard`) — 2-column grid, top 50
+- Edit 8 ✅ — `fetchLeaderboard()` + `buildLeaderboardTable()` functions
+- Edit 9 ✅ — `fetchLeaderboard()` called in `loadAllData()`; `'leaderboard'` added to `switchTab` map
+
+**Not yet committed** — holding until ISSUE-010 security fix is decided (Firebase key is in this code)
 
 ---
 

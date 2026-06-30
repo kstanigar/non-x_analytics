@@ -2,7 +2,7 @@
 
 **Purpose:** Centralized tracking for bugs, data accuracy issues, and technical problems across the NON-X Analytics platform.
 
-**Last Updated:** June 28, 2026 (Session 16)
+**Last Updated:** June 30, 2026 (Session 21 cont. — ISSUE-010 added: Firebase API key exposed in git)
 
 ---
 
@@ -11,9 +11,89 @@
 | Status | Count |
 |--------|-------|
 | 🔴 CRITICAL (Blocking) | 0 |
-| 🟡 MEDIUM (Should Fix) | 0 |
+| 🟡 MEDIUM (Should Fix) | 1 |
 | 🟢 LOW (Nice to Have) | 0 |
 | ✅ RESOLVED | 9 |
+
+---
+
+## 🟡 MEDIUM ISSUES (Should Fix)
+
+### ISSUE-010: Firebase API Key Exposed in Public Git Repo
+
+**Status:** 🟡 OPEN — Mitigatable; not an emergency (key is intentionally public per Firebase design)
+**Severity:** MEDIUM
+**Found:** June 30, 2026 (GitHub Secret Scanning alert on push to main)
+**Affected Component:** `live.html:3088` — Firebase config block (Edit 3, UX-8 leaderboard)
+**Commit:** `5f624efc`
+
+#### Description
+
+GitHub Secret Scanning flagged `apiKey: "AIzaSyDumeBRk__-lcKFJA2WLD7Wi-0y6OuFZlo"` added in the Firebase init block. GitHub matches the `AIzaSy...` pattern as a Google API Key.
+
+**Why this happened:** Firebase compat SDK requires the full config object (including `apiKey`) in client-side JS. This is identical to how the key is already embedded in `Xenon_3/game.html`.
+
+**Is the key itself a secret?** No — Firebase API keys are designed to be public. They identify the project, not grant access. However, the actual risk depends on **Firestore security rules**.
+
+#### Risk Assessment
+
+| Condition | Risk Level |
+|-----------|-----------|
+| Firestore rules = allow read-only | LOW — key exposure is harmless |
+| Firestore rules = allow read + write (current suspected state) | HIGH — anyone with the key could write/spam the leaderboard |
+| App Check enforced on kstanigar.github.io | MITIGATED — unauthorized domains blocked |
+
+**User confirmed:** Firestore rules may NOT be locked to read-only. This is the real risk — not the key exposure itself.
+
+#### Options to Mitigate (in order of effort)
+
+**Option 1: Restrict the API key in Google Cloud Console (Recommended — easiest)**
+- Go to Google Cloud Console → APIs & Services → Credentials → select the API key
+- Add HTTP referrer restrictions: `kstanigar.github.io/*` and `nonx.standingtiger.com/*`
+- Effect: key only works from those two domains; useless if extracted and used elsewhere
+- No code changes needed
+
+**Option 2: Tighten Firestore security rules (Critical regardless of key exposure)**
+- Firebase Console → Firestore → Rules tab
+- Dashboard only needs reads; game needs authenticated writes
+- Recommended rules:
+  ```
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /leaderboard/{doc} {
+        allow read: if true;         // Public leaderboard — anyone can read
+        allow write: if request.auth != null || <app-check condition>;
+      }
+    }
+  }
+  ```
+- This is independent of the key issue and should be done regardless
+
+**Option 3: Switch to Lambda proxy (Option B — most secure, most effort)**
+- Move Firestore read to a new Lambda handler using Firebase Admin SDK
+- API key never appears in `live.html`
+- Key stored as Lambda environment variable (never in git)
+- Requires: new Lambda handler + deploy + remove Firebase SDK from live.html
+- Was considered and rejected during UX-8 planning but is the correct choice if rules can't be locked
+
+**Option 4: Register kstanigar.github.io with Firebase App Check**
+- Firebase Console → App Check → register the domain
+- Combined with Option 1, makes the key nearly unusable from unauthorized origins
+- Game domain (nonx.standingtiger.com) likely already registered
+
+#### Recommended Path
+
+1. **Immediately:** Tighten Firestore rules (Option 2) — protects the data regardless of anything else
+2. **Also:** Restrict the API key in Google Cloud Console (Option 1) — low effort, reduces attack surface
+3. **If rules cannot be locked:** Switch to Lambda proxy (Option 3)
+
+#### Action Items
+- [ ] Check Firestore rules in Firebase Console → determine if reads are public, writes are restricted
+- [ ] Restrict API key HTTP referrers in Google Cloud Console
+- [ ] Register kstanigar.github.io with Firebase App Check (Option 4)
+- [ ] User to dismiss GitHub Secret Scanning alert (not a secret by Firebase design)
+- [ ] If rules are open: decide Option 2 vs Option 3 before going live
 
 ---
 
