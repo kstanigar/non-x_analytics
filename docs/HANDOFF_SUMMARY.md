@@ -2,11 +2,42 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 29, 2026 (Session 20 — GA4-DOC complete)
+**Last Updated:** June 30, 2026 (Session 21 — full codebase + Xenon_3 audit; P1/P2 restructure)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 30, 2026 - Full Codebase Audit (Session 21)
+
+**Status:** ✅ COMPLETE
+
+### Session 21 Summary
+
+**4-agent parallel audit of non-x_analytics + Xenon_3 against all backlog items:**
+
+**Items confirmed complete / can be closed:**
+- `Xenon_3/docs/GA4_Event_Schema.md` — ✅ file already exists; task is done
+- `outcome` on `game_complete` — ✅ confirmed firing in Xenon_3 (values: `victory`/`abandoned`/`death`); still needs GA4 Admin registration
+- `instagram_provided` + `rank` NOT in `survey_submitted` — ✅ confirmed correct; only `instagram_provided` is in `leaderboard_submit`
+- `user_pseudo_id` on `player_won` — ✅ already selected in `api/index.js:454` tier-score query; UX-7 unblocked
+- L-2 dependency pinning — ✅ `@google-analytics/data: "6.1.0"` exact version confirmed
+- M-3 staging permissions — ✅ both workflows have explicit `permissions: contents: write` blocks
+
+**Docs updated:**
+- `docs/GA4_Custom_Dimensions.md` — `outcome` values corrected (`victory`/`abandoned`/`death`); `menu_view` gap noted; Last Updated bumped
+- `docs/PRIORITIES.md` — P1/P2 sections added; L-2 + M-3 marked complete; GA4 items updated; MT-6 table restructured; UX prereqs updated
+
+**Priority 1 — Clarification needed before work can proceed:**
+1. **P1-A:** Movement A/B Win Rate — code exists (handler + UI Win % column); is it showing live data or `—`?
+2. **P1-B:** Leaderboard API (UX-8) — handler does not exist; format decision needed: per-row player records vs aggregate top-N
+3. **P1-C:** `menu_view` not firing in Xenon_3 — intentional removal or gap?
+
+**Priority 2 — Outstanding backlog (see PRIORITIES.md P2 list)**
+
+**Next step:** User to answer P1 questions, then proceed with P2 tasks in preferred order.
 
 ---
 

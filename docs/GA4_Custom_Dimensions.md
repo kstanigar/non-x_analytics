@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all GA4 custom dimensions registered in the NON-X analytics property. Cross-reference when building API queries, parsing Lambda responses, or debugging `(not set)` values.
 
-**Last Updated:** June 29, 2026 (Session 20 — all 17 events documented via BigQuery historical query)
+**Last Updated:** June 30, 2026 (Session 21 — outcome values confirmed from Xenon_3 source; menu_view gap documented)
 
 **Total dimensions:** 31 (all Event-scoped)
 
@@ -141,7 +141,7 @@ Two captures combined (fresh start + play_again replay) for full parameter list.
 | `platform` | `desktop` / `mobile` | Platform | Custom | ✅ Sending |
 | `referrer` | `direct` | — | Custom (unregistered) | ⚠️ Sending but NOT registered as a custom dimension — value `direct` confirmed |
 
-**Note:** `referrer` parameter is firing but has no corresponding registered GA4 custom dimension. Currently unqueryable via API.
+**Note:** `referrer` parameter is documented here, but a June 30, 2026 audit of Xenon_3 source found NO `fireEvent('menu_view')` call in game.html or game_mobile.html. The event may have been seen in DebugView from a now-removed code path. This is a Xenon_3 gap — the event is not currently being fired. `referrer` registration is moot until the event itself is restored.
 
 ---
 
@@ -256,7 +256,7 @@ Fires on every game end (death or win). `outcome` parameter distinguishes win vs
 | `level_reached` | (integer) | Level Reached | Custom | ✅ Sending |
 | `movement_group` | (string) | Movement Group | Custom | ✅ Sending |
 | `music_variant` | `on` / `off` | Music Variant | Custom | ✅ Sending |
-| `outcome` | (string, e.g. `win`/`loss`) | — | Custom (unregistered) | ⚠️ Sending but NOT registered as a custom dimension — unqueryable via API |
+| `outcome` | `victory` / `abandoned` / `death` | — | Custom (unregistered) | ⚠️ Sending but NOT registered as a custom dimension — unqueryable via API. Values confirmed from Xenon_3 source (June 30, 2026) |
 | `page_location` | (URL) | — | GA4 auto | GA4 auto-collected |
 | `page_referrer` | (URL) | — | GA4 auto | GA4 auto-collected |
 | `page_title` | (string) | — | GA4 auto | GA4 auto-collected |

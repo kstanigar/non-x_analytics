@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 29, 2026 (Session 20 — GA4-DOC 17/17 complete)
+**Last Updated:** June 30, 2026 (Session 21 — full codebase audit; P1/P2 restructure)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -11,6 +11,53 @@
 ---
 
 ## 🎯 PENDING TASKS
+
+---
+
+### 🔴 PRIORITY 1 — Clarification Needed Before Work Can Proceed
+
+*June 30, 2026 audit revealed 3 items where the correct path forward is unclear.*
+
+| # | Item | Question | Impact |
+|---|------|----------|--------|
+| P1-A | **Movement A/B Win Rate** | API handler + Win % UI column already exist (`api/index.js:325`, `live.html:5578`). Is the Win % column showing live data on the dashboard, or is it returning `—`? If live → only the mock badge in Data Dictionary needs removing. If not live → debug the handler. | Could close MT-6 #1 immediately |
+| P1-B | **Leaderboard API (UX-8)** | No handler exists in Lambda — the QA plan note "already exists" is outdated. What should it return: (A) per-row player records (name, score, rank, date) or (B) aggregate top-N summary? Determines scope of build. | Blocks UX-8 entirely |
+| P1-C | **`menu_view` not firing in Xenon_3** | No `fireEvent('menu_view')` call found in game.html or game_mobile.html. Was this event removed intentionally, or is it a Xenon_3 bug? `referrer` param registration is moot until resolved. | Affects GA4 traffic-source tracking |
+
+---
+
+### 🟡 PRIORITY 2 — Outstanding Tasks (Backlog)
+
+*All items below are unblocked or waiting on P1 clarification only where noted.*
+
+**Security:**
+- L-1: Google Fonts `@import` → `<link>` tag (`live.html:35`)
+- JS extraction to `dashboard.js` (blocked by L-1 completion first)
+- CSP drop `'unsafe-inline'` (blocked by JS extraction)
+- Cloudflare proxy / M-5 `frame-ancestors`
+- H-4: AWS WAF (post-launch trigger: bot patterns in CloudWatch)
+
+**GA4 Admin:**
+- Register `outcome` custom dimension in GA4 Admin → values: `victory` / `abandoned` / `death`
+
+**BigQuery / MT-6:**
+- MT-6 #1: Movement A/B Win Rate — pending P1-A clarification
+- MT-6 #2: Tier Delta
+- MT-6 #3: Sessions per User
+- MT-6 #4: Win Rate by Starting Tier
+- MT-6 #5: AI Adjustment Distribution
+- MT-6 #6: Exact Funnel Completion
+- MT-6 #7: Player Engagement Span
+- MT-6 #8: User Cohort Retention
+
+**Dashboard UX:**
+- UX-6: Distinct Players KPI (BigQuery handler + tile)
+- UX-7: Player Performance page (unblocked — `user_pseudo_id` confirmed available)
+- UX-8: Leaderboard tab (pending P1-B format decision)
+- Tier Performance Metrics: `DATA.aiAgent.tierMetrics` never populated — decision needed: BigQuery handler vs CSV approach
+
+**Xenon_3:**
+- Investigate `menu_view` not firing (pending P1-C clarification)
 
 ---
 
@@ -58,8 +105,14 @@
   - ✅ API Gateway prod stage description updated — June 28, 2026
 - **M-4 ✅ COMPLETE** — `function.zip` already untracked; `git ls-files` returns empty — verified June 28, 2026
 - **H-4 ⏸️ DEFERRED POST-LAUNCH** — AWS WAF plan fully documented in `docs/Security_Audit_P5.md`; risk accepted at current traffic volume (~39 req/day); revisit after affiliate blog drives real traffic — June 29, 2026
-- **Post-launch:** H-4 WAF, JS extraction to `dashboard.js` + full CSP, Cloudflare headers, M-3/L-1/L-2
-- **Last Updated:** June 29, 2026 (Session 19 — H-4 deferred post-launch)
+- **Post-launch security backlog (June 30, 2026 audit status):**
+  - **L-1:** Google Fonts still `@import` at `live.html:35` → ❌ P2 — needs `<link>` tag
+  - **L-2:** `@google-analytics/data` pinned to `"6.1.0"` (exact) → ✅ DONE
+  - **M-3:** Both GitHub Actions workflows have explicit `permissions: contents: write` blocks → ✅ ADDRESSED (no further tightening identified as needed)
+  - **JS extraction to `dashboard.js`:** File does not exist; ~3,365 lines inline → ❌ P2 (large effort; blocked by L-1 first)
+  - **CSP drop `unsafe-inline`:** `script-src 'self' 'unsafe-inline'` still present → ❌ P2 (blocked by JS extraction)
+  - **Cloudflare proxy / `frame-ancestors` (M-5):** Not started → ❌ P2
+- **Last Updated:** June 30, 2026 (Session 21 — L-2 + M-3 confirmed done; remaining items status updated)
 
 ---
 
@@ -68,11 +121,12 @@
 - **Full doc:** `docs/GA4_Custom_Dimensions.md`
 - **Completed (17):** `player_death`, `game_start`, `game_complete`, `menu_view`, `play_clicked`, `session_start`, `first_visit`, `returning_user`, `wave_reached`, `boss_attempt`, `boss_defeated`, `powerup_collected`, `ai_difficulty_adjusted`, `leave_game`, `play_again`, `player_won`, `survey_submitted`
 - **`player_won` + `survey_submitted` documented via BigQuery historical query — June 29, 2026 ✅**
+- **`Xenon_3/docs/GA4_Event_Schema.md` — ✅ ALREADY EXISTS** (confirmed June 30, 2026 — no action needed)
 - **Action items from documentation:**
-  - `outcome` on `game_complete` — unregistered, register in GA4 Admin to enable win/loss rate queries
-  - `referrer` on `menu_view` — unregistered, could track traffic source
+  - `outcome` on `game_complete` — confirmed sending values `victory` / `abandoned` / `death` (June 30, 2026 Xenon_3 audit); still needs GA4 Admin registration to be queryable via API → **P2 task**
+  - `referrer` on `menu_view` — ⚠️ MOOT: `menu_view` event not found in Xenon_3 source (no `fireEvent('menu_view')` call in game.html or game_mobile.html) → **P1 clarification needed** (Xenon_3 gap or intentional?)
   - `user_engagement` + `scroll` — GA4 auto events available for Avg Session Duration + scroll depth metrics today
-- **Xenon_3:** Recommend creating `Xenon_3/docs/GA4_Event_Schema.md` — game-dev focused reference
+- **`instagram_provided` + `rank` on `survey_submitted` — ✅ CONFIRMED NOT PRESENT** (code confirmed: only sent on `leaderboard_submit`, not `survey_submitted`; BigQuery findings correct)
 
 ---
 
@@ -89,9 +143,9 @@
 6. **UX-3b: Remove individual card hover tooltips** ✅ — `2187025`, live
 7. **UX-5: Simplify Data Dictionary** ✅ — `dc40d80`, live
 
-**Open questions before UX-8/UX-7:**
-- Confirm leaderboard API returns per-row data (needed for UX-8)
-- Verify `user_pseudo_id` captured on `player_won` in BigQuery (needed for UX-7)
+**Prerequisites status (June 30, 2026 audit):**
+- `user_pseudo_id` on `player_won` — ✅ CONFIRMED available (`api/index.js:454` tier-score query already selects it) — UX-7 unblocked
+- Leaderboard API for UX-8 — ⚠️ DOES NOT EXIST: no handler in `api/index.js`; QA plan note "already exists in Lambda" is outdated — needs to be built from scratch; format decision needed → **P1 clarification needed**
 
 ---
 
@@ -107,17 +161,21 @@
 ### MT-6: BigQuery Future Metrics — BACKLOG
 
 - **Full plan:** `docs/BigQuery_Future_Metrics.md`
-- **Priority order (when revisited):**
-  1. **Movement A/B Win Rate** — join `movement_group` from `game_start` to `player_won` via `ga_session_id`; unlocks empty Win Rate column in A/B tab; low effort
-  2. **Tier Delta** — `avg(final_tier - start_tier)` per session; low effort
-  3. **Sessions per User** — `COUNT(DISTINCT ga_session_id) per user_pseudo_id`; single KPI tile
-  4. **Win Rate by Starting Tier** — join `player_won` with first `ai_difficulty_adjusted` per session
-  5. **AI Adjustment Distribution** — histogram of adjustment count per session
-  6. **Exact Funnel Completion** — session-deduped funnel rates
-  7. **Player Engagement Span** — days between first + last session per user
-  8. **User Cohort Retention** — week-over-week retention curve; largest effort, highest strategic value
 - **Dataset:** `analytics_525680032` | **Cache:** 24h TTL | **Cap:** 500MB maxBytesBilled
 - **Dependencies:** None — BigQuery integration is already live ✅
+
+**June 30, 2026 audit findings:**
+
+| # | Metric | Status | Notes |
+|---|--------|--------|-------|
+| 1 | Movement A/B Win Rate | ⚠️ P1 CLARIFY | API handler + UI Win % column exist (`api/index.js:325`, `live.html:5578`); Data Dict still shows mock badge — need to verify if live data populates |
+| 2 | Tier Delta | ❌ P2 | Not implemented; avg/final tier exist separately |
+| 3 | Sessions per User | ❌ P2 | Not implemented |
+| 4 | Win Rate by Starting Tier | ❌ P2 | Not implemented |
+| 5 | AI Adjustment Distribution | ❌ P2 | Not implemented |
+| 6 | Exact Funnel Completion | ❌ P2 | Not implemented |
+| 7 | Player Engagement Span | ❌ P2 | Not implemented |
+| 8 | User Cohort Retention | ❌ P2 | Not implemented; highest value, most effort |
 
 ---
 
