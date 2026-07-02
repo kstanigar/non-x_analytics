@@ -2,7 +2,7 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** July 2, 2026 (Session 22 — XEN-1 research complete; COPPA/GDPR/CCPA findings documented; plan created)
+**Last Updated:** July 2, 2026 (Session 22 — XEN-1 plan complete; GDPR verified; 16 changes documented; ready to implement)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
@@ -10,9 +10,65 @@
 
 ---
 
+## July 2, 2026 — XEN-1 Plan Complete (Session 22)
+
+**Status:** 🟢 PLAN COMPLETE — Ready to implement in Xenon_3 repo
+
+### All Decisions Confirmed
+
+| Decision | Answer |
+|----------|--------|
+| Consent UI | Expand existing cookie consent banner |
+| Banner design | 3 independent checkboxes (analytics, leaderboard, age) + Confirm button |
+| Bundled consent fix | Each purpose independently opt-in/out — no coercion |
+| Existing 27 entries | PURGE from Firestore console before launch |
+| Server-side consent log | Write to Firestore `consent_log` collection on Confirm |
+| Analytics toggle | Doesn't exist in code — remove reference from Xenon_3 `privacy.html` Section 3 |
+| Retention | Indefinite |
+| Erasure contact | Xenon_3 `/contact.html` (FormSubmit.co) — copy to non-x_analytics |
+
+### GDPR/COPPA/CCPA Verification (Haiku Agent — web search)
+
+- ✅ 30-day erasure response — compliant per GDPR Article 17
+- ✅ Age checkbox (self-certification) — acceptable for small publisher under FTC Feb 2026 policy
+- ✅ Separate consent per purpose — fixes GDPR Article 7(4) bundled consent violation
+- ✅ Leaderboard checkbox only gates leaderboard — not coercive (fixes Criteo-pattern violation)
+- ✅ Firestore consent_log — satisfies GDPR Article 30 record-keeping
+- ✅ Purge 27 entries — resolves grandfathering gap
+
+### 16 Changes Across 3 Repos
+
+**Full plan:** `docs/XEN-1_Privacy_Disclosure_Plan.md`
+
+| # | File | Repo |
+|---|------|------|
+| 1 | `game.html:657–663` — banner HTML | Xenon_3 |
+| 2 | `game.html:740–766` — banner JS + Firestore consent log | Xenon_3 |
+| 3 | `game_mobile.html:613–619` — banner HTML | Xenon_3 |
+| 4 | `game_mobile.html:696–722` — banner JS | Xenon_3 |
+| 5 | `game.html:1408–1409` — consent check in submitToLeaderboard() | Xenon_3 |
+| 6 | `game.html:1426–1432` — add public_consent: true to scoreData | Xenon_3 |
+| 7a | `game_mobile.html:1353–1354` — consent check | Xenon_3 |
+| 7b | `game_mobile.html:1369–1375` — public_consent: true | Xenon_3 |
+| 7c | Firestore console — purge 27 leaderboard entries | Firebase |
+| 8 | `terms.html:158` — fix dashboard description | Xenon_3 |
+| 9 | `privacy.html:153` — fix dashboard description | Xenon_3 |
+| 10 | `privacy.html:139–140` — expand Section 4 | Xenon_3 |
+| 10b | `privacy.html:136–149` — replace analytics toggle section | Xenon_3 |
+| 11 | `contact.html` — new file | non-x_analytics |
+| 12 | `privacy.html:89` — fix no-PII statement | non-x_analytics |
+| 13 | `privacy.html` — add leaderboard section | non-x_analytics |
+| 14 | `privacy.html:109` — update contact reference | non-x_analytics |
+
+### Next Step
+
+Implement starting in Xenon_3 repo — Changes 1–10b first, then non-x_analytics Changes 11–14.
+
+---
+
 ## July 2, 2026 — XEN-1 Privacy Research (Session 22)
 
-**Status:** 🔴 PLAN READY — Awaiting user decisions before implementation
+**Status:** ✅ Superseded by plan above
 
 ### Research Findings (Haiku Agent)
 

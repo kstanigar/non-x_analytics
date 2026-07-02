@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 30, 2026 (Session 21 cont. — UX-10 shelved; XEN-1 Xenon_3 terms/privacy update added as legal requirement)
+**Last Updated:** July 2, 2026 (Session 22 — XEN-1 plan complete; GDPR verified; priority order updated)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -14,21 +14,34 @@
 
 ---
 
-### 🔴 NEXT PRIORITY — ISSUE-010: Firebase API Key Security
+### 🔴 NEXT PRIORITY — XEN-1: Leaderboard Privacy Disclosure
+
+**Plan complete** — `docs/XEN-1_Privacy_Disclosure_Plan.md` — 16 changes, GDPR/COPPA/CCPA verified
+
+**Implementation order:**
+1. Firebase console — purge 27 existing leaderboard entries (pre-launch manual task)
+2. Xenon_3 repo — Changes 1–10b (banner redesign, submitToLeaderboard, terms, privacy)
+3. non-x_analytics repo — Changes 11–14 (contact.html, privacy.html updates)
+
+**Key decisions confirmed:**
+- Banner: 3 independent checkboxes (analytics, leaderboard, age) + Confirm button
+- Consent logged to Firestore `consent_log` collection (GDPR Article 30)
+- Existing 27 entries purged (no grandfathering)
+- Analytics toggle section removed from Xenon_3 privacy.html (feature never existed in code)
+
+---
+
+### 🔴 PRIORITY 2 — ISSUE-010: Firebase API Key Security
 
 **ISSUE-010** — `live.html:3088` — Firebase `apiKey` exposed in public git repo (commit `5f624efc`)
 
 **Risk:** Firestore rules may allow unrestricted writes — anyone with the key could corrupt the leaderboard.
 
-**Plan (next session):**
+**Plan (next session after XEN-1):**
 1. Haiku agent researches exact steps for Google Cloud Console API key restriction + Firestore rules syntax
 2. Implement Option 1: Restrict API key to `kstanigar.github.io/*` + `nonx.standingtiger.com/*` (Google Cloud Console)
 3. Implement Option 2: Tighten Firestore rules — public reads, restricted writes (Firebase Console)
 4. Dismiss GitHub Secret Scanning alert
-
-**Also required before player data linking (UX-10):** Firestore rules must be locked before any expansion of data access.
-
-**⚠️ ALSO NEEDED THIS SESSION:** Xenon_3 terms/privacy update — leaderboard data now displays on public analytics dashboard; players were not disclosed this at point of collection. See Xenon_3 task XEN-1 below.
 
 **Full details:** `docs/Issues_And_Bugs.md` — ISSUE-010
 
@@ -81,13 +94,7 @@
 - Tier Performance Metrics: `DATA.aiAgent.tierMetrics` never populated — decision needed: BigQuery handler vs CSV approach
 
 **Xenon_3:**
-- XEN-1: Update terms/privacy in Xenon_3 — disclose leaderboard data on public analytics dashboard. **Full plan:** `docs/XEN-1_Privacy_Disclosure_Plan.md`
-  - 🔴 Age gate (COPPA — April 2026 deadline passed; highest risk)
-  - 🔴 Opt-in checkbox at leaderboard submit (GDPR — explicit consent required)
-  - 🔴 Disclosure text at leaderboard submit (GDPR Article 13)
-  - 🔴 Xenon_3 Privacy Policy update
-  - 🟡 NON-X Analytics `privacy.html` update
-  - **User decisions needed before implementation** — see plan doc open questions
+- XEN-1: ✅ PLAN COMPLETE — implement next. **Full plan:** `docs/XEN-1_Privacy_Disclosure_Plan.md` — 16 changes, GDPR/COPPA/CCPA verified — July 2, 2026
 - Investigate `menu_view` not firing (P1-C closed — no action needed; see GA4_Custom_Dimensions.md)
 
 ---
