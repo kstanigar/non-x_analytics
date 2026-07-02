@@ -1,6 +1,6 @@
 # XEN-1 — Xenon_3 Leaderboard Privacy Disclosure Plan
 
-**Purpose:** Plan for updating Xenon_3 terms/privacy to legally disclose that leaderboard submissions appear on the public NON-X Analytics dashboard, and adding age gate + consent UI at point of submission.
+**Purpose:** Plan for updating Xenon_3 terms/privacy to legally disclose that leaderboard submissions appear on the public NON-X Analytics dashboard, and adding age gate + consent via the existing cookie consent banner.
 
 **Created:** July 2, 2026 (Session 22)
 **Status:** 🟡 PLAN READY — All decisions confirmed; ready to implement
@@ -14,22 +14,15 @@
 
 ### Critical Finding: COPPA
 
-**No age gate = assume all users are under 13.** FTC COPPA April 22, 2026 enforcement policy requires verifiable parental consent before any third-party disclosure for users under 13. Without an age gate, the game cannot legally collect or publicly display PII (instagram handle) for any user. **COPPA April 22, 2026 deadline has passed — this is an active compliance gap.**
+**No age gate = assume all users are under 13.** FTC COPPA April 22, 2026 enforcement policy requires verifiable parental consent before any third-party disclosure for users under 13. **COPPA April 22, 2026 deadline has passed — active compliance gap.**
 
 ### GDPR Article 13
 
-At point of data collection, must disclose:
-- Identity of data controller (Standing Tiger)
-- Specific purposes — including analytics dashboard display
-- Lawful basis — explicit consent required for analytics display
-- Recipients — analytics platform, CDN
-- Retention period
-
-**Notice-only is non-compliant.** GDPR explicitly rejects pre-ticked boxes or passive acceptance.
+Explicit opt-in required at point of collection. Notice-only is non-compliant. Consent must cover analytics dashboard display specifically.
 
 ### CCPA (Jan 2026) + PIPEDA
 
-Require explicit notice that submitted data will be disclosed publicly and to third-party platforms. Must appear in Privacy Policy.
+Explicit notice required in Privacy Policy that submitted data is disclosed publicly and to third-party platforms.
 
 ---
 
@@ -37,81 +30,71 @@ Require explicit notice that submitted data will be disclosed publicly and to th
 
 | Decision | Answer |
 |----------|--------|
-| Age gate UI | ✅ Radio buttons |
+| Consent UI location | ✅ Expand existing cookie consent banner — not leaderboard submit UI |
+| Age gate style | ✅ Checkbox in banner ("I confirm I am 13 or older") |
 | Existing 27 entries | ✅ Grandfather in — apply consent to new submissions only |
-| Retention period | ✅ Indefinite (matches existing Xenon_3 privacy.html:166) |
-| Erasure contact | ✅ Xenon_3 `/contact.html` form (FormSubmit.co) — copy to non-x_analytics |
+| Retention period | ✅ Indefinite |
+| Erasure contact | ✅ Xenon_3 `/contact.html` form — copy to non-x_analytics |
 
 ---
 
 ## Xenon_3 Research Findings (Haiku Agent — July 2, 2026)
 
+### Cookie Consent Banner
+
+**game.html HTML:** lines 657–663
+**game.html JS:** lines 740–766
+**game_mobile.html HTML:** lines 613–619
+**game_mobile.html JS:** lines 696–722
+
+Current banner text: *"This game uses analytics cookies to track gameplay."*
+Current localStorage key: `nonx_consent` — values: `'granted'` | `'denied'`
+
+**Important:** No separate analytics toggle UI exists in the code (Xenon_3 privacy.html references one but it is not implemented in `game.html` or `game_mobile.html`).
+
+### submitToLeaderboard() Function
+
+**game.html:** lines 1408–1466
+**game_mobile.html:** lines 1353–1406
+
+`scoreData` object (where `public_consent` field must be added):
+- `game.html:` ~lines 1432–1437
+- `game_mobile.html:` ~lines 1372–1377
+
 ### Contact Form (`/contact.html`) — 243 lines
 
-Xenon_3 already has a full dark-themed contact form using **FormSubmit.co AJAX**:
-- Endpoint: `https://formsubmit.co/ajax/45e055cecae307ffc412306a96dd1ff3`
-- Fields: Name, Email, Reason (dropdown), Message
-- Reason dropdown already includes: `Bug Report`, `Privacy Request`, `General`
-- On success: hides form, shows confirmation panel
-- Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`
+FormSubmit.co AJAX endpoint: `https://formsubmit.co/ajax/45e055cecae307ffc412306a96dd1ff3`
+Already has "Privacy Request" option in reason dropdown.
+Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`.
 
-**Decision:** Copy this form (same endpoint, same FormSubmit hash) to `non-x_analytics/contact.html` with dashboard dark theme styling. Update non-x_analytics `privacy.html:109` to link to it.
+### All localStorage Keys (existing)
 
-### Existing Disclosures That Need Updating
+| Key | Values | Purpose |
+|-----|--------|---------|
+| `nonx_consent` | `'granted'` \| `'denied'` | Cookie/analytics consent |
+| `nonx_player_id` | UUID | Unique player ID |
+| `nonx_ab_music_group` | `'A'` \| `'B'` | Music A/B group |
+| `nonex_music` | `'on'` \| `'off'` | Music preference |
+| `nonex_movement` | string | Movement preference |
+| `nonx_ig_handle` | string | Saved instagram handle |
+| `nonx_submitted_score` | numeric string | Last submitted score |
+| `nonx_has_visited` | `'true'` | First visit flag |
+| `nonx_visit_count` | numeric string | Visit count |
 
-Two places in Xenon_3 currently say the analytics dashboard "does not identify individual players" — this is no longer accurate since the leaderboard tab was added:
+**New keys added by XEN-1:**
 
-- **`Xenon_3/terms.html:158`** — "does not identify individual players"
-- **`Xenon_3/privacy.html:153`** — "does not display individual player records or identify specific users"
-
-Both must be updated to acknowledge that leaderboard data (instagram handle, score, platform, movement group) IS displayed on the dashboard.
-
-### Leaderboard Submit UI Locations
-
-| File | Screen | Lines |
-|------|--------|-------|
-| `game.html` | Victory screen | 5998–6002 |
-| `game.html` | Game over screen | 6295–6299 |
-| `game_mobile.html` | Victory screen | 6625–6629 |
-| `game_mobile.html` | Game over screen | 6883–6889 |
+| Key | Values | Purpose |
+|-----|--------|---------|
+| `nonx_lb_consent` | `'granted'` \| `'denied'` | Leaderboard public display consent |
+| `nonx_age_consent` | `'granted'` | Age confirmation (13+) |
 
 ---
 
-## Full Submission Form Flow (Approved Design)
+## Implementation Approach
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Before you submit your score:                      │
-│                                                     │
-│  ○ I am 13 years of age or older                   │
-│  ○ I am under 13                                    │
-│                                                     │
-│  ─────────────────────────────────────────────────  │
-│  Instagram handle (optional):  [ @           ]      │
-│                                                     │
-│  ☐ I understand my handle and score will be        │
-│    publicly displayed on the NON-X analytics        │
-│    dashboard. See Privacy Policy.                   │
-│                                                     │
-│  [SUBMIT SCORE]  ← disabled until 13+ selected     │
-│                    + checkbox checked               │
-└─────────────────────────────────────────────────────┘
-```
+**Strategy:** Extend the existing cookie consent banner to cover age confirmation and leaderboard disclosure in one step. No changes to the leaderboard submit UI (4 locations untouched). Consent is collected once at banner, stored in localStorage, checked in `submitToLeaderboard()`.
 
-If "under 13" selected:
-```
-┌─────────────────────────────────────────────────────┐
-│  The leaderboard is for players aged 13 and older.  │
-│  Your score has not been submitted.                 │
-└─────────────────────────────────────────────────────┘
-```
-
-**Rules:**
-- Age radio buttons appear first; submit form hidden until 13+ selected
-- If under 13 → form hides permanently, block message shown, no retry
-- Consent checkbox not pre-checked; submit disabled until checked
-- Age response NOT stored in Firestore
-- `public_consent: true` stored in Firestore on submit
+**Re-consent trigger:** Existing users have `nonx_consent` set but `nonx_lb_consent` not set. Banner must re-appear for them. Logic: show banner if `nonx_lb_consent` is missing, regardless of `nonx_consent` state.
 
 ---
 
@@ -119,130 +102,184 @@ If "under 13" selected:
 
 ---
 
-### CHANGE 1: `Xenon_3/game.html:5998–6002` — Victory Screen
+### CHANGE 1: `Xenon_3/game.html:657–663` — Update Banner HTML
+
+**Current code:**
+```html
+<div id="consentBanner" style="position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;color:#ccc;padding:14px 20px;z-index:99999;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-family:monospace;border-top:1px solid #00FFFF;">
+  <span>This game uses analytics cookies to track gameplay. <a href="/privacy.html" style="color:#00FFFF;">Privacy Policy</a></span>
+  <div style="display:flex;gap:8px;flex-shrink:0;">
+    <button id="declineConsent" style="padding:6px 16px;background:transparent;color:#888;border:1px solid #444;border-radius:4px;cursor:pointer;font-family:monospace;">Decline</button>
+    <button id="acceptConsent" style="padding:6px 16px;background:#00FFFF;color:#000;border:none;border-radius:4px;cursor:pointer;font-weight:bold;font-family:monospace;">Accept</button>
+  </div>
+</div>
+```
+
+**Replace with:**
+```html
+<div id="consentBanner" style="position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;color:#ccc;padding:16px 20px;z-index:99999;font-size:13px;font-family:monospace;border-top:1px solid #00FFFF;">
+  <div style="max-width:700px;margin:0 auto;">
+    <div style="margin-bottom:10px;">This game uses analytics to improve gameplay. Leaderboard entries (display name, score, platform) are shown publicly on the <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" style="color:#00FFFF;">NON-X Analytics Dashboard</a>. <a href="/privacy.html" style="color:#00FFFF;">Privacy Policy</a></div>
+    <label style="display:block;margin-bottom:12px;cursor:pointer;">
+      <input type="checkbox" id="ageConfirm" style="margin-right:6px;">
+      I confirm I am 13 years of age or older
+    </label>
+    <div style="display:flex;gap:8px;">
+      <button id="declineConsent" style="padding:6px 16px;background:transparent;color:#888;border:1px solid #444;border-radius:4px;cursor:pointer;font-family:monospace;">Decline</button>
+      <button id="acceptConsent" disabled style="padding:6px 16px;background:#00FFFF;color:#000;border:none;border-radius:4px;cursor:pointer;font-weight:bold;font-family:monospace;opacity:0.4;">Accept</button>
+    </div>
+  </div>
+</div>
+```
+
+---
+
+### CHANGE 2: `Xenon_3/game.html:740–766` — Update Banner JS
 
 **Current code:**
 ```javascript
-html += "<div id='leaderboardSubmit' style='margin-bottom: 20px; text-align: center;'>";
-html += "<div style='font-size: 16px; margin-bottom: 8px;'>Submit to Global Leaderboard:</div>";
-html += "<input type='text' id='igInput' placeholder='Instagram handle (optional)' value='" + escapeAttr(savedHandle) + "' style='padding: 8px; font-size: 14px; width: 200px; border-radius: 4px; border: none; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;'><br>";
-html += "<button onclick='submitToLeaderboard()' style='padding: 8px 16px; font-size: 14px; border-radius: 4px; border: none; background: #00FFFF; color: #000; cursor: pointer; font-weight: bold;'>Submit Score</button>";
-html += "</div>";
+(function() {
+  var banner = document.getElementById('consentBanner');
+  if (!banner) return;
+  if (localStorage.getItem('nonx_consent') === 'granted') {
+    banner.style.display = 'none';
+    gtag('consent', 'update', { 'analytics_storage': 'granted' });
+    return;
+  }
+  if (localStorage.getItem('nonx_consent') === 'denied') {
+    banner.style.display = 'none';
+    return;
+  }
+  document.getElementById('acceptConsent').addEventListener('click', function() {
+    localStorage.setItem('nonx_consent', 'granted');
+    gtag('consent', 'update', {
+      'analytics_storage': 'granted',
+      'ad_storage': 'granted',
+      'ad_user_data': 'granted',
+      'ad_personalization': 'granted'
+    });
+    banner.style.display = 'none';
+  });
+  document.getElementById('declineConsent').addEventListener('click', function() {
+    localStorage.setItem('nonx_consent', 'denied');
+    banner.style.display = 'none';
+  });
+})();
 ```
 
 **Replace with:**
 ```javascript
-html += "<div id='leaderboardSubmit' style='margin-bottom: 20px; text-align: center;'>";
-html += "<div style='font-size: 16px; margin-bottom: 12px;'>Submit to Global Leaderboard:</div>";
-html += "<div style='margin-bottom: 10px; font-size: 13px; color: rgba(255,255,255,0.7); text-align: left; max-width: 260px; margin-left: auto; margin-right: auto;'>Before submitting:</div>";
-html += "<label style='display: block; margin-bottom: 6px; font-size: 13px; cursor: pointer; text-align: left; max-width: 260px; margin-left: auto; margin-right: auto;'><input type='radio' name='ageGate' value='13plus' onchange='document.getElementById(\"lbForm\").style.display=\"block\"; document.getElementById(\"lbUnder13\").style.display=\"none\"'> I am 13 years of age or older</label>";
-html += "<label style='display: block; margin-bottom: 12px; font-size: 13px; cursor: pointer; text-align: left; max-width: 260px; margin-left: auto; margin-right: auto;'><input type='radio' name='ageGate' value='under13' onchange='document.getElementById(\"lbForm\").style.display=\"none\"; document.getElementById(\"lbUnder13\").style.display=\"block\"'> I am under 13</label>";
-html += "<div id='lbUnder13' style='display: none; font-size: 13px; color: rgba(255,255,255,0.55); max-width: 260px; margin: 0 auto 8px;'>The leaderboard is for players aged 13 and older. Your score has not been submitted.</div>";
-html += "<div id='lbForm' style='display: none;'>";
-html += "<input type='text' id='igInput' placeholder='Instagram handle (optional)' value='" + escapeAttr(savedHandle) + "' style='padding: 8px; font-size: 14px; width: 200px; border-radius: 4px; border: none; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;'><br>";
-html += "<div style='font-size: 11px; color: rgba(255,255,255,0.45); max-width: 260px; margin: 0 auto 8px; text-align: left;'>Your handle and score will be publicly displayed on the <a href='https://kstanigar.github.io/non-x_analytics/' target='_blank' style='color:#00FFFF;'>NON-X analytics dashboard</a>. See <a href='/privacy.html' style='color:#00FFFF;'>Privacy Policy</a>.</div>";
-html += "<label style='display: block; font-size: 12px; cursor: pointer; max-width: 260px; margin: 0 auto 10px; text-align: left;'><input type='checkbox' id='lbConsent' onchange='document.getElementById(\"lbSubmitBtn\").disabled=!this.checked'> I understand my entry will be publicly displayed</label>";
-html += "<button id='lbSubmitBtn' onclick='submitToLeaderboard()' disabled style='padding: 8px 16px; font-size: 14px; border-radius: 4px; border: none; background: #00FFFF; color: #000; cursor: pointer; font-weight: bold;'>Submit Score</button>";
-html += "</div>";
-html += "</div>";
+(function() {
+  var banner = document.getElementById('consentBanner');
+  if (!banner) return;
+
+  // Hide banner only if BOTH analytics consent AND leaderboard consent already recorded
+  if (localStorage.getItem('nonx_lb_consent')) {
+    banner.style.display = 'none';
+    if (localStorage.getItem('nonx_consent') === 'granted') {
+      gtag('consent', 'update', { 'analytics_storage': 'granted' });
+    }
+    return;
+  }
+
+  // Age checkbox enables/disables Accept button
+  var ageBox = document.getElementById('ageConfirm');
+  var acceptBtn = document.getElementById('acceptConsent');
+  ageBox.addEventListener('change', function() {
+    acceptBtn.disabled = !ageBox.checked;
+    acceptBtn.style.opacity = ageBox.checked ? '1' : '0.4';
+  });
+
+  acceptBtn.addEventListener('click', function() {
+    localStorage.setItem('nonx_consent', 'granted');
+    localStorage.setItem('nonx_lb_consent', 'granted');
+    localStorage.setItem('nonx_age_consent', 'granted');
+    gtag('consent', 'update', {
+      'analytics_storage': 'granted',
+      'ad_storage': 'granted',
+      'ad_user_data': 'granted',
+      'ad_personalization': 'granted'
+    });
+    banner.style.display = 'none';
+  });
+
+  document.getElementById('declineConsent').addEventListener('click', function() {
+    localStorage.setItem('nonx_consent', 'denied');
+    localStorage.setItem('nonx_lb_consent', 'denied');
+    banner.style.display = 'none';
+  });
+})();
 ```
 
 ---
 
-### CHANGE 2: `Xenon_3/game.html:6295–6299` — Game Over Screen
+### CHANGE 3: `Xenon_3/game_mobile.html:613–619` — Update Banner HTML
 
-**Current code:**
+**Same replacement as Change 1.** Identical HTML, different line numbers.
+
+---
+
+### CHANGE 4: `Xenon_3/game_mobile.html:696–722` — Update Banner JS
+
+**Same replacement as Change 2.** Identical JS, different line numbers.
+
+---
+
+### CHANGE 5: `Xenon_3/game.html:1408` — Add consent check to `submitToLeaderboard()`
+
+**Add at the very top of the function (before line 1408 body begins):**
 ```javascript
-html += "<div id='leaderboardSubmit' style='margin-top: 18px; margin-bottom: 18px; text-align: center;'>";
-html += "<div style='font-size: 14px; color: #aaa; margin-bottom: 4px;'>Submit to Global Leaderboard:</div>";
-html += "<input type='text' id='igInput' placeholder='Player name or handle (optional)' value='" + escapeAttr(savedHandle) + "' style='padding: 6px; font-size: 13px; width: 190px; border-radius: 4px; border: none; display: block; margin-left: auto; margin-right: auto; margin-bottom: 12px;'>";
-html += "<button onclick='submitToLeaderboard()' style='padding: 8px 18px; font-size: 13px; border-radius: 4px; border: none; background: #00FFFF; color: #000; cursor: pointer; font-weight: bold;'>Submit Score</button>";
-html += "</div>";
+function submitToLeaderboard() {
+  // Block submission if leaderboard consent not granted
+  if (localStorage.getItem('nonx_lb_consent') !== 'granted') {
+    var submitArea = document.getElementById('leaderboardSubmit');
+    if (submitArea) {
+      submitArea.innerHTML = "<div style='font-size:13px;color:#aaa;text-align:center;padding:8px;'>Please accept the consent notice to submit scores.</div>";
+    }
+    return;
+  }
+
+  // ... rest of existing function unchanged ...
+```
+
+---
+
+### CHANGE 6: `Xenon_3/game.html:~1432–1437` — Add `public_consent` to `scoreData`
+
+**Current scoreData object:**
+```javascript
+var scoreData = {
+  score: score,
+  instagram: sanitized || 'Anonymous',
+  platform: 'desktop',
+  movement_group: movementABGroup,
+  player_id: PLAYER_ID
+};
 ```
 
 **Replace with:**
 ```javascript
-html += "<div id='leaderboardSubmit' style='margin-top: 18px; margin-bottom: 18px; text-align: center;'>";
-html += "<div style='font-size: 14px; color: #aaa; margin-bottom: 10px;'>Submit to Global Leaderboard:</div>";
-html += "<label style='display: block; margin-bottom: 6px; font-size: 12px; cursor: pointer; text-align: left; max-width: 240px; margin-left: auto; margin-right: auto;'><input type='radio' name='ageGate' value='13plus' onchange='document.getElementById(\"lbForm\").style.display=\"block\"; document.getElementById(\"lbUnder13\").style.display=\"none\"'> I am 13 years of age or older</label>";
-html += "<label style='display: block; margin-bottom: 10px; font-size: 12px; cursor: pointer; text-align: left; max-width: 240px; margin-left: auto; margin-right: auto;'><input type='radio' name='ageGate' value='under13' onchange='document.getElementById(\"lbForm\").style.display=\"none\"; document.getElementById(\"lbUnder13\").style.display=\"block\"'> I am under 13</label>";
-html += "<div id='lbUnder13' style='display: none; font-size: 12px; color: rgba(255,255,255,0.55); max-width: 240px; margin: 0 auto 8px;'>The leaderboard is for players aged 13 and older. Your score has not been submitted.</div>";
-html += "<div id='lbForm' style='display: none;'>";
-html += "<input type='text' id='igInput' placeholder='Player name or handle (optional)' value='" + escapeAttr(savedHandle) + "' style='padding: 6px; font-size: 13px; width: 190px; border-radius: 4px; border: none; display: block; margin-left: auto; margin-right: auto; margin-bottom: 8px;'>";
-html += "<div style='font-size: 11px; color: rgba(255,255,255,0.45); max-width: 240px; margin: 0 auto 8px; text-align: left;'>Your handle and score will be publicly displayed on the <a href='https://kstanigar.github.io/non-x_analytics/' target='_blank' style='color:#00FFFF;'>NON-X analytics dashboard</a>. See <a href='/privacy.html' style='color:#00FFFF;'>Privacy Policy</a>.</div>";
-html += "<label style='display: block; font-size: 11px; cursor: pointer; max-width: 240px; margin: 0 auto 10px; text-align: left;'><input type='checkbox' id='lbConsent' onchange='document.getElementById(\"lbSubmitBtn\").disabled=!this.checked'> I understand my entry will be publicly displayed</label>";
-html += "<button id='lbSubmitBtn' onclick='submitToLeaderboard()' disabled style='padding: 8px 18px; font-size: 13px; border-radius: 4px; border: none; background: #00FFFF; color: #000; cursor: pointer; font-weight: bold;'>Submit Score</button>";
-html += "</div>";
-html += "</div>";
+var scoreData = {
+  score: score,
+  instagram: sanitized || 'Anonymous',
+  platform: 'desktop',
+  movement_group: movementABGroup,
+  player_id: PLAYER_ID,
+  public_consent: true
+};
 ```
 
 ---
 
-### CHANGE 3: `Xenon_3/game_mobile.html:6625–6629` — Victory Screen
+### CHANGE 7: `Xenon_3/game_mobile.html:1353` + `~1372` — Mirror Changes 5 + 6
 
-**Current code:**
-```javascript
-html += "<div id='leaderboardSubmit' style='margin-bottom: 20px; text-align: center;'>";
-html += "<div style='font-size: 16px; margin-bottom: 8px;'>Submit to Global Leaderboard:</div>";
-html += "<input type='text' id='igInput' placeholder='Instagram handle (optional)' value='" + escapeAttr(savedHandle) + "' style='padding: 8px; font-size: 14px; width: 200px; border-radius: 4px; border: none; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;'><br>";
-html += "<button onclick='submitToLeaderboard()' style='padding: 8px 16px; font-size: 14px; border-radius: 4px; border: none; background: #00FFFF; color: #000; cursor: pointer; font-weight: bold;'>Submit Score</button>";
-html += "</div>";
-```
-
-**Replace with:** Same as Change 1 code above (identical UI, same line structure).
+Same consent check at top of `submitToLeaderboard()` (line 1353) and `public_consent: true` added to `scoreData` (~line 1372, where `platform: 'mobile'`).
 
 ---
 
-### CHANGE 4: `Xenon_3/game_mobile.html:6883–6889` — Game Over Screen
+### CHANGE 8: `Xenon_3/terms.html:158` — Fix Inaccurate Dashboard Description
 
-**Current code:**
-```javascript
-html += "<div id='leaderboardSubmit' style='margin-top: 16px; margin-bottom: 8px; text-align: center;'>";
-html += "<div style='font-size: 14px; color: #aaa; margin-bottom: 4px;'>Submit to Global Leaderboard:</div>";
-html += "<div style='display:flex; justify-content:center; align-items:center; gap:8px;'>";
-html += "<input type='text' id='igInput' placeholder='Player name or handle (optional)' value='" + escapeAttr(savedHandle) + "' style='padding: 6px; font-size: 13px; width: 190px; border-radius: 4px; border: none;'>";
-html += "<button onclick='submitToLeaderboard()' style='padding: 6px 14px; font-size: 13px; border-radius: 4px; border-radius: 4px; border: none; background: #00FFFF; color: #000; cursor: pointer; font-weight: bold; white-space:nowrap;'>Submit Score</button>";
-html += "</div>";
-html += "</div>";
-```
-
-**Replace with:**
-```javascript
-html += "<div id='leaderboardSubmit' style='margin-top: 16px; margin-bottom: 8px; text-align: center;'>";
-html += "<div style='font-size: 14px; color: #aaa; margin-bottom: 10px;'>Submit to Global Leaderboard:</div>";
-html += "<label style='display: block; margin-bottom: 6px; font-size: 12px; cursor: pointer; text-align: left; max-width: 240px; margin-left: auto; margin-right: auto;'><input type='radio' name='ageGate' value='13plus' onchange='document.getElementById(\"lbForm\").style.display=\"block\"; document.getElementById(\"lbUnder13\").style.display=\"none\"'> I am 13 years of age or older</label>";
-html += "<label style='display: block; margin-bottom: 10px; font-size: 12px; cursor: pointer; text-align: left; max-width: 240px; margin-left: auto; margin-right: auto;'><input type='radio' name='ageGate' value='under13' onchange='document.getElementById(\"lbForm\").style.display=\"none\"; document.getElementById(\"lbUnder13\").style.display=\"block\"'> I am under 13</label>";
-html += "<div id='lbUnder13' style='display: none; font-size: 12px; color: rgba(255,255,255,0.55); max-width: 240px; margin: 0 auto 8px;'>The leaderboard is for players aged 13 and older. Your score has not been submitted.</div>";
-html += "<div id='lbForm' style='display: none;'>";
-html += "<div style='display:flex; justify-content:center; align-items:center; gap:8px; margin-bottom: 8px;'>";
-html += "<input type='text' id='igInput' placeholder='Player name or handle (optional)' value='" + escapeAttr(savedHandle) + "' style='padding: 6px; font-size: 13px; width: 190px; border-radius: 4px; border: none;'>";
-html += "</div>";
-html += "<div style='font-size: 11px; color: rgba(255,255,255,0.45); max-width: 240px; margin: 0 auto 8px; text-align: left;'>Your handle and score will be publicly displayed on the <a href='https://kstanigar.github.io/non-x_analytics/' target='_blank' style='color:#00FFFF;'>NON-X analytics dashboard</a>. See <a href='/privacy.html' style='color:#00FFFF;'>Privacy Policy</a>.</div>";
-html += "<label style='display: block; font-size: 11px; cursor: pointer; max-width: 240px; margin: 0 auto 10px; text-align: left;'><input type='checkbox' id='lbConsent' onchange='document.getElementById(\"lbSubmitBtn\").disabled=!this.checked'> I understand my entry will be publicly displayed</label>";
-html += "<button id='lbSubmitBtn' onclick='submitToLeaderboard()' disabled style='padding: 6px 14px; font-size: 13px; border-radius: 4px; border: none; background: #00FFFF; color: #000; cursor: pointer; font-weight: bold; white-space:nowrap;'>Submit Score</button>";
-html += "</div>";
-html += "</div>";
-```
-
----
-
-### CHANGE 5: `Xenon_3/game.html` + `game_mobile.html` — `submitToLeaderboard()` function
-
-**⚠️ READ REQUIRED BEFORE IMPLEMENTING:** The `submitToLeaderboard()` function must be located and read in both files before this change can be documented with exact lines.
-
-**What to add:** Pass `public_consent: true` in the Firestore document on submit:
-```javascript
-// Inside the scoreData object passed to firebaseSubmitScore():
-public_consent: true
-```
-
-This ensures only consented entries are ever stored. The dashboard `fetchLeaderboard()` already reads all entries — once this is in place, a future filter on `public_consent === true` can be added optionally.
-
----
-
-### CHANGE 6: `Xenon_3/terms.html:158` — Analytics Dashboard Disclosure
-
-**Current text (line 158):**
+**Current (line 158):**
 ```html
 <p>Aggregated, anonymized gameplay statistics are displayed on a publicly accessible analytics dashboard at <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" rel="noopener noreferrer">kstanigar.github.io/non-x_analytics/</a>. This dashboard shows population-level metrics only and does not identify individual players. By playing NON-X with analytics enabled, you consent to your anonymized gameplay data being included in these aggregated statistics.</p>
 ```
@@ -254,23 +291,23 @@ This ensures only consented entries are ever stored. The dashboard `fetchLeaderb
 
 ---
 
-### CHANGE 7: `Xenon_3/privacy.html:153` — Analytics Dashboard Disclosure
+### CHANGE 9: `Xenon_3/privacy.html:153` — Fix Inaccurate Dashboard Description
 
-**Current text (line 153):**
+**Current (line 153):**
 ```html
 <li><strong>NON-X Analytics Dashboard</strong> — aggregated, anonymized gameplay statistics are displayed on a publicly accessible dashboard at <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" rel="noopener noreferrer">kstanigar.github.io/non-x_analytics/</a>. The dashboard shows population-level metrics (win rates, death rates, boss defeat rates, difficulty tier distributions, etc.) and does not display individual player records or identify specific users.</li>
 ```
 
 **Replace with:**
 ```html
-<li><strong>NON-X Analytics Dashboard</strong> — aggregated gameplay statistics are displayed on a publicly accessible dashboard at <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" rel="noopener noreferrer">kstanigar.github.io/non-x_analytics/</a>. The dashboard shows population-level metrics (win rates, death rates, boss defeat rates, difficulty tier distributions, etc.) and also displays a public leaderboard showing the display names, scores, platform, and movement group of players who have explicitly consented to public display at the time of leaderboard submission.</li>
+<li><strong>NON-X Analytics Dashboard</strong> — aggregated gameplay statistics are displayed on a publicly accessible dashboard at <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" rel="noopener noreferrer">kstanigar.github.io/non-x_analytics/</a>. The dashboard shows population-level metrics (win rates, death rates, boss defeat rates, difficulty tier distributions, etc.) and also displays a public leaderboard showing the display names, scores, platform, and movement group of players who have explicitly consented to public display at time of leaderboard submission.</li>
 ```
 
 ---
 
-### CHANGE 8: `Xenon_3/privacy.html` — Section 4 Expansion (after line 140)
+### CHANGE 10: `Xenon_3/privacy.html:139–140` — Expand Section 4
 
-**Current Section 4 (lines 139–140):**
+**Current Section 4:**
 ```html
 <h2>4. Leaderboard Data is Public</h2>
 <p>When you submit a leaderboard score, your <strong>display name and score are publicly visible</strong> to all players of NON-X. Do not use your real name or personally identifying information as your display name.</p>
@@ -280,64 +317,56 @@ This ensures only consented entries are ever stored. The dashboard `fetchLeaderb
 **Replace with:**
 ```html
 <h2>4. Leaderboard Data is Public</h2>
-<p>When you submit a leaderboard score, your <strong>display name and score are publicly visible</strong> to all players of NON-X and on the NON-X Analytics Dashboard (<a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" rel="noopener noreferrer">kstanigar.github.io/non-x_analytics/</a>). Do not use your real name or personally identifying information as your display name.</p>
-<p>The analytics dashboard displays your display name, score, platform (desktop/mobile), and movement group to anyone with the URL. Submission to the leaderboard requires your explicit consent to this public display.</p>
-<p>Leaderboard data is stored in Google Cloud Firestore and retained indefinitely unless you request deletion or we reset the leaderboard. To request deletion of your leaderboard entry, contact us via the <a href="/contact.html">Contact Form</a> with reason "Privacy Request."</p>
+<p>When you submit a leaderboard score, your <strong>display name and score are publicly visible</strong> to all players of NON-X and on the <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" rel="noopener noreferrer">NON-X Analytics Dashboard</a>. Do not use your real name or personally identifying information as your display name.</p>
+<p>The analytics dashboard displays your display name, score, platform (desktop/mobile), and movement group to anyone with the URL. Leaderboard submission requires your explicit consent (collected via the in-game consent banner).</p>
+<p>Leaderboard data is stored in Google Cloud Firestore and retained indefinitely unless you request deletion or we reset the leaderboard. To request deletion, use our <a href="/contact.html">Contact Form</a> with reason "Privacy Request."</p>
+<p>Standing Tiger may reset leaderboard entries at any time to remove cheated scores or for maintenance.</p>
 ```
 
 ---
 
-### CHANGE 9: Create `non-x_analytics/contact.html` — New File
+### CHANGE 11: Create `non-x_analytics/contact.html` — New File
 
-Copy Xenon_3's contact form, adapted to the analytics dashboard dark theme (`--bg: #0a0a0f`, `--cyan: #00ffff`). Uses the **same FormSubmit.co endpoint** (`https://formsubmit.co/ajax/45e055cecae307ffc412306a96dd1ff3`) — same Standing Tiger email destination.
-
-**Reason dropdown options to include:**
-- `Privacy Request` — for leaderboard data erasure requests
-- `Bug Report`
-- `General`
-
-**Back link:** `← Back to Dashboard` → `index.html`
-
-Full file to be written at implementation time based on Xenon_3's `contact.html` (243 lines) adapted to match `privacy.html` and `terms.html` styling in this repo.
+Copy Xenon_3's `contact.html` (243 lines), adapt to dashboard dark theme (`--bg: #0a0a0f`, CSS vars matching `privacy.html`). Same FormSubmit.co endpoint. Same reason options: Privacy Request, Bug Report, General. Back link: `← Back to Dashboard` → `index.html`.
 
 ---
 
-### CHANGE 10: `non-x_analytics/privacy.html:89` — Remove Inaccurate "No PII" Statement
+### CHANGE 12: `non-x_analytics/privacy.html:89` — Remove Inaccurate "No PII" Statement
 
-**Current line 89:**
+**Current:**
 ```html
 <p>No names, email addresses, or personally identifiable information are collected or displayed.</p>
 ```
 
 **Replace with:**
 ```html
-<p>No names or email addresses are collected from dashboard visitors. However, the dashboard displays a public leaderboard showing the display names, scores, platform, and movement group of NON-X players who have consented to public display at the time of leaderboard submission in the game.</p>
+<p>No names or email addresses are collected from dashboard visitors. However, the dashboard displays a public leaderboard showing the display names, scores, platform, and movement group of NON-X players who consented to public display at leaderboard submission.</p>
 ```
 
 ---
 
-### CHANGE 11: `non-x_analytics/privacy.html` — Add Leaderboard Section (after line 89)
+### CHANGE 13: `non-x_analytics/privacy.html` — Add Leaderboard Section (after line 89)
 
-**Add new section after line 89:**
+**Add after line 89:**
 ```html
 <h2>1b. Leaderboard Data Displayed</h2>
-<p>The NON-X Analytics Dashboard displays a public leaderboard sourced from the NON-X game (Firestore). This leaderboard shows:</p>
+<p>The NON-X Analytics Dashboard displays a public leaderboard sourced from the NON-X game. This leaderboard shows:</p>
 <ul>
-  <li>Player display name (instagram handle or anonymous)</li>
+  <li>Player display name (instagram handle or "Anonymous")</li>
   <li>Score</li>
   <li>Platform (desktop or mobile)</li>
   <li>Movement group (A/B test assignment)</li>
   <li>Submission date</li>
 </ul>
-<p>Only players who have explicitly consented to public display at point of submission are included. Existing entries submitted before July 2026 are grandfathered in under the game's existing public leaderboard terms.</p>
-<p>To request removal of your leaderboard entry from this dashboard, use our <a href="contact.html">Contact Form</a> with reason "Privacy Request." We will process deletion requests within 30 days.</p>
+<p>Only players who explicitly consented at the in-game consent banner are included. Entries submitted before July 2026 are grandfathered under the game's existing public leaderboard terms.</p>
+<p>To request removal of your leaderboard entry, use our <a href="contact.html">Contact Form</a> with reason "Privacy Request." We will process requests within 30 days.</p>
 ```
 
 ---
 
-### CHANGE 12: `non-x_analytics/privacy.html:109` — Update Contact Reference
+### CHANGE 14: `non-x_analytics/privacy.html:109` — Update Contact Reference
 
-**Current line 109:**
+**Current:**
 ```html
 <p>Privacy questions can be directed to <a href="mailto:contact@standingtiger.com">contact@standingtiger.com</a>.</p>
 ```
@@ -351,26 +380,22 @@ Full file to be written at implementation time based on Xenon_3's `contact.html`
 
 ## Files Summary
 
-| File | Repo | Change # | Status |
-|------|------|----------|--------|
-| `game.html:5998–6002` | Xenon_3 | 1 | ⬜ Pending |
-| `game.html:6295–6299` | Xenon_3 | 2 | ⬜ Pending |
-| `game_mobile.html:6625–6629` | Xenon_3 | 3 | ⬜ Pending |
-| `game_mobile.html:6883–6889` | Xenon_3 | 4 | ⬜ Pending |
-| `submitToLeaderboard()` in both | Xenon_3 | 5 | ⚠️ Read function first |
-| `terms.html:158` | Xenon_3 | 6 | ⬜ Pending |
-| `privacy.html:153` | Xenon_3 | 7 | ⬜ Pending |
-| `privacy.html:139–140` | Xenon_3 | 8 | ⬜ Pending |
-| `contact.html` (new file) | non-x_analytics | 9 | ⬜ Pending |
-| `privacy.html:89` | non-x_analytics | 10 | ⬜ Pending |
-| `privacy.html` (new section) | non-x_analytics | 11 | ⬜ Pending |
-| `privacy.html:109` | non-x_analytics | 12 | ⬜ Pending |
-
----
-
-## Pre-Implementation Step Required
-
-Before implementing Change 5 (`submitToLeaderboard()` update), the function must be read in both `game.html` and `game_mobile.html` to get exact line numbers and current payload structure. Launch Haiku agent at implementation time.
+| # | File | Repo | Status |
+|---|------|------|--------|
+| 1 | `game.html:657–663` — banner HTML | Xenon_3 | ⬜ Pending |
+| 2 | `game.html:740–766` — banner JS | Xenon_3 | ⬜ Pending |
+| 3 | `game_mobile.html:613–619` — banner HTML | Xenon_3 | ⬜ Pending |
+| 4 | `game_mobile.html:696–722` — banner JS | Xenon_3 | ⬜ Pending |
+| 5 | `game.html:1408` — consent check in submitToLeaderboard() | Xenon_3 | ⬜ Pending |
+| 6 | `game.html:~1432` — add `public_consent: true` to scoreData | Xenon_3 | ⬜ Pending |
+| 7 | `game_mobile.html:1353` + `~1372` — mirror Changes 5+6 | Xenon_3 | ⬜ Pending |
+| 8 | `terms.html:158` — fix dashboard description | Xenon_3 | ⬜ Pending |
+| 9 | `privacy.html:153` — fix dashboard description | Xenon_3 | ⬜ Pending |
+| 10 | `privacy.html:139–140` — expand Section 4 | Xenon_3 | ⬜ Pending |
+| 11 | `contact.html` — new file | non-x_analytics | ⬜ Pending |
+| 12 | `privacy.html:89` — fix no-PII statement | non-x_analytics | ⬜ Pending |
+| 13 | `privacy.html` — add leaderboard section | non-x_analytics | ⬜ Pending |
+| 14 | `privacy.html:109` — update contact reference | non-x_analytics | ⬜ Pending |
 
 ---
 
