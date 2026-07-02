@@ -2,11 +2,24 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 30, 2026 (Session 21 cont. — UX-8 merged to main; XEN-1 terms/privacy update required; UX-10 shelved; ISSUE-010 next)
+**Last Updated:** July 2, 2026 (Session 22 — CSP connect-src fix: added gstatic.com for Firebase sourcemaps)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## July 2, 2026 — CSP connect-src Fix / UX-8 Follow-up (Session 22)
+
+**Status:** ✅ COMPLETE
+
+**Problem:** Firebase SDK was fetching `.map` sourcemap files from `https://www.gstatic.com` at runtime, blocked by `connect-src` CSP directive. 2 red CSP errors in staging console.
+
+**Fix:** Added `https://www.gstatic.com` to `connect-src` in `live.html:23` CSP meta tag.
+
+**File changed:** `live.html:23`
+**Branch:** `feature/ux-8a-csp-gstatic` → staging → main
 
 ---
 
