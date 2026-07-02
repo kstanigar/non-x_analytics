@@ -2,11 +2,46 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** July 2, 2026 (Session 22 — CSP connect-src fix: added gstatic.com for Firebase sourcemaps)
+**Last Updated:** July 2, 2026 (Session 22 — XEN-1 research complete; COPPA/GDPR/CCPA findings documented; plan created)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## July 2, 2026 — XEN-1 Privacy Research (Session 22)
+
+**Status:** 🔴 PLAN READY — Awaiting user decisions before implementation
+
+### Research Findings (Haiku Agent)
+
+Sources: GDPR Article 13, OWASP Privacy by Design, CCPA Jan 2026, COPPA FTC April 2026, ICO guidance.
+
+**Critical finding — COPPA:** No age gate = assume all users are under 13. FTC COPPA April 22, 2026 enforcement deadline requires verifiable parental consent before any third-party disclosure. This deadline has passed. Current setup (public leaderboard display without age gate or consent) is an active compliance gap.
+
+**GDPR Article 13:** Notice-only is non-compliant. Explicit opt-in checkbox required at point of collection. Pre-ticked boxes or passive acceptance are explicitly rejected.
+
+**CCPA + PIPEDA:** Explicit notice required in Privacy Policy that data is disclosed publicly to third-party platforms.
+
+### Required Changes (priority order)
+
+1. **Age gate** at leaderboard submission — highest priority (COPPA)
+2. **Opt-in checkbox** at leaderboard submission (GDPR)
+3. **Disclosure text** at leaderboard submission (GDPR Article 13)
+4. **Xenon_3 Privacy Policy** update — leaderboard data disclosure section
+5. **NON-X Analytics `privacy.html`** — add leaderboard display section
+
+### Full Plan
+
+`docs/XEN-1_Privacy_Disclosure_Plan.md` — includes exact wording, file list, open questions for user.
+
+### Open Questions (user decision needed)
+
+1. Age gate — in XEN-1 scope or separate task (XEN-2)?
+2. Existing 27 leaderboard entries — leave them or purge?
+3. Retention period for disclosure text?
+4. `contact@standingtiger.com` for erasure requests — correct?
 
 ---
 

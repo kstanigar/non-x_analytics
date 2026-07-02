@@ -81,7 +81,13 @@
 - Tier Performance Metrics: `DATA.aiAgent.tierMetrics` never populated — decision needed: BigQuery handler vs CSV approach
 
 **Xenon_3:**
-- XEN-1: Update terms/privacy in Xenon_3 — disclose that leaderboard submissions (handle, score, platform, movement group) are displayed on the public NON-X Analytics dashboard (`kstanigar.github.io/non-x_analytics`). Must be added at point of leaderboard submission UI. **Legal requirement — do before next marketing push.**
+- XEN-1: Update terms/privacy in Xenon_3 — disclose leaderboard data on public analytics dashboard. **Full plan:** `docs/XEN-1_Privacy_Disclosure_Plan.md`
+  - 🔴 Age gate (COPPA — April 2026 deadline passed; highest risk)
+  - 🔴 Opt-in checkbox at leaderboard submit (GDPR — explicit consent required)
+  - 🔴 Disclosure text at leaderboard submit (GDPR Article 13)
+  - 🔴 Xenon_3 Privacy Policy update
+  - 🟡 NON-X Analytics `privacy.html` update
+  - **User decisions needed before implementation** — see plan doc open questions
 - Investigate `menu_view` not firing (P1-C closed — no action needed; see GA4_Custom_Dimensions.md)
 
 ---
