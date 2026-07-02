@@ -26,7 +26,7 @@
 **Key decisions confirmed:**
 - Banner: 3 independent checkboxes (analytics, leaderboard, age) + Confirm button
 - Consent logged to Firestore `consent_log` collection (GDPR Article 30)
-- Existing 27 entries purged (no grandfathering)
+- Existing 27 entries purged ✅ DONE — July 2, 2026 (no grandfathering)
 - Analytics toggle section removed from Xenon_3 privacy.html (feature never existed in code)
 
 ---

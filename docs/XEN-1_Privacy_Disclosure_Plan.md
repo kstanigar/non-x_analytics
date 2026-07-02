@@ -37,7 +37,7 @@ Explicit notice required in Privacy Policy that submitted data is disclosed publ
 | Erasure contact | ✅ Xenon_3 `/contact.html` form — copy to non-x_analytics |
 | Bundled consent fix | ✅ Two independent checkboxes (analytics + leaderboard) + Confirm button |
 | Server-side consent log | ✅ Write to Firestore `consent_log` collection on Confirm |
-| Analytics toggle | ✅ No toggle UI exists in code — remove reference from Xenon_3 `privacy.html` Section 3 |
+| Analytics toggle | ✅ Consent banner confirmed at `game.html:657–663` (HTML) + `740–766` (JS). Accept/Decline buttons writing `nonx_consent`. Change 10b updates Section 3 to describe the new 3-checkbox banner after XEN-1 — not removing an inaccurate reference, but updating an accurate one. |
 
 ---
 
@@ -53,7 +53,7 @@ Explicit notice required in Privacy Policy that submitted data is disclosed publ
 Current banner text: *"This game uses analytics cookies to track gameplay."*
 Current localStorage key: `nonx_consent` — values: `'granted'` | `'denied'`
 
-**Important:** No separate analytics toggle UI exists in the code (Xenon_3 `privacy.html` Section 3 references one but it was never implemented in `game.html` or `game_mobile.html`). The new consent banner replaces this entirely. Section 3 must be removed from `privacy.html` (see Change 10b).
+**Confirmed:** Analytics consent banner exists at `game.html:657–663` (HTML) and `740–766` (JS). This is the Accept/Decline banner writing `nonx_consent` to localStorage. XEN-1 Changes 1–2 replace these lines with the new 3-checkbox banner. Change 10b updates `privacy.html` Section 3 to describe the new banner accurately — it currently describes the old Accept/Decline design.
 
 ### submitToLeaderboard() Function
 
@@ -352,7 +352,7 @@ Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`.
 
 ---
 
-### CHANGE 7c: Firestore — Purge 27 Existing Leaderboard Entries (Console Task)
+### CHANGE 7c: Firestore — Purge 27 Existing Leaderboard Entries ✅ COMPLETE — July 2, 2026
 
 **No code change.** Manual task in Firebase console before launch:
 
@@ -413,9 +413,9 @@ These entries were collected without leaderboard-display consent. Purging before
 
 ---
 
-### CHANGE 10b: `Xenon_3/privacy.html:136–149` — Remove Analytics Toggle Section
+### CHANGE 10b: `Xenon_3/privacy.html:136–149` — Update Analytics Toggle Section
 
-Section 3 describes an "Analytics Toggle (Settings)" that does not exist in the game code. The new consent banner replaces this entirely. Remove the section and replace with accurate description of the banner.
+Section 3 currently describes the old Accept/Decline banner and an "Analytics Toggle (Settings)" with key `nonex_analytics`. After XEN-1 Changes 1–2 replace the banner, Section 3 must be updated to describe the new 3-checkbox banner accurately.
 
 **Current lines 136–149:**
 ```html
@@ -525,7 +525,7 @@ Copy Xenon_3's `contact.html` (243 lines), adapt to dashboard dark theme (`--bg:
 | 6 | `game.html:1426–1432` — add `public_consent: true` to scoreData | Xenon_3 | ⬜ Pending |
 | 7a | `game_mobile.html:1353–1354` — consent check | Xenon_3 | ⬜ Pending |
 | 7b | `game_mobile.html:1369–1375` — add `public_consent: true` to scoreData | Xenon_3 | ⬜ Pending |
-| 7c | Firestore console — purge 27 leaderboard entries (pre-launch manual task) | Firebase | ⬜ Pending |
+| 7c | Firestore console — purge 27 leaderboard entries (pre-launch manual task) | Firebase | ✅ Complete — July 2, 2026 |
 | 8 | `terms.html:158` — fix inaccurate dashboard description | Xenon_3 | ⬜ Pending |
 | 9 | `privacy.html:153` — fix inaccurate dashboard description | Xenon_3 | ⬜ Pending |
 | 10 | `privacy.html:139–140` — expand Section 4 leaderboard disclosure | Xenon_3 | ⬜ Pending |

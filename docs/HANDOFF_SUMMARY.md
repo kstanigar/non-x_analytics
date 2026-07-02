@@ -2,11 +2,29 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** July 2, 2026 (Session 22 — XEN-1 plan complete; GDPR verified; 16 changes documented; ready to implement)
+**Last Updated:** July 2, 2026 (Session 23 — Change 7c complete; analytics banner confirmed; Change 10b rationale corrected)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## July 2, 2026 — XEN-1 Pre-Implementation Updates (Session 23)
+
+**Status:** 🟢 Ready to implement
+
+### Change 7c — Firestore Purge ✅ COMPLETE
+User manually purged all 27 existing leaderboard entries from Firebase console. Dashboard leaderboard will start clean — every future entry will carry `public_consent: true`.
+
+### Analytics Banner Correction
+Haiku agent searched `game.html` for analytics toggle. Consent banner confirmed at:
+- HTML: `game.html:657–663` (Accept/Decline buttons, `nonx_consent` key)
+- JS: `game.html:740–766` (localStorage + gtag consent update)
+
+**Plan corrected:** XEN-1 plan previously stated "No toggle UI exists in code" — this was wrong. Banner IS implemented. Change 10b rationale updated: it updates Section 3 in `privacy.html` to describe the **new** 3-checkbox banner (after Changes 1–2), not removing an inaccurate reference.
+
+Change 10b is still required and the replacement content is unchanged — only the reason changed.
 
 ---
 
@@ -23,7 +41,7 @@
 | Bundled consent fix | Each purpose independently opt-in/out — no coercion |
 | Existing 27 entries | PURGE from Firestore console before launch |
 | Server-side consent log | Write to Firestore `consent_log` collection on Confirm |
-| Analytics toggle | Doesn't exist in code — remove reference from Xenon_3 `privacy.html` Section 3 |
+| Analytics toggle | Consent banner confirmed at `game.html:657–663` + `740–766`. Change 10b updates Section 3 to describe the new 3-checkbox banner |
 | Retention | Indefinite |
 | Erasure contact | Xenon_3 `/contact.html` (FormSubmit.co) — copy to non-x_analytics |
 
