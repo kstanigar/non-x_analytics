@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** July 2, 2026 (Session 22 — XEN-1 plan complete; GDPR verified; priority order updated)
+**Last Updated:** July 2, 2026 (Session 24 — XEN-1 deferred; plan copied to Xenon_3)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -96,7 +96,7 @@
 - Tier Performance Metrics: `DATA.aiAgent.tierMetrics` never populated — decision needed: BigQuery handler vs CSV approach
 
 **Xenon_3:**
-- XEN-1: ✅ PLAN COMPLETE — implement next. **Full plan:** `docs/XEN-1_Privacy_Disclosure_Plan.md` — 16 changes, GDPR/COPPA/CCPA verified — July 2, 2026
+- XEN-1: ✅ PLAN COMPLETE — implementation deferred to Xenon_3 repo. **Full plan:** `docs/XEN-1_Privacy_Disclosure_Plan.md` — 17 changes, GDPR/COPPA/CCPA verified — July 2, 2026
 - Investigate `menu_view` not firing (P1-C closed — no action needed; see GA4_Custom_Dimensions.md)
 
 ---
