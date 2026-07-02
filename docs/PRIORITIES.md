@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** June 30, 2026 (Session 21 cont. — P1-C closed; UX-9 traffic source widget added; all P1 items resolved)
+**Last Updated:** June 30, 2026 (Session 21 cont. — UX-10 shelved; XEN-1 Xenon_3 terms/privacy update added as legal requirement)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -25,6 +25,10 @@
 2. Implement Option 1: Restrict API key to `kstanigar.github.io/*` + `nonx.standingtiger.com/*` (Google Cloud Console)
 3. Implement Option 2: Tighten Firestore rules — public reads, restricted writes (Firebase Console)
 4. Dismiss GitHub Secret Scanning alert
+
+**Also required before player data linking (UX-10):** Firestore rules must be locked before any expansion of data access.
+
+**⚠️ ALSO NEEDED THIS SESSION:** Xenon_3 terms/privacy update — leaderboard data now displays on public analytics dashboard; players were not disclosed this at point of collection. See Xenon_3 task XEN-1 below.
 
 **Full details:** `docs/Issues_And_Bugs.md` — ISSUE-010
 
@@ -69,12 +73,15 @@
 **Dashboard UX:**
 - UX-6: Distinct Players KPI (BigQuery handler + tile)
 - UX-7: Player Performance page (unblocked — `user_pseudo_id` confirmed available)
-- UX-8: Leaderboard tab — **✅ COMPLETE** — all 9 edits applied to `live.html`; not yet committed (holding for ISSUE-010 security fix first)
+- UX-8: Leaderboard tab — **✅ COMPLETE + MERGED** — June 30, 2026
+  - ⚠️ UX-8a: Single-column fix — change 2-column layout to 1 column (ranks 1–50); user confirmed on staging
 - UX-9: Traffic Source widget — query `sessionSource` + `sessionDefaultChannelGroup` via GA4 Data API; surface on Overview or new tab. No Xenon_3 changes needed — data already collected. (P1-C resolution — June 30, 2026)
+- UX-10: Player profile linking — **⏸️ SHELVED** — privacy/legal lift too high at this stage. Full analysis in `docs/Player_Data_Privacy_Plan.md`. Revisit post-launch if needed.
 - Tier Performance Metrics: `DATA.aiAgent.tierMetrics` never populated — decision needed: BigQuery handler vs CSV approach
 
 **Xenon_3:**
-- Investigate `menu_view` not firing (pending P1-C clarification)
+- XEN-1: Update terms/privacy in Xenon_3 — disclose that leaderboard submissions (handle, score, platform, movement group) are displayed on the public NON-X Analytics dashboard (`kstanigar.github.io/non-x_analytics`). Must be added at point of leaderboard submission UI. **Legal requirement — do before next marketing push.**
+- Investigate `menu_view` not firing (P1-C closed — no action needed; see GA4_Custom_Dimensions.md)
 
 ---
 

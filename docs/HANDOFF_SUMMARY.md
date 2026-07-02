@@ -2,11 +2,44 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** June 30, 2026 (Session 21 cont. — UX-8 complete; ISSUE-010 Firebase key exposure found; next: security fix)
+**Last Updated:** June 30, 2026 (Session 21 cont. — UX-8 merged to main; XEN-1 terms/privacy update required; UX-10 shelved; ISSUE-010 next)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## June 30, 2026 - Privacy & Priority Decisions (Session 21 cont.)
+
+**Status:** ✅ DOCUMENTED
+
+### Decisions Made
+
+**UX-10 (Player Profile Linking) — SHELVED:**
+- Idea: link leaderboard entries to individual gameplay stats per player
+- Reason shelved: legal/privacy lift too high — GDPR opt-in, right to erasure, COPPA risk, public dashboard scraping risk
+- Full analysis: `docs/Player_Data_Privacy_Plan.md`
+- Revisit post-launch if needed
+
+**XEN-1 (Xenon_3 Terms/Privacy Update) — ADDED AS LEGAL REQUIREMENT:**
+- Leaderboard data (instagram handle, score, platform, movement group) is now displayed on the public NON-X Analytics dashboard (`kstanigar.github.io/non-x_analytics`)
+- Players were not disclosed this at point of leaderboard submission — this is a legal gap under GDPR/CCPA
+- Required: add disclosure to Xenon_3 leaderboard submit UI + update Xenon_3 privacy policy to name the analytics dashboard
+- Must be done before any marketing push
+- Work happens in Xenon_3 repo, not this repo
+
+**P1-C (menu_view) — CLOSED:**
+- `menu_view` not the right approach for traffic source tracking
+- GA4 already collects `sessionSource` / `sessionDefaultChannelGroup` on every session
+- New task UX-9 added: build traffic source widget using GA4 built-in dimensions
+
+### Current Priority Order
+1. **XEN-1** — Xenon_3 terms/privacy update (legal requirement)
+2. **ISSUE-010** — Firebase API key restriction + Firestore rules
+3. **UX-8a** — Leaderboard single-column fix (1–50)
+4. **UX-9** — Traffic source widget
+5. **P2 backlog** — MT-6, UX-6, UX-7, L-1, etc.
 
 ---
 
