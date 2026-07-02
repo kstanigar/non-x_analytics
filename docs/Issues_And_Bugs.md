@@ -2,7 +2,7 @@
 
 **Purpose:** Centralized tracking for bugs, data accuracy issues, and technical problems across the NON-X Analytics platform.
 
-**Last Updated:** June 30, 2026 (Session 21 cont. — ISSUE-010 added: Firebase API key exposed in git)
+**Last Updated:** July 2, 2026 (Session 24 — ISSUE-011 added: GitHub Pages deploy-pages@v5 transient failure)
 
 ---
 
@@ -13,11 +13,76 @@
 | 🔴 CRITICAL (Blocking) | 0 |
 | 🟡 MEDIUM (Should Fix) | 1 |
 | 🟢 LOW (Nice to Have) | 0 |
-| ✅ RESOLVED | 9 |
+| ✅ RESOLVED | 10 |
 
 ---
 
 ## 🟡 MEDIUM ISSUES (Should Fix)
+
+### ISSUE-011: GitHub Pages `actions/deploy-pages@v5` Transient Failure
+
+**Status:** ✅ RESOLVED — Fix #1 (retry) confirmed working July 2, 2026
+**Severity:** MEDIUM (blocks staging + production deploys until resolved)
+**Found:** July 2, 2026 (Session 24 — UX-8a staging deploy)
+**Affected Component:** GitHub Actions — both Deploy Staging + Deploy Production workflows
+
+#### Error
+
+```
+Run actions/deploy-pages@v5
+Creating Pages deployment...
+Getting Pages deployment status...
+Error: Deployment failed, try again later.. There seems to be an error.
+```
+
+#### Root Cause (Haiku agent research — July 2, 2026)
+
+GitHub's Pages infrastructure **automatically injects `actions/deploy-pages@v5`** to finalize all Pages deployments, even when the workflow uses `JamesIves/github-pages-deploy-action@v4`. This is a known transient sync failure in GitHub's internal deployment system — the deployment gets stuck in "syncing_files" state on GitHub's servers. Issue tracked at [actions/deploy-pages#406](https://github.com/actions/deploy-pages/issues/406) (started January 13, 2026).
+
+This is a **server-side GitHub infrastructure issue**, not a code or configuration problem.
+
+#### Resolution Options
+
+**Fix 1 — Retry (immediate, ~90% success rate)**
+1. Wait 5–10 minutes
+2. Re-run the failed workflow from GitHub Actions UI, OR push an empty commit to re-trigger:
+   ```bash
+   git commit --allow-empty -m "chore: retry Pages deployment"
+   git push origin staging   # or main for production
+   ```
+
+**Fix 2 — Verify Pages source setting (if retries keep failing)**
+1. Go to repo **Settings → Pages**
+2. Confirm "Build and deployment" source is set correctly:
+   - If using `JamesIves/github-pages-deploy-action@v4` → source should be **"Deploy from a branch"** → `gh-pages`
+   - Mixing "GitHub Actions" source with JamesIves action creates a conflict
+3. Verify workflow has correct permissions block:
+   ```yaml
+   permissions:
+     contents: write
+   ```
+
+**Fix 3 — Migrate to official GitHub Pages actions (long-term)**
+Replace `JamesIves/github-pages-deploy-action@v4` with GitHub's native actions to eliminate the double-deploy conflict entirely:
+```yaml
+- uses: actions/upload-pages-artifact@v3
+  with:
+    path: deploy
+
+- uses: actions/deploy-pages@v4
+```
+Requires changing Pages source in repo settings to **"GitHub Actions"**.
+
+#### Recommended Path
+
+Try Fix 1 first. If retries fail consistently over multiple days, apply Fix 2 (verify Pages source setting). Fix 3 is the most reliable long-term solution but requires a workflow rewrite — defer to a maintenance session.
+
+#### Sources
+- [actions/deploy-pages Issue #406](https://github.com/actions/deploy-pages/issues/406)
+- [GitHub Community Discussion #49948](https://github.com/orgs/community/discussions/49948)
+- [GitHub Pages custom workflows docs](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
+
+---
 
 ### ISSUE-010: Firebase API Key Exposed in Public Git Repo
 

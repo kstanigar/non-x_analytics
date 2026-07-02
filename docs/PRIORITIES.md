@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** July 2, 2026 (Session 24 — XEN-1 deferred; plan copied to Xenon_3)
+**Last Updated:** July 2, 2026 (Session 24 — UX-8a complete; XEN-1 deferred; plan copied to Xenon_3)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -89,7 +89,7 @@
 - UX-6: Distinct Players KPI (BigQuery handler + tile)
 - UX-7: Player Performance page (unblocked — `user_pseudo_id` confirmed available)
 - UX-8: Leaderboard tab — **✅ COMPLETE + MERGED** — June 30, 2026
-  - ⚠️ UX-8a: Single-column fix — change 2-column layout to 1 column (ranks 1–50); user confirmed on staging
+  - ✅ UX-8a: Single-column fix — 2-column grid → single vertical list (ranks 1–50); commit `1f8e9b1` — July 2, 2026
   - ✅ UX-8b: CSP connect-src — researched gstatic.com addition; reverted per OWASP least-privilege. Original CSP is correct. `.map` errors are dev-tool noise only — July 2, 2026
 - UX-9: Traffic Source widget — query `sessionSource` + `sessionDefaultChannelGroup` via GA4 Data API; surface on Overview or new tab. No Xenon_3 changes needed — data already collected. (P1-C resolution — June 30, 2026)
 - UX-10: Player profile linking — **⏸️ SHELVED** — privacy/legal lift too high at this stage. Full analysis in `docs/Player_Data_Privacy_Plan.md`. Revisit post-launch if needed.

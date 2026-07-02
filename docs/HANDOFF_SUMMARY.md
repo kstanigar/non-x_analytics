@@ -2,11 +2,29 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** July 2, 2026 (Session 24 — XEN-1 plan copied to Xenon_3; implementation deferred)
+**Last Updated:** July 2, 2026 (Session 24 — UX-8a complete on staging; awaiting merge to main)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## July 2, 2026 — UX-8a: Leaderboard Single-Column Fix (Session 24)
+
+**Status:** ✅ COMPLETE — confirmed on staging, merged to main
+
+### What Changed
+- `live.html:2176` — Removed `display:grid; grid-template-columns:1fr 1fr; gap:0 32px`; kept `margin-top:16px`
+- `live.html:2192–2206` — Deleted right `<table>` block + `leaderboard-tbody-right` tbody
+- `live.html:5058–5063` — Removed `tbodyRight` variable, guard clause, and empty-string assignment
+- `live.html:5093–5094` — Replaced 2-line split render with `tbodyLeft.innerHTML = renderRows(entries, 1)`
+
+### Commits
+- `1f8e9b1` — `feature/ux-8a-leaderboard-single-col` → merged to `main` July 2, 2026
+- Staging deploy: transient GitHub Pages failure (ISSUE-011); resolved with retry (Fix #1)
+
+**Plan doc:** `docs/UX-8a_Leaderboard_Single_Column_Plan.md`
 
 ---
 
