@@ -3,7 +3,7 @@
 **Purpose:** Plan for updating Xenon_3 terms/privacy to legally disclose that leaderboard submissions appear on the public NON-X Analytics dashboard, and adding age gate + consent via the existing cookie consent banner.
 
 **Created:** July 2, 2026 (Session 22)
-**Status:** 🟡 PLAN READY — All decisions confirmed; ready to implement
+**Status:** 🟢 PLAN COMPLETE — GDPR/COPPA/CCPA verified; all 16 changes documented with exact lines; ready to implement
 **Repos:** Xenon_3 + non-x_analytics
 
 ---
@@ -32,9 +32,12 @@ Explicit notice required in Privacy Policy that submitted data is disclosed publ
 |----------|--------|
 | Consent UI location | ✅ Expand existing cookie consent banner — not leaderboard submit UI |
 | Age gate style | ✅ Checkbox in banner ("I confirm I am 13 or older") |
-| Existing 27 entries | ✅ Grandfather in — apply consent to new submissions only |
+| Existing 27 entries | ✅ **PURGE** — delete all 27 from Firestore console before launch |
 | Retention period | ✅ Indefinite |
 | Erasure contact | ✅ Xenon_3 `/contact.html` form — copy to non-x_analytics |
+| Bundled consent fix | ✅ Two independent checkboxes (analytics + leaderboard) + Confirm button |
+| Server-side consent log | ✅ Write to Firestore `consent_log` collection on Confirm |
+| Analytics toggle | ✅ No toggle UI exists in code — remove reference from Xenon_3 `privacy.html` Section 3 |
 
 ---
 
@@ -50,7 +53,7 @@ Explicit notice required in Privacy Policy that submitted data is disclosed publ
 Current banner text: *"This game uses analytics cookies to track gameplay."*
 Current localStorage key: `nonx_consent` — values: `'granted'` | `'denied'`
 
-**Important:** No separate analytics toggle UI exists in the code (Xenon_3 privacy.html references one but it is not implemented in `game.html` or `game_mobile.html`).
+**Important:** No separate analytics toggle UI exists in the code (Xenon_3 `privacy.html` Section 3 references one but it was never implemented in `game.html` or `game_mobile.html`). The new consent banner replaces this entirely. Section 3 must be removed from `privacy.html` (see Change 10b).
 
 ### submitToLeaderboard() Function
 
@@ -119,18 +122,29 @@ Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`.
 ```html
 <div id="consentBanner" style="position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;color:#ccc;padding:16px 20px;z-index:99999;font-size:13px;font-family:monospace;border-top:1px solid #00FFFF;">
   <div style="max-width:700px;margin:0 auto;">
-    <div style="margin-bottom:10px;">This game uses analytics to improve gameplay. Leaderboard entries (display name, score, platform) are shown publicly on the <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" style="color:#00FFFF;">NON-X Analytics Dashboard</a>. <a href="/privacy.html" style="color:#00FFFF;">Privacy Policy</a></div>
+    <div style="margin-bottom:12px;line-height:1.5;">NON-X collects gameplay data and operates a public leaderboard. Please confirm your preferences below. <a href="/privacy.html" style="color:#00FFFF;">Privacy Policy</a></div>
+    <label style="display:block;margin-bottom:8px;cursor:pointer;">
+      <input type="checkbox" id="analyticsConsent" style="margin-right:6px;">
+      Allow analytics tracking to help improve gameplay <span style="color:#888;font-size:11px;">(optional)</span>
+    </label>
+    <label style="display:block;margin-bottom:8px;cursor:pointer;">
+      <input type="checkbox" id="lbConsent" style="margin-right:6px;">
+      I consent to my leaderboard entry being publicly displayed on the <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" style="color:#00FFFF;">NON-X Analytics Dashboard</a> <span style="color:#888;font-size:11px;">(required to submit scores)</span>
+    </label>
     <label style="display:block;margin-bottom:12px;cursor:pointer;">
       <input type="checkbox" id="ageConfirm" style="margin-right:6px;">
-      I confirm I am 13 years of age or older
+      I confirm I am 13 years of age or older <span style="color:#888;font-size:11px;">(required)</span>
     </label>
-    <div style="display:flex;gap:8px;">
-      <button id="declineConsent" style="padding:6px 16px;background:transparent;color:#888;border:1px solid #444;border-radius:4px;cursor:pointer;font-family:monospace;">Decline</button>
-      <button id="acceptConsent" disabled style="padding:6px 16px;background:#00FFFF;color:#000;border:none;border-radius:4px;cursor:pointer;font-weight:bold;font-family:monospace;opacity:0.4;">Accept</button>
-    </div>
+    <button id="confirmConsent" disabled style="padding:6px 20px;background:#00FFFF;color:#000;border:none;border-radius:4px;cursor:pointer;font-weight:bold;font-family:monospace;opacity:0.4;">Confirm</button>
   </div>
 </div>
 ```
+
+**Design rationale (GDPR compliance):**
+- Analytics checkbox is independent — declining it never blocks anything
+- Leaderboard checkbox gates only score submission — directly tied to that purpose (not coercive)
+- Age checkbox gates the Confirm button — cannot proceed without it
+- No Decline button — each purpose is declined by leaving its checkbox unchecked
 
 ---
 
@@ -173,8 +187,8 @@ Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`.
   var banner = document.getElementById('consentBanner');
   if (!banner) return;
 
-  // Hide banner only if BOTH analytics consent AND leaderboard consent already recorded
-  if (localStorage.getItem('nonx_lb_consent')) {
+  // Hide banner only when age consent already confirmed (covers all purposes)
+  if (localStorage.getItem('nonx_age_consent') === 'granted') {
     banner.style.display = 'none';
     if (localStorage.getItem('nonx_consent') === 'granted') {
       gtag('consent', 'update', { 'analytics_storage': 'granted' });
@@ -182,30 +196,43 @@ Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`.
     return;
   }
 
-  // Age checkbox enables/disables Accept button
-  var ageBox = document.getElementById('ageConfirm');
-  var acceptBtn = document.getElementById('acceptConsent');
+  var ageBox       = document.getElementById('ageConfirm');
+  var confirmBtn   = document.getElementById('confirmConsent');
+
+  // Age checkbox gates the Confirm button only
   ageBox.addEventListener('change', function() {
-    acceptBtn.disabled = !ageBox.checked;
-    acceptBtn.style.opacity = ageBox.checked ? '1' : '0.4';
+    confirmBtn.disabled = !ageBox.checked;
+    confirmBtn.style.opacity = ageBox.checked ? '1' : '0.4';
   });
 
-  acceptBtn.addEventListener('click', function() {
-    localStorage.setItem('nonx_consent', 'granted');
-    localStorage.setItem('nonx_lb_consent', 'granted');
+  confirmBtn.addEventListener('click', function() {
+    var analyticsGranted = document.getElementById('analyticsConsent').checked;
+    var lbGranted        = document.getElementById('lbConsent').checked;
+
+    // Store each consent independently
+    localStorage.setItem('nonx_consent',    analyticsGranted ? 'granted' : 'denied');
+    localStorage.setItem('nonx_lb_consent', lbGranted        ? 'granted' : 'denied');
     localStorage.setItem('nonx_age_consent', 'granted');
-    gtag('consent', 'update', {
-      'analytics_storage': 'granted',
-      'ad_storage': 'granted',
-      'ad_user_data': 'granted',
-      'ad_personalization': 'granted'
-    });
-    banner.style.display = 'none';
-  });
 
-  document.getElementById('declineConsent').addEventListener('click', function() {
-    localStorage.setItem('nonx_consent', 'denied');
-    localStorage.setItem('nonx_lb_consent', 'denied');
+    // Update GA4 consent state
+    gtag('consent', 'update', {
+      'analytics_storage':  analyticsGranted ? 'granted' : 'denied',
+      'ad_storage':         'denied',
+      'ad_user_data':       'denied',
+      'ad_personalization': 'denied'
+    });
+
+    // Log consent event to Firestore for GDPR Article 30 records
+    if (typeof _db !== 'undefined' && typeof PLAYER_ID !== 'undefined') {
+      _db.collection('consent_log').add({
+        player_id:          PLAYER_ID,
+        analytics_consent:  analyticsGranted ? 'granted' : 'denied',
+        lb_consent:         lbGranted        ? 'granted' : 'denied',
+        age_confirmed:      true,
+        timestamp:          firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
     banner.style.display = 'none';
   });
 })();
@@ -325,6 +352,19 @@ Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`.
 
 ---
 
+### CHANGE 7c: Firestore — Purge 27 Existing Leaderboard Entries (Console Task)
+
+**No code change.** Manual task in Firebase console before launch:
+
+1. Go to Firebase Console → Firestore → `leaderboard` collection
+2. Select all 27 documents
+3. Delete all
+4. Verify collection is empty before deploying banner changes
+
+These entries were collected without leaderboard-display consent. Purging before launch means the dashboard leaderboard starts clean — every entry that appears will have `public_consent: true`.
+
+---
+
 ### CHANGE 8: `Xenon_3/terms.html:158` — Fix Inaccurate Dashboard Description
 
 **Current (line 158):**
@@ -369,6 +409,53 @@ Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`.
 <p>The analytics dashboard displays your display name, score, platform (desktop/mobile), and movement group to anyone with the URL. Leaderboard submission requires your explicit consent (collected via the in-game consent banner).</p>
 <p>Leaderboard data is stored in Google Cloud Firestore and retained indefinitely unless you request deletion or we reset the leaderboard. To request deletion, use our <a href="/contact.html">Contact Form</a> with reason "Privacy Request."</p>
 <p>Standing Tiger may reset leaderboard entries at any time to remove cheated scores or for maintenance.</p>
+```
+
+---
+
+### CHANGE 10b: `Xenon_3/privacy.html:136–149` — Remove Analytics Toggle Section
+
+Section 3 describes an "Analytics Toggle (Settings)" that does not exist in the game code. The new consent banner replaces this entirely. Remove the section and replace with accurate description of the banner.
+
+**Current lines 136–149:**
+```html
+<h2>3. Analytics Toggle &amp; Cookie Consent</h2>
+<p>NON-X provides two controls for managing your analytics consent:</p>
+
+<div class="highlight-box">
+  <strong>Cookie Consent Banner</strong><br>
+  Shown on your first visit. Clicking <em>Accept</em> enables Google Analytics 4 tracking. Clicking <em>Decline</em> prevents GA4 tracking. Your choice is saved to localStorage under the key <code>nonx_consent</code>.
+</div>
+
+<div class="highlight-box">
+  <strong>Analytics Toggle (Settings)</strong><br>
+  Visible at all times on the main menu. This toggle lets you opt out of analytics tracking at any time — even after previously accepting the consent banner. Your preference is saved to localStorage under the key <code>nonex_analytics</code>. Turning this off stops all GA4 event tracking for your session and all future sessions until re-enabled.
+</div>
+
+<p>When analytics is disabled (either by declining the banner or turning off the toggle), no GA4 tracking events are sent. The only exception is the toggle action itself — a single event is always recorded when you change the analytics setting so we can accurately count opt-out requests.</p>
+```
+
+**Replace with:**
+```html
+<h2>3. Consent Banner</h2>
+<p>On your first visit (and whenever consent preferences are not yet recorded), NON-X displays a consent banner with three independent options:</p>
+
+<div class="highlight-box">
+  <strong>Analytics Tracking</strong> (optional)<br>
+  Allows Google Analytics 4 to collect gameplay events to help improve the game. You may decline without affecting gameplay or leaderboard access. Your choice is saved to localStorage under the key <code>nonx_consent</code>.
+</div>
+
+<div class="highlight-box">
+  <strong>Leaderboard Public Display</strong> (required to submit scores)<br>
+  Consents to your display name, score, platform, and movement group appearing publicly on the <a href="https://kstanigar.github.io/non-x_analytics/" target="_blank" rel="noopener noreferrer">NON-X Analytics Dashboard</a>. Required only if you choose to submit a leaderboard score — declining does not affect gameplay. Your choice is saved to localStorage under the key <code>nonx_lb_consent</code>.
+</div>
+
+<div class="highlight-box">
+  <strong>Age Confirmation</strong> (required)<br>
+  Confirms you are 13 years of age or older. Required to proceed. The leaderboard is restricted to players aged 13 and older per our <a href="/terms.html">Terms and Conditions</a>.
+</div>
+
+<p>Each consent option is independent. Declining analytics tracking does not affect leaderboard access or gameplay. Your preferences are stored locally in your browser and the banner will not re-appear once confirmed.</p>
 ```
 
 ---
@@ -430,20 +517,23 @@ Copy Xenon_3's `contact.html` (243 lines), adapt to dashboard dark theme (`--bg:
 
 | # | File | Repo | Status |
 |---|------|------|--------|
-| 1 | `game.html:657–663` — banner HTML | Xenon_3 | ⬜ Pending |
-| 2 | `game.html:740–766` — banner JS | Xenon_3 | ⬜ Pending |
-| 3 | `game_mobile.html:613–619` — banner HTML | Xenon_3 | ⬜ Pending |
-| 4 | `game_mobile.html:696–722` — banner JS | Xenon_3 | ⬜ Pending |
-| 5 | `game.html:1408` — consent check in submitToLeaderboard() | Xenon_3 | ⬜ Pending |
-| 6 | `game.html:~1432` — add `public_consent: true` to scoreData | Xenon_3 | ⬜ Pending |
-| 7 | `game_mobile.html:1353` + `~1372` — mirror Changes 5+6 | Xenon_3 | ⬜ Pending |
-| 8 | `terms.html:158` — fix dashboard description | Xenon_3 | ⬜ Pending |
-| 9 | `privacy.html:153` — fix dashboard description | Xenon_3 | ⬜ Pending |
-| 10 | `privacy.html:139–140` — expand Section 4 | Xenon_3 | ⬜ Pending |
-| 11 | `contact.html` — new file | non-x_analytics | ⬜ Pending |
-| 12 | `privacy.html:89` — fix no-PII statement | non-x_analytics | ⬜ Pending |
-| 13 | `privacy.html` — add leaderboard section | non-x_analytics | ⬜ Pending |
-| 14 | `privacy.html:109` — update contact reference | non-x_analytics | ⬜ Pending |
+| 1 | `game.html:657–663` — banner HTML (3 checkboxes + Confirm) | Xenon_3 | ⬜ Pending |
+| 2 | `game.html:740–766` — banner JS (granular consent + Firestore log) | Xenon_3 | ⬜ Pending |
+| 3 | `game_mobile.html:613–619` — banner HTML (same as Change 1) | Xenon_3 | ⬜ Pending |
+| 4 | `game_mobile.html:696–722` — banner JS (same as Change 2) | Xenon_3 | ⬜ Pending |
+| 5 | `game.html:1408–1409` — consent check in submitToLeaderboard() | Xenon_3 | ⬜ Pending |
+| 6 | `game.html:1426–1432` — add `public_consent: true` to scoreData | Xenon_3 | ⬜ Pending |
+| 7a | `game_mobile.html:1353–1354` — consent check | Xenon_3 | ⬜ Pending |
+| 7b | `game_mobile.html:1369–1375` — add `public_consent: true` to scoreData | Xenon_3 | ⬜ Pending |
+| 7c | Firestore console — purge 27 leaderboard entries (pre-launch manual task) | Firebase | ⬜ Pending |
+| 8 | `terms.html:158` — fix inaccurate dashboard description | Xenon_3 | ⬜ Pending |
+| 9 | `privacy.html:153` — fix inaccurate dashboard description | Xenon_3 | ⬜ Pending |
+| 10 | `privacy.html:139–140` — expand Section 4 leaderboard disclosure | Xenon_3 | ⬜ Pending |
+| 10b | `privacy.html:136–149` — replace analytics toggle section with banner description | Xenon_3 | ⬜ Pending |
+| 11 | `contact.html` — new file (copy from Xenon_3, dashboard theme) | non-x_analytics | ⬜ Pending |
+| 12 | `privacy.html:89` — fix inaccurate no-PII statement | non-x_analytics | ⬜ Pending |
+| 13 | `privacy.html` — add leaderboard data section after line 89 | non-x_analytics | ⬜ Pending |
+| 14 | `privacy.html:109` — update contact from mailto to contact form | non-x_analytics | ⬜ Pending |
 
 ---
 
