@@ -2173,7 +2173,7 @@
         <div class="kpi"><div class="kpi-label">Full Direction %</div><div class="kpi-value" id="lb-movement">—</div></div>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 32px; margin-top:16px">
+      <div style="margin-top:16px">
         <table style="width:100%; border-collapse:collapse; font-size:13px">
           <thead>
             <tr style="color:var(--cyan); text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)">
@@ -2187,21 +2187,6 @@
           </thead>
           <tbody id="leaderboard-tbody-left">
             <tr><td colspan="6" style="padding:24px; text-align:center; opacity:0.5">Loading leaderboard...</td></tr>
-          </tbody>
-        </table>
-        <table style="width:100%; border-collapse:collapse; font-size:13px">
-          <thead>
-            <tr style="color:var(--cyan); text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)">
-              <th style="padding:8px 12px">#</th>
-              <th style="padding:8px 12px">Player</th>
-              <th style="padding:8px 12px; text-align:right">Score</th>
-              <th style="padding:8px 12px">Platform</th>
-              <th style="padding:8px 12px">Movement</th>
-              <th style="padding:8px 12px">Date</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard-tbody-right">
-            <tr><td colspan="6" style="padding:24px; text-align:center; opacity:0.5"></td></tr>
           </tbody>
         </table>
       </div>
@@ -5055,12 +5040,10 @@
       function buildLeaderboardTable() {
         const entries = DATA.leaderboard;
         const tbodyLeft = document.getElementById('leaderboard-tbody-left');
-        const tbodyRight = document.getElementById('leaderboard-tbody-right');
-        if (!tbodyLeft || !tbodyRight) return;
+        if (!tbodyLeft) return;
 
         if (!entries.length) {
           tbodyLeft.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;opacity:0.5">No leaderboard data available.</td></tr>';
-          tbodyRight.innerHTML = '';
           return;
         }
 
@@ -5090,8 +5073,7 @@
           }).join('');
         }
 
-        tbodyLeft.innerHTML = renderRows(entries.slice(0, 25), 1);
-        tbodyRight.innerHTML = renderRows(entries.slice(25), 26);
+        tbodyLeft.innerHTML = renderRows(entries, 1);
       }
 
       /**
