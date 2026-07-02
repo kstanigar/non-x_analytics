@@ -3,7 +3,7 @@
 **Purpose:** Plan for updating Xenon_3 terms/privacy to legally disclose that leaderboard submissions appear on the public NON-X Analytics dashboard.
 
 **Created:** July 2, 2026 (Session 22)
-**Status:** 🔴 LEGAL REQUIREMENT — Must complete before next marketing push
+**Status:** 🟡 PLAN READY — Age gate UI confirmed (radio buttons); 3 open questions remaining before implementation
 **Repo:** Xenon_3 (separate repo from non-x_analytics)
 
 ---
@@ -65,35 +65,60 @@ Require explicit notice that submitted data will be disclosed publicly and to th
 
 ### Change 1 — Age Gate
 
-Add age confirmation before leaderboard submission UI appears:
+**UI decision (July 2, 2026):** Radio buttons — selected over birth year dropdown and single checkbox.
+
+**Rationale:** FTC COPPA requires neutral UI with no retry loop. Radio buttons force an explicit choice; under-13 path ends the flow immediately with no way back.
+
+**Full submission form flow:**
 
 ```
-Before submitting your score, please confirm:
-○ I am 13 years of age or older
-○ I am under 13
+┌─────────────────────────────────────────────────────┐
+│  Before you submit your score:                      │
+│                                                     │
+│  ○ I am 13 years of age or older                   │
+│  ○ I am under 13                                    │
+│                                                     │
+│  ─────────────────────────────────────────────────  │
+│  Instagram handle (optional):  [ @           ]      │
+│                                                     │
+│  ☐ I understand my handle and score will be        │
+│    publicly displayed on the NON-X analytics        │
+│    dashboard. See Privacy Policy.                   │
+│                                                     │
+│  [SUBMIT SCORE]  ← disabled until 13+ selected     │
+│                    + checkbox checked               │
+└─────────────────────────────────────────────────────┘
 ```
 
-- If under 13: hide leaderboard submit form entirely; show "Leaderboard is for players 13+"
-- No retry loops (FTC guidance: neutral UI)
-- Do not store age response
+**If "under 13" selected — show block message, hide form entirely:**
+
+```
+┌─────────────────────────────────────────────────────┐
+│  The leaderboard is for players aged 13 and older.  │
+│                                                     │
+│  Your score has not been submitted.                 │
+└─────────────────────────────────────────────────────┘
+```
+
+**Rules:**
+- Radio buttons appear first — submit button disabled until a selection is made
+- If under 13 → entire form hides, block message shown, no retry
+- If 13+ → instagram field + consent checkbox appear; submit stays disabled until checkbox checked
+- Age response is NOT stored in Firestore
+- Only `public_consent: true` is stored on submit
 
 ### Change 2 + 3 — Disclosure Text + Opt-In Checkbox
 
-Add to leaderboard submission form (Xenon_3):
+Integrated into the submission form above (appears only after 13+ is selected).
 
-**Disclosure text (required, always visible):**
+**Consent checkbox wording:**
 ```
-Your data will be public. Your Instagram handle and score will appear
-on our analytics dashboard (kstanigar.github.io/non-x_analytics),
-visible to anyone with the URL. See our Privacy Policy for details.
-```
-
-**Opt-in checkbox (mandatory, not pre-checked):**
-```
-☐ I understand my leaderboard entry will be publicly displayed
+☐ I understand my handle and score will be publicly displayed
+  on the NON-X analytics dashboard. See Privacy Policy.
 ```
 
-- Submit button disabled until checkbox is checked
+- Not pre-checked
+- Submit button disabled until checked
 - Store consent flag: `public_consent: true` in Firestore leaderboard entry
 
 ### Change 4 — Xenon_3 Privacy Policy
@@ -154,10 +179,10 @@ If age gate cannot be implemented immediately, the minimum to reduce legal expos
 
 ## Open Questions for User
 
-1. **Age gate:** Can we implement a simple age gate (13+/under 13) at leaderboard submission? This is the highest-priority legal item per COPPA April 2026.
-2. **Existing entries:** ~27 current leaderboard entries were submitted without consent. Options: (a) leave them (pre-consent), (b) email players if contact info available, (c) purge and ask re-submission. Most pragmatic: leave existing, apply consent to all new submissions.
-3. **Retention period:** How long does leaderboard data stay public? (Required for GDPR Article 13 disclosure.)
-4. **Right to erasure process:** Is `contact@standingtiger.com` the right contact for deletion requests?
+1. **Age gate UI:** ✅ CONFIRMED — Radio buttons (July 2, 2026)
+2. **Existing entries:** ~27 current leaderboard entries were submitted without consent. Options: (a) leave them (pre-consent, grandfather in), (b) purge and ask re-submission. Most pragmatic: leave existing, apply consent to all new submissions going forward.
+3. **Retention period:** How long does leaderboard data stay public? (Required for GDPR Article 13 disclosure wording.)
+4. **Right to erasure contact:** Is `contact@standingtiger.com` the correct email for deletion requests?
 
 ---
 
@@ -172,7 +197,7 @@ If age gate cannot be implemented immediately, the minimum to reduce legal expos
 
 ## Decision Needed Before Implementation
 
-- [ ] Confirm age gate is in scope for XEN-1 or separate task (XEN-2)
-- [ ] Confirm existing leaderboard entries approach (leave / purge)
-- [ ] Confirm retention period for disclosure text
-- [ ] Confirm `contact@standingtiger.com` for erasure requests
+- [x] Age gate UI — radio buttons confirmed (July 2, 2026)
+- [ ] Existing leaderboard entries — leave (grandfather) or purge?
+- [ ] Retention period — how long does leaderboard data stay public?
+- [ ] Erasure contact — confirm `contact@standingtiger.com`
