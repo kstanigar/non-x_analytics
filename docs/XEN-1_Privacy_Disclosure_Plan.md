@@ -225,55 +225,103 @@ Already linked from Xenon_3 `terms.html:213` and `privacy.html:204`.
 
 ---
 
-### CHANGE 5: `Xenon_3/game.html:1408` — Add consent check to `submitToLeaderboard()`
+### CHANGE 5: `Xenon_3/game.html:1408–1409` — Add consent check to `submitToLeaderboard()`
 
-**Add at the very top of the function (before line 1408 body begins):**
+**Current lines 1408–1409:**
 ```javascript
-function submitToLeaderboard() {
-  // Block submission if leaderboard consent not granted
-  if (localStorage.getItem('nonx_lb_consent') !== 'granted') {
-    var submitArea = document.getElementById('leaderboardSubmit');
-    if (submitArea) {
-      submitArea.innerHTML = "<div style='font-size:13px;color:#aaa;text-align:center;padding:8px;'>Please accept the consent notice to submit scores.</div>";
-    }
-    return;
-  }
-
-  // ... rest of existing function unchanged ...
-```
-
----
-
-### CHANGE 6: `Xenon_3/game.html:~1432–1437` — Add `public_consent` to `scoreData`
-
-**Current scoreData object:**
-```javascript
-var scoreData = {
-  score: score,
-  instagram: sanitized || 'Anonymous',
-  platform: 'desktop',
-  movement_group: movementABGroup,
-  player_id: PLAYER_ID
-};
+    function submitToLeaderboard() {
+      // Read and sanitize player name/handle from input field
 ```
 
 **Replace with:**
 ```javascript
-var scoreData = {
-  score: score,
-  instagram: sanitized || 'Anonymous',
-  platform: 'desktop',
-  movement_group: movementABGroup,
-  player_id: PLAYER_ID,
-  public_consent: true
-};
+    function submitToLeaderboard() {
+      // Block submission if leaderboard consent not granted via banner
+      if (localStorage.getItem('nonx_lb_consent') !== 'granted') {
+        var submitArea = document.getElementById('leaderboardSubmit');
+        if (submitArea) {
+          submitArea.innerHTML = "<div style='font-size:13px;color:#aaa;text-align:center;padding:8px;'>Please accept the consent notice to submit scores.</div>";
+        }
+        return;
+      }
+      // Read and sanitize player name/handle from input field
 ```
 
 ---
 
-### CHANGE 7: `Xenon_3/game_mobile.html:1353` + `~1372` — Mirror Changes 5 + 6
+### CHANGE 6: `Xenon_3/game.html:1426–1432` — Add `public_consent` to `scoreData`
 
-Same consent check at top of `submitToLeaderboard()` (line 1353) and `public_consent: true` added to `scoreData` (~line 1372, where `platform: 'mobile'`).
+**Current lines 1426–1432:**
+```javascript
+      var scoreData = {
+        score: score,
+        instagram: sanitized || 'Anonymous', // Empty input becomes Anonymous
+        platform: 'desktop',
+        movement_group: movementABGroup,     // A/B test group for analytics
+        player_id: PLAYER_ID                 // Unique ID to prevent name collision
+      };
+```
+
+**Replace with:**
+```javascript
+      var scoreData = {
+        score: score,
+        instagram: sanitized || 'Anonymous', // Empty input becomes Anonymous
+        platform: 'desktop',
+        movement_group: movementABGroup,     // A/B test group for analytics
+        player_id: PLAYER_ID,                // Unique ID to prevent name collision
+        public_consent: true
+      };
+```
+
+---
+
+### CHANGE 7a: `Xenon_3/game_mobile.html:1353–1354` — Add consent check
+
+**Current lines 1353–1354:**
+```javascript
+    function submitToLeaderboard() {
+      var igHandle = document.getElementById('igInput').value.trim();
+```
+
+**Replace with:**
+```javascript
+    function submitToLeaderboard() {
+      // Block submission if leaderboard consent not granted via banner
+      if (localStorage.getItem('nonx_lb_consent') !== 'granted') {
+        var submitArea = document.getElementById('leaderboardSubmit');
+        if (submitArea) {
+          submitArea.innerHTML = "<div style='font-size:13px;color:#aaa;text-align:center;padding:8px;'>Please accept the consent notice to submit scores.</div>";
+        }
+        return;
+      }
+      var igHandle = document.getElementById('igInput').value.trim();
+```
+
+### CHANGE 7b: `Xenon_3/game_mobile.html:1369–1375` — Add `public_consent` to `scoreData`
+
+**Current lines 1369–1375:**
+```javascript
+      var scoreData = {
+        score: score,
+        instagram: sanitized || 'Anonymous',
+        platform: 'mobile',
+        movement_group: movementABGroup,
+        player_id: PLAYER_ID  // Unique ID to prevent name collision
+      };
+```
+
+**Replace with:**
+```javascript
+      var scoreData = {
+        score: score,
+        instagram: sanitized || 'Anonymous',
+        platform: 'mobile',
+        movement_group: movementABGroup,
+        player_id: PLAYER_ID, // Unique ID to prevent name collision
+        public_consent: true
+      };
+```
 
 ---
 
