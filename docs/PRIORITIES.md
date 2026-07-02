@@ -75,7 +75,7 @@
 - UX-7: Player Performance page (unblocked — `user_pseudo_id` confirmed available)
 - UX-8: Leaderboard tab — **✅ COMPLETE + MERGED** — June 30, 2026
   - ⚠️ UX-8a: Single-column fix — change 2-column layout to 1 column (ranks 1–50); user confirmed on staging
-  - ✅ UX-8b: CSP connect-src — added `https://www.gstatic.com` for Firebase sourcemaps — July 2, 2026
+  - ✅ UX-8b: CSP connect-src — researched gstatic.com addition; reverted per OWASP least-privilege. Original CSP is correct. `.map` errors are dev-tool noise only — July 2, 2026
 - UX-9: Traffic Source widget — query `sessionSource` + `sessionDefaultChannelGroup` via GA4 Data API; surface on Overview or new tab. No Xenon_3 changes needed — data already collected. (P1-C resolution — June 30, 2026)
 - UX-10: Player profile linking — **⏸️ SHELVED** — privacy/legal lift too high at this stage. Full analysis in `docs/Player_Data_Privacy_Plan.md`. Revisit post-launch if needed.
 - Tier Performance Metrics: `DATA.aiAgent.tierMetrics` never populated — decision needed: BigQuery handler vs CSV approach

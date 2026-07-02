@@ -10,16 +10,21 @@
 
 ---
 
-## July 2, 2026 — CSP connect-src Fix / UX-8 Follow-up (Session 22)
+## July 2, 2026 — CSP connect-src Research / UX-8 Follow-up (Session 22)
 
-**Status:** ✅ COMPLETE
+**Status:** ✅ COMPLETE — No change needed; original CSP is correct per OWASP
 
-**Problem:** Firebase SDK was fetching `.map` sourcemap files from `https://www.gstatic.com` at runtime, blocked by `connect-src` CSP directive. 2 red CSP errors in staging console.
+**Problem observed:** 2 red CSP errors in staging console — Firebase SDK trying to fetch `.map` sourcemap files from `https://www.gstatic.com`, blocked by `connect-src`.
 
-**Fix:** Added `https://www.gstatic.com` to `connect-src` in `live.html:23` CSP meta tag.
+**Initial fix (reverted):** Added `https://www.gstatic.com` to `connect-src`. Haiku agent research found this is incorrect per OWASP least-privilege — `gstatic.com` is not officially documented as required by Firebase Firestore, and sourcemap errors are dev-tool-only noise (they fire when DevTools panel is open; don't affect runtime or production).
 
-**File changed:** `live.html:23`
-**Branch:** `feature/ux-8a-csp-gstatic` → staging → main
+**Final decision:** Reverted `gstatic.com` addition. CSP `connect-src` is correct as-is:
+- `https://firestore.googleapis.com` — sufficient for Firestore reads (Firebase official docs)
+- `https://www.gstatic.com` NOT added — OWASP: don't allow origins that aren't required
+
+**Sources:** Firebase docs, OWASP CSP Cheat Sheet, Google CSP guides
+
+**Note for future:** The `.map` CSP errors in DevTools are cosmetic. They only appear when DevTools panel is open. Ignore them — they do not indicate a runtime problem.
 
 ---
 
