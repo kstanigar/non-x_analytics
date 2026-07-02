@@ -14,20 +14,22 @@
 
 ---
 
-### 🔴 NEXT PRIORITY — XEN-1: Leaderboard Privacy Disclosure
+### 🔴 XEN-1: Leaderboard Privacy Disclosure — ⬜ IMPLEMENTATION PENDING (Xenon_3 repo)
 
-**Plan complete** — `docs/XEN-1_Privacy_Disclosure_Plan.md` — 16 changes, GDPR/COPPA/CCPA verified
+**Plan complete** — `docs/XEN-1_Privacy_Disclosure_Plan.md` — 17 changes, GDPR/COPPA/CCPA verified
+**Plan also copied to:** `Xenon_3/docs/XEN-1_Privacy_Disclosure_Plan.md` — July 2, 2026
 
-**Implementation order:**
-1. Firebase console — purge 27 existing leaderboard entries (pre-launch manual task)
-2. Xenon_3 repo — Changes 1–10b (banner redesign, submitToLeaderboard, terms, privacy)
-3. non-x_analytics repo — Changes 11–14 (contact.html, privacy.html updates)
+**Implementation deferred** — will be implemented during a dedicated Xenon_3 session.
+
+**Status per repo:**
+- Xenon_3 — Changes 1–13b: ⬜ Pending
+- non-x_analytics — Changes 14–17: ⬜ Pending
 
 **Key decisions confirmed:**
 - Banner: 3 independent checkboxes (analytics, leaderboard, age) + Confirm button
 - Consent logged to Firestore `consent_log` collection (GDPR Article 30)
 - Existing 27 entries purged ✅ DONE — July 2, 2026 (no grandfathering)
-- Analytics toggle section removed from Xenon_3 privacy.html (feature never existed in code)
+- Analytics toggle confirmed at `index.html:573–579` — preserved after XEN-1; Change 13b updates Section 3 description only
 
 ---
 
