@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** July 2, 2026 (Session 24 — UX-8a complete; XEN-1 deferred; plan copied to Xenon_3)
+**Last Updated:** July 3, 2026 (Session 25 — ISSUE-010 resolved; Firebase_Config.md created)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -33,32 +33,6 @@
 
 ---
 
-### ✅ ISSUE-010: Firebase API Key Security — COMPLETE (July 3, 2026)
-
-**ISSUE-010** — `live.html:3088` — Firebase `apiKey` exposed in public git repo (commit `5f624efc`)
-
-**All actions completed:**
-- ✅ Firestore rules already deployed (June 23) — `request.app.token.valid` on all writes, full field validation
-- ✅ API key restricted to 4 domains: localhost, nonx.standingtiger.com, dev.nonx.standingtiger.com, kstanigar.github.io
-- ✅ GitHub Secret Scanning alert dismissed as "False positive"
-- ✅ `docs/Firebase_Config.md` created as permanent Firebase reference
-
-**Full details:** `docs/Issues_And_Bugs.md` — ISSUE-010 | `docs/Firebase_Config.md`
-
----
-
-### 🔴 PRIORITY 1 — Clarification Needed Before Work Can Proceed
-
-*June 30, 2026 audit revealed 3 items where the correct path forward is unclear.*
-
-| # | Item | Question | Impact |
-|---|------|----------|--------|
-| P1-A | **Movement A/B Win Rate** | ✅ RESOLVED — Live data confirmed (0% both groups); mock badge removed from Data Dictionary `live.html:2932` — June 30, 2026 | MT-6 #1 closed |
-| P1-B | **Leaderboard API (UX-8)** | ✅ RESOLVED — Full plan written: `docs/Leaderboard_Tab_Plan.md`. Leaderboard is Firebase Firestore (not Lambda). Dashboard will query Firestore directly (Option A). Pre-implementation blocker: verify Firestore security rules allow public reads from `kstanigar.github.io`. — June 30, 2026 | UX-8 plan ready |
-| P1-C | **`menu_view` not firing in Xenon_3** | ✅ RESOLVED — June 30, 2026. Restoring `menu_view` is wrong approach. GA4 already collects `sessionSource` / `sessionDefaultChannelGroup` on every session — no Xenon_3 changes needed. New task UX-9 added to surface traffic source data on dashboard. | UX-9 added to P2 |
-
----
-
 ### 🟡 PRIORITY 2 — Outstanding Tasks (Backlog)
 
 *All items below are unblocked or waiting on P1 clarification only where noted.*
@@ -74,7 +48,7 @@
 - Register `outcome` custom dimension in GA4 Admin → values: `victory` / `abandoned` / `death`
 
 **BigQuery / MT-6:**
-- MT-6 #1: Movement A/B Win Rate — pending P1-A clarification
+- MT-6 #1: Movement A/B Win Rate — ✅ COMPLETE (live data confirmed, 0% both groups)
 - MT-6 #2: Tier Delta
 - MT-6 #3: Sessions per User
 - MT-6 #4: Win Rate by Starting Tier
@@ -95,9 +69,15 @@
 
 **Xenon_3:**
 - XEN-1: ✅ PLAN COMPLETE — implementation deferred to Xenon_3 repo. **Full plan:** `docs/XEN-1_Privacy_Disclosure_Plan.md` — 17 changes, GDPR/COPPA/CCPA verified — July 2, 2026
-- Investigate `menu_view` not firing (P1-C closed — no action needed; see GA4_Custom_Dimensions.md)
 
 ---
+
+### ISSUE-010: Firebase API Key Security ✅ — July 3, 2026
+- Firestore rules: `request.app.token.valid` on all writes + full field validation (deployed June 23)
+- API key restricted to 4 domains: localhost, nonx.standingtiger.com, dev.nonx.standingtiger.com, kstanigar.github.io
+- GitHub Secret Scanning alert dismissed as "False positive"
+- `docs/Firebase_Config.md` created as permanent Firebase reference
+- **Commit:** `a9814d2`
 
 ### P-1: Add Favicon ✅ — June 24, 2026
 - **Commit:** `feature/favicon-and-logo` → merged to main
