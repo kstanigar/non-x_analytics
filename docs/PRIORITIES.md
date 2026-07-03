@@ -33,19 +33,17 @@
 
 ---
 
-### 🔴 PRIORITY 2 — ISSUE-010: Firebase API Key Security
+### ✅ ISSUE-010: Firebase API Key Security — COMPLETE (July 3, 2026)
 
 **ISSUE-010** — `live.html:3088` — Firebase `apiKey` exposed in public git repo (commit `5f624efc`)
 
-**Risk:** Firestore rules may allow unrestricted writes — anyone with the key could corrupt the leaderboard.
+**All actions completed:**
+- ✅ Firestore rules already deployed (June 23) — `request.app.token.valid` on all writes, full field validation
+- ✅ API key restricted to 4 domains: localhost, nonx.standingtiger.com, dev.nonx.standingtiger.com, kstanigar.github.io
+- ✅ GitHub Secret Scanning alert dismissed as "False positive"
+- ✅ `docs/Firebase_Config.md` created as permanent Firebase reference
 
-**Plan (next session after XEN-1):**
-1. Haiku agent researches exact steps for Google Cloud Console API key restriction + Firestore rules syntax
-2. Implement Option 1: Restrict API key to `kstanigar.github.io/*` + `nonx.standingtiger.com/*` (Google Cloud Console)
-3. Implement Option 2: Tighten Firestore rules — public reads, restricted writes (Firebase Console)
-4. Dismiss GitHub Secret Scanning alert
-
-**Full details:** `docs/Issues_And_Bugs.md` — ISSUE-010
+**Full details:** `docs/Issues_And_Bugs.md` — ISSUE-010 | `docs/Firebase_Config.md`
 
 ---
 

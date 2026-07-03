@@ -2,7 +2,7 @@
 
 **Purpose:** Centralized tracking for bugs, data accuracy issues, and technical problems across the NON-X Analytics platform.
 
-**Last Updated:** July 2, 2026 (Session 24 — ISSUE-011 added: GitHub Pages deploy-pages@v5 transient failure)
+**Last Updated:** July 3, 2026 (Session 25 — ISSUE-010 resolved: Firebase API key security complete)
 
 ---
 
@@ -11,9 +11,9 @@
 | Status | Count |
 |--------|-------|
 | 🔴 CRITICAL (Blocking) | 0 |
-| 🟡 MEDIUM (Should Fix) | 1 |
+| 🟡 MEDIUM (Should Fix) | 0 |
 | 🟢 LOW (Nice to Have) | 0 |
-| ✅ RESOLVED | 10 |
+| ✅ RESOLVED | 11 |
 
 ---
 
@@ -86,79 +86,40 @@ Try Fix 1 first. If retries fail consistently over multiple days, apply Fix 2 (v
 
 ### ISSUE-010: Firebase API Key Exposed in Public Git Repo
 
-**Status:** 🟡 OPEN — Mitigatable; not an emergency (key is intentionally public per Firebase design)
+**Status:** ✅ RESOLVED — July 3, 2026 (Session 25)
 **Severity:** MEDIUM
 **Found:** June 30, 2026 (GitHub Secret Scanning alert on push to main)
 **Affected Component:** `live.html:3088` — Firebase config block (Edit 3, UX-8 leaderboard)
 **Commit:** `5f624efc`
+**Full config reference:** `docs/Firebase_Config.md`
 
 #### Description
 
-GitHub Secret Scanning flagged `apiKey: "AIzaSyDumeBRk__-lcKFJA2WLD7Wi-0y6OuFZlo"` added in the Firebase init block. GitHub matches the `AIzaSy...` pattern as a Google API Key.
+GitHub Secret Scanning flagged `apiKey: "AIzaSyDumeBRk__-lcKFJA2WLD7Wi-0y6OuFZlo"` in the Firebase init block. Firebase web API keys are intentionally public — they identify the project, not grant access. The real risk is Firestore write rules.
 
-**Why this happened:** Firebase compat SDK requires the full config object (including `apiKey`) in client-side JS. This is identical to how the key is already embedded in `Xenon_3/game.html`.
+#### Investigation Findings (Session 25 — July 3, 2026)
 
-**Is the key itself a secret?** No — Firebase API keys are designed to be public. They identify the project, not grant access. However, the actual risk depends on **Firestore security rules**.
+**Firestore rules:** ✅ Already deployed (June 23, 2026 — Xenon_3 security session). Full `request.app.token.valid` enforcement on create/update. See `docs/Firebase_Config.md` for complete rules.
 
-#### Risk Assessment
+**Firestore write method:** Game uses unauthenticated `addDoc()` protected by reCAPTCHA v3 App Check (no Firebase Auth). `allow write: if request.auth != null` would have broken all submissions — confirmed via Xenon_3 codebase search.
 
-| Condition | Risk Level |
-|-----------|-----------|
-| Firestore rules = allow read-only | LOW — key exposure is harmless |
-| Firestore rules = allow read + write (current suspected state) | HIGH — anyone with the key could write/spam the leaderboard |
-| App Check enforced on kstanigar.github.io | MITIGATED — unauthorized domains blocked |
+**API key restrictions:** Partially done (June 13, 2026). Current allowed HTTP referrers:
+- ✅ `localhost`
+- ✅ `https://nonx.standingtiger.com/*`
+- ✅ `https://dev.nonx.standingtiger.com/*`
+- ❌ `https://kstanigar.github.io/*` — **MISSING**
 
-**User confirmed:** Firestore rules may NOT be locked to read-only. This is the real risk — not the key exposure itself.
+**App Check:** `nonx.standingtiger.com` registered (reCAPTCHA v3). Enforcement intentionally disabled — 48% of requests are "outdated" (real players using GitHub URL instead of production URL, not malicious). Re-check enforcement readiness ~July 6–7.
 
-#### Options to Mitigate (in order of effort)
+**kstanigar.github.io + App Check:** Dashboard does not need App Check registration. `allow read: if true` — no token required for reads. Dashboard never writes to Firestore.
 
-**Option 1: Restrict the API key in Google Cloud Console (Recommended — easiest)**
-- Go to Google Cloud Console → APIs & Services → Credentials → select the API key
-- Add HTTP referrer restrictions: `kstanigar.github.io/*` and `nonx.standingtiger.com/*`
-- Effect: key only works from those two domains; useless if extracted and used elsewhere
-- No code changes needed
+#### All Actions Completed
 
-**Option 2: Tighten Firestore security rules (Critical regardless of key exposure)**
-- Firebase Console → Firestore → Rules tab
-- Dashboard only needs reads; game needs authenticated writes
-- Recommended rules:
-  ```
-  rules_version = '2';
-  service cloud.firestore {
-    match /databases/{database}/documents {
-      match /leaderboard/{doc} {
-        allow read: if true;         // Public leaderboard — anyone can read
-        allow write: if request.auth != null || <app-check condition>;
-      }
-    }
-  }
-  ```
-- This is independent of the key issue and should be done regardless
-
-**Option 3: Switch to Lambda proxy (Option B — most secure, most effort)**
-- Move Firestore read to a new Lambda handler using Firebase Admin SDK
-- API key never appears in `live.html`
-- Key stored as Lambda environment variable (never in git)
-- Requires: new Lambda handler + deploy + remove Firebase SDK from live.html
-- Was considered and rejected during UX-8 planning but is the correct choice if rules can't be locked
-
-**Option 4: Register kstanigar.github.io with Firebase App Check**
-- Firebase Console → App Check → register the domain
-- Combined with Option 1, makes the key nearly unusable from unauthorized origins
-- Game domain (nonx.standingtiger.com) likely already registered
-
-#### Recommended Path
-
-1. **Immediately:** Tighten Firestore rules (Option 2) — protects the data regardless of anything else
-2. **Also:** Restrict the API key in Google Cloud Console (Option 1) — low effort, reduces attack surface
-3. **If rules cannot be locked:** Switch to Lambda proxy (Option 3)
-
-#### Action Items
-- [ ] Check Firestore rules in Firebase Console → determine if reads are public, writes are restricted
-- [ ] Restrict API key HTTP referrers in Google Cloud Console
-- [ ] Register kstanigar.github.io with Firebase App Check (Option 4)
-- [ ] User to dismiss GitHub Secret Scanning alert (not a secret by Firebase design)
-- [ ] If rules are open: decide Option 2 vs Option 3 before going live
+- ✅ Firestore rules confirmed deployed — App Check token required on all writes (June 23, 2026)
+- ✅ API key `kstanigar.github.io/*` added to HTTP referrer restrictions in Google Cloud Console (July 3, 2026) — all 4 domains now configured: localhost, nonx.standingtiger.com, dev.nonx.standingtiger.com, kstanigar.github.io
+- ✅ App Check registered on nonx.standingtiger.com (June 14, 2026)
+- ✅ Write method confirmed: unauthenticated addDoc() + App Check (no Firebase Auth)
+- ✅ GitHub Secret Scanning alert dismissed as "False positive" — July 3, 2026 (Firebase web API keys are public by design; security via Firestore rules + referrer restrictions)
 
 ---
 

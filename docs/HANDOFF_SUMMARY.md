@@ -2,11 +2,41 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** July 2, 2026 (Session 24 — UX-8a complete on staging; awaiting merge to main)
+**Last Updated:** July 3, 2026 (Session 25 — ISSUE-010 Firebase security investigation)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## July 3, 2026 — ISSUE-010: Firebase Security Investigation (Session 25)
+
+**Status:** ✅ COMPLETE — July 3, 2026
+
+### Findings (via Haiku agents + user confirmation)
+
+**Firestore rules:** ✅ Already fully deployed (June 23, 2026). `request.app.token.valid == true` enforced on all creates + updates. Full field validation (6 fields), score range check, server timestamp, delete blocked. No changes needed.
+
+**Write method:** Game uses unauthenticated `addDoc()` + reCAPTCHA v3 App Check. No Firebase Auth. Confirmed via Xenon_3 codebase (`game.html:618`, `game_mobile.html:582`).
+
+**API key restrictions:** Partially done (June 13, 2026). `nonx.standingtiger.com` and `dev.nonx.standingtiger.com` added. **`kstanigar.github.io` is missing — must add.**
+
+**App Check metrics (Jul 3, Jun 26–Jul 4):**
+- Verified: 50% (123/244)
+- Unverified outdated: 48% (118/244) — root cause: players using GitHub link, not production URL
+- Invalid: 1% (3/244)
+- Do NOT enforce yet — target ~90% verified. Re-check July 6–7.
+
+**kstanigar.github.io + App Check:** Not needed. Dashboard reads only; `allow read: if true` requires no token.
+
+### Created This Session
+- `docs/Firebase_Config.md` — permanent Firebase reference doc (project info, API key restrictions, Firestore rules, App Check config, write method, change log)
+
+### Completed This Session
+- ✅ `https://kstanigar.github.io/*` added to API key HTTP referrer restrictions (Google Cloud Console → Mar 4 key)
+- ✅ GitHub Secret Scanning alert dismissed as "False positive" with comment explaining Firebase key design
+- ✅ `docs/Firebase_Config.md` created — permanent Firebase reference (rules, App Check, API key, write method)
 
 ---
 
