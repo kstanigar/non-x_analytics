@@ -38,7 +38,7 @@
 *All items below are unblocked or waiting on P1 clarification only where noted.*
 
 **Security:**
-- L-1: Google Fonts `@import` → `<link>` tag — ✅ COMPLETE July 3, 2026
+- L-1: Google Fonts `@import` → `<link>` tag — ✅ COMPLETE July 3, 2026 — commit `0192f83`
 - JS extraction to `dashboard.js` (L-1 complete — now unblocked)
 - CSP drop `'unsafe-inline'` (blocked by JS extraction)
 - Cloudflare proxy / M-5 `frame-ancestors`

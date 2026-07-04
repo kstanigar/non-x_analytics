@@ -12,7 +12,7 @@
 
 ## July 3, 2026 — L-1: Google Fonts @import → link (Session 26)
 
-**Status:** ✅ COMPLETE — July 3, 2026
+**Status:** ✅ COMPLETE — merged to main — commit `0192f83`
 
 ### What Changed
 - `live.html:36` — Removed `@import url(...)` from inside `<style>` block
