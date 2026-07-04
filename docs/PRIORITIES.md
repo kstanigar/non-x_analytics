@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** July 3, 2026 (Session 26 — L-1 Google Fonts @import → link complete)
+**Last Updated:** July 3, 2026 (Session 26 — GA4 Admin: outcome custom dimension registered)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -45,7 +45,7 @@
 - H-4: AWS WAF (post-launch trigger: bot patterns in CloudWatch)
 
 **GA4 Admin:**
-- Register `outcome` custom dimension in GA4 Admin → values: `victory` / `abandoned` / `death`
+- Register `outcome` custom dimension in GA4 Admin — ✅ COMPLETE July 3, 2026 — scope: Event, parameter: `outcome`, values: `victory` / `abandoned` / `death`
 
 **BigQuery / MT-6:**
 - MT-6 #1: Movement A/B Win Rate — ✅ COMPLETE (live data confirmed, 0% both groups)

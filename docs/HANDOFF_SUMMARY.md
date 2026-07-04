@@ -2,11 +2,23 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** July 3, 2026 (Session 26 — L-1 Google Fonts @import → link)
+**Last Updated:** July 3, 2026 (Session 26 — GA4 Admin: outcome custom dimension registered)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## July 3, 2026 — GA4 Admin: outcome Custom Dimension (Session 26)
+
+**Status:** ✅ COMPLETE — July 3, 2026
+
+- Registered `outcome` as Event-scoped custom dimension in GA4 Admin → Custom Definitions
+- Event parameter: `outcome` | Values: `victory` / `abandoned` / `death`
+- Sent on `game_complete` events from Xenon_3
+- Populates in GA4 reports and Data API within 24–48h
+- Enables win rate breakdowns and funnel analysis by outcome type
 
 ---
 
