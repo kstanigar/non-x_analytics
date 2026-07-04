@@ -2,11 +2,37 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** July 3, 2026 (Session 25 — ISSUE-010 Firebase security investigation)
+**Last Updated:** July 3, 2026 (Session 26 — L-1 Google Fonts @import → link)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## July 3, 2026 — L-1: Google Fonts @import → link (Session 26)
+
+**Status:** ✅ COMPLETE — July 3, 2026
+
+### What Changed
+- `live.html:36` — Removed `@import url(...)` from inside `<style>` block
+- `live.html:36–38` — Added 3 `<link>` tags before `<style>`:
+  - `<link rel="preconnect" href="https://fonts.googleapis.com">`
+  - `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`
+  - `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap">`
+
+### Why
+- `@import` is sequential — browser must finish parsing the stylesheet before discovering the font request, blocking render
+- `<link>` loads in parallel with HTML parsing — fonts are discovered earlier
+- `crossorigin` on `fonts.gstatic.com` required: font files served via anonymous-mode CORS; without it, preconnect only does DNS lookup (no TCP/TLS handshake benefit)
+- No `crossorigin` on `fonts.googleapis.com` — serves CSS only, no CORS
+
+### CSP Impact
+- No changes needed — `style-src` already includes `https://fonts.googleapis.com`; `font-src` already includes `https://fonts.gstatic.com`
+
+### Downstream Unblocked
+- JS extraction to `dashboard.js` — now unblocked
+- CSP drop `'unsafe-inline'` — unblocked after JS extraction
 
 ---
 

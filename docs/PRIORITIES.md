@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** July 3, 2026 (Session 25 — ISSUE-010 resolved; Firebase_Config.md created)
+**Last Updated:** July 3, 2026 (Session 26 — L-1 Google Fonts @import → link complete)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -38,8 +38,8 @@
 *All items below are unblocked or waiting on P1 clarification only where noted.*
 
 **Security:**
-- L-1: Google Fonts `@import` → `<link>` tag (`live.html:35`)
-- JS extraction to `dashboard.js` (blocked by L-1 completion first)
+- L-1: Google Fonts `@import` → `<link>` tag — ✅ COMPLETE July 3, 2026
+- JS extraction to `dashboard.js` (L-1 complete — now unblocked)
 - CSP drop `'unsafe-inline'` (blocked by JS extraction)
 - Cloudflare proxy / M-5 `frame-ancestors`
 - H-4: AWS WAF (post-launch trigger: bot patterns in CloudWatch)
