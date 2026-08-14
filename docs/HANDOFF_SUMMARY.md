@@ -2,11 +2,28 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** August 14, 2026 (Session 27 — Mobile bottom nav + leaderboard-first reorder)
+**Last Updated:** August 14, 2026 (Session 28 — Leaderboard cleanup + mobile header/footer fixes)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## August 14, 2026 — Leaderboard Cleanup + Mobile Header/Footer Fixes (Session 28)
+
+**Status:** ✅ COMPLETE — merged to main (fast-forward, no PR) — August 14, 2026
+**Commits:** `df70930`, `d8be83e`, `bf279da` on `feature/leaderboard-colors` — tested on staging, fast-forward merged to main
+**Branch:** `feature/leaderboard-colors` — tested on staging, merged; local branch not yet deleted (pending cleanup)
+
+### What Changed (`live.html`)
+1. **Leaderboard Date column removed** — header `<th>`, both empty-state `colspan` values (6→5), and the row renderer's `date` const all removed
+2. **Readability color pass** — `--magenta` `#FF00FF`→`#E869E8`, `--yellow` `#FFD700`→`#FFE066`, `--text-dim` `rgba(200,232,255,0.5)`→`rgba(226,240,255,0.85)`. Root cause wasn't WCAG contrast (both old colors already passed AA against `--bg: #03060F`) — it's the Material Design dark-theme guidance that fully-saturated colors "vibrate" against near-black backgrounds. 22 hardcoded `#FFD700` inline literals replaced with `var(--yellow)` (one intentional exception: the Chart.js color const at `live.html:5223`, out of scope — feeds chart rendering, not text). New `--dim-light`/`--dim-heavy` opacity vars added and applied to leaderboard row cells, replacing stacked inline `opacity` values
+3. **Mobile header cleanup** (user-supplied screenshot) — inline `.version-filter` date dropdown hidden on mobile (redundant with the bottom-nav Filter pill/`#mobile-filter-sheet`, which already exposes the same 8 range options); `.header-meta` (Measurement ID / Events tracked / Platforms / Active A/B tests) now right-aligns on mobile (`header`'s mobile `align-items: flex-start` → `stretch`); "Analytics Command Center" and "GA4 · Lambda API" split onto separate lines via new `.header-sep`/`.header-api` spans, desktop untouched. Plan: `docs/Mobile_Header_Cleanup_Plan.md`
+4. **Footer copyright line** — was wrapping mid-sentence on mobile ("...All rights" / "reserved."); added mobile-only `.site-footer` padding reduction + `.footer-text span:first-child { font-size: 0.62rem; white-space: nowrap; }` to keep it on one line
+
+### Also This Session
+- Diagnosed and closed a staging/main divergence (staging was 2 commits behind main after PR #7) — resolved naturally once this session's work was pushed to staging and fast-forward merged, both branches now identical
 
 ---
 

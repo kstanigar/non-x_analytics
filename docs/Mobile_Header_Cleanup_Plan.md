@@ -1,7 +1,7 @@
 # Implementation Plan: Mobile Header Cleanup
 
 **Created:** August 14, 2026
-**Status:** 🟢 CODE COMPLETE — August 14, 2026 — awaiting mobile visual confirmation + staging push
+**Status:** ✅ COMPLETE — August 14, 2026 — tested on staging, merged to main via `feature/leaderboard-colors` (fast-forward, `bf279da`)
 **Reference:** User-supplied screenshot — `live.html` header on mobile (kstanigar.github.io/non-x_analytics), Live Data / Overview view
 
 ---
