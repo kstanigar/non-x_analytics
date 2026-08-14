@@ -14,7 +14,7 @@
 
 **Status:** ✅ COMPLETE — merged to main (fast-forward, no PR) — August 14, 2026
 **Commits:** `df70930`, `d8be83e`, `bf279da` on `feature/leaderboard-colors` — tested on staging, fast-forward merged to main
-**Branch:** `feature/leaderboard-colors` — tested on staging, merged; local branch not yet deleted (pending cleanup)
+**Branch:** `feature/leaderboard-colors` — tested on staging, merged, local branch deleted
 
 ### What Changed (`live.html`)
 1. **Leaderboard Date column removed** — header `<th>`, both empty-state `colspan` values (6→5), and the row renderer's `date` const all removed
