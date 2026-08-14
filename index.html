@@ -42,17 +42,19 @@
       --cyan: #00FFFF;
       --cyan-dim: rgba(0, 255, 255, 0.15);
       --cyan-glow: rgba(0, 255, 255, 0.4);
-      --magenta: #FF00FF;
+      --magenta: #E869E8;
       --mag-dim: rgba(255, 0, 255, 0.15);
       --green: #39FF14;
       --red: #FF3366;
-      --yellow: #FFD700;
+      --yellow: #FFE066;
       --bg: #03060F;
       --bg2: #060D1A;
       --bg3: #0A1428;
       --border: rgba(0, 255, 255, 0.2);
       --text: #C8E8FF;
-      --text-dim: rgba(200, 232, 255, 0.5);
+      --text-dim: rgba(226, 240, 255, 0.85);
+      --dim-light: 0.6;
+      --dim-heavy: 0.85;
       --mono: 'Share Tech Mono', monospace;
       --sans: 'Exo 2', sans-serif;
     }
@@ -1135,7 +1137,7 @@
       header {
         flex-direction: column;
         gap: 16px;
-        align-items: flex-start;
+        align-items: stretch;
       }
     }
 
@@ -1174,6 +1176,27 @@
 
       .header-meta {
         font-size: 0.65rem;
+      }
+
+      .header-sep {
+        display: none;
+        /* Separator dot not needed once GA4/Lambda API drop to their own line */
+      }
+
+      .header-api {
+        display: block;
+        margin-top: 2px;
+      }
+
+      /* Footer - keep copyright line from wrapping mid-sentence */
+      .site-footer {
+        padding: 20px 16px;
+        gap: 10px;
+      }
+
+      .footer-text span:first-child {
+        font-size: 0.62rem;
+        white-space: nowrap;
       }
 
       /* Navigation tabs - horizontal scroll */
@@ -1238,6 +1261,8 @@
       .version-filter {
         width: 100%;
         margin-bottom: 16px;
+        display: none;
+        /* Redundant with bottom-nav Filter pill (#mobile-filter-sheet) */
       }
 
       select,
@@ -1681,7 +1706,7 @@
     <header>
       <div class="logo-block">
         <h1><a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener">NON-X</a></h1>
-        <p>Analytics Command Center &nbsp;·&nbsp; GA4 · Lambda API</p>
+        <p>Analytics Command Center<span class="header-sep"> &nbsp;·&nbsp; </span><span class="header-api">GA4 · Lambda API</span></p>
       </div>
       <div class="header-meta">
         <div>Measurement ID <span>G-9ECFZ9JBE5</span></div>
@@ -1801,11 +1826,10 @@
               <th style="padding:8px 12px; text-align:right">Score</th>
               <th style="padding:8px 12px">Platform</th>
               <th style="padding:8px 12px">Movement</th>
-              <th style="padding:8px 12px">Date</th>
             </tr>
           </thead>
           <tbody id="leaderboard-tbody-left">
-            <tr><td colspan="6" style="padding:24px; text-align:center; opacity:0.5">Loading leaderboard...</td></tr>
+            <tr><td colspan="5" style="padding:24px; text-align:center; opacity:0.5">Loading leaderboard...</td></tr>
           </tbody>
         </table>
       </div>
@@ -3111,21 +3135,21 @@
         kpis: {
           sessions: '2,841',
           newPct: '73%',
-          newPctSub: '<span style="color:var(--green)">—&nbsp;new</span> / <span style="color:#FFD700">—&nbsp;returning</span>',
+          newPctSub: '<span style="color:var(--green)">—&nbsp;new</span> / <span style="color:var(--yellow)">—&nbsp;returning</span>',
           winRate: '8.4%',
-          winSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:#FFD700">—&nbsp;starts</span>',
+          winSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:var(--yellow)">—&nbsp;starts</span>',
           deathRate: '84.2%',
-          deathSub: '<span style="color:var(--green)">—&nbsp;deaths</span> / <span style="color:#FFD700">—&nbsp;completed</span>',
+          deathSub: '<span style="color:var(--green)">—&nbsp;deaths</span> / <span style="color:var(--yellow)">—&nbsp;completed</span>',
           replay: '28%',
-          replaySub: '<span style="color:var(--green)">—&nbsp;replay starts</span> / <span style="color:#FFD700">—&nbsp;total starts</span>',
+          replaySub: '<span style="color:var(--green)">—&nbsp;replay starts</span> / <span style="color:var(--yellow)">—&nbsp;total starts</span>',
           survival: '2.4m',
           lbRate: '31%',
-          lbRateSub: '<span style="color:var(--green)">—&nbsp;submits</span> / <span style="color:#FFD700">—&nbsp;wins</span>',
+          lbRateSub: '<span style="color:var(--green)">—&nbsp;submits</span> / <span style="color:var(--yellow)">—&nbsp;wins</span>',
           avgLevel: '5.2',
           deskWin: '11.2%',
-          deskWinSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:#FFD700">—&nbsp;starts</span>',
+          deskWinSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:var(--yellow)">—&nbsp;starts</span>',
           mobWin: '5.7%',
-          mobWinSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:#FFD700">—&nbsp;starts</span>',
+          mobWinSub: '<span style="color:var(--green)">—&nbsp;wins</span> / <span style="color:var(--yellow)">—&nbsp;starts</span>',
           deskLevel: '6.1',
           mobLevel: '4.3',
           completeness: 100,
@@ -3222,7 +3246,7 @@
             avgStartTier: '—',
             avgFinalTier: '—',
             speedLockRate: '—',
-            speedLockSub: '<span style="color:var(--green)">—&nbsp;locked</span> / <span style="color:#FFD700">—&nbsp;adjustments</span>',
+            speedLockSub: '<span style="color:var(--green)">—&nbsp;locked</span> / <span style="color:var(--yellow)">—&nbsp;adjustments</span>',
             avgAdjustments: '—',
           },
           tierDist: {
@@ -3797,7 +3821,7 @@
               decreases,
               totalAdjustments,
               speedLockRate,
-              speedLockSub: `<span style="color:var(--green)">${escHtml(speedLockCount)}&nbsp;locked</span> / <span style="color:#FFD700">${escHtml(totalAdjustments)}&nbsp;adjustments</span>`,
+              speedLockSub: `<span style="color:var(--green)">${escHtml(speedLockCount)}&nbsp;locked</span> / <span style="color:var(--yellow)">${escHtml(totalAdjustments)}&nbsp;adjustments</span>`,
               scoreMultCounts,
               hasRealData: totalAdjustments > 0,
             }
@@ -3871,7 +3895,7 @@
           const fmt = (r, t) => t > 0 ? Math.round((r / t) * 100) + '%' : '—';
           return {
             replayRate: fmt(replayAll, totalAll),
-            replaySub: `<span style="color:var(--green)">${escHtml(replayAll)}&nbsp;replay starts</span> / <span style="color:#FFD700">${escHtml(totalAll)}&nbsp;total starts</span>`,
+            replaySub: `<span style="color:var(--green)">${escHtml(replayAll)}&nbsp;replay starts</span> / <span style="color:var(--yellow)">${escHtml(totalAll)}&nbsp;total starts</span>`,
             desktop: { replayRate: fmt(replayDesk, totalDesk) },
             mobile:  { replayRate: fmt(replayMob,  totalMob)  },
             hasRealData: totalAll > 0,
@@ -4067,11 +4091,11 @@
           kpis: {
             sessions: sessions.toLocaleString(),
             winRate,
-            winSub: `<span style="color:var(--green)">${escHtml(playerWon)}&nbsp;wins</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`,
+            winSub: `<span style="color:var(--green)">${escHtml(playerWon)}&nbsp;wins</span> / <span style="color:var(--yellow)">${escHtml(gameStarts)}&nbsp;starts</span>`,
             deathRate,
-            deathSub: `<span style="color:var(--green)">${escHtml(playerDeath)}&nbsp;deaths</span> / <span style="color:#FFD700">${escHtml(completedGames)}&nbsp;completed</span>`,
+            deathSub: `<span style="color:var(--green)">${escHtml(playerDeath)}&nbsp;deaths</span> / <span style="color:var(--yellow)">${escHtml(completedGames)}&nbsp;completed</span>`,
             lbRate,
-            lbRateSub: `<span style="color:var(--green)">${escHtml(leaderboardSubmit)}&nbsp;submits</span> / <span style="color:#FFD700">${escHtml(playerWon)}&nbsp;wins</span>`,
+            lbRateSub: `<span style="color:var(--green)">${escHtml(leaderboardSubmit)}&nbsp;submits</span> / <span style="color:var(--yellow)">${escHtml(playerWon)}&nbsp;wins</span>`,
             // Note: These require additional dimensions not in current API
             newPct: '—',
             replay: '—',
@@ -4784,9 +4808,9 @@
             DATA.deviceMix.mobile  = Math.round((DATA.platform.mobile.sessions  / totalSessions) * 100);
           }
           DATA.kpis.deskWin    = DATA.platform.desktop.winRate;
-          DATA.kpis.deskWinSub = `<span style="color:var(--green)">${escHtml(pd.desktop.playerWon)}&nbsp;wins</span> / <span style="color:#FFD700">${escHtml(pd.desktop.gameStarts)}&nbsp;starts</span>`;
+          DATA.kpis.deskWinSub = `<span style="color:var(--green)">${escHtml(pd.desktop.playerWon)}&nbsp;wins</span> / <span style="color:var(--yellow)">${escHtml(pd.desktop.gameStarts)}&nbsp;starts</span>`;
           DATA.kpis.mobWin     = DATA.platform.mobile.winRate;
-          DATA.kpis.mobWinSub  = `<span style="color:var(--green)">${escHtml(pd.mobile.playerWon)}&nbsp;wins</span> / <span style="color:#FFD700">${escHtml(pd.mobile.gameStarts)}&nbsp;starts</span>`;
+          DATA.kpis.mobWinSub  = `<span style="color:var(--green)">${escHtml(pd.mobile.playerWon)}&nbsp;wins</span> / <span style="color:var(--yellow)">${escHtml(pd.mobile.gameStarts)}&nbsp;starts</span>`;
           DATA.kpis.deskLevel = DATA.platform.desktop.avgLevel;
           DATA.kpis.mobLevel = DATA.platform.mobile.avgLevel;
         } else {
@@ -4869,7 +4893,7 @@
           const nuData = mapGA4ResponseToDATA(newUserResult.value.data, 'new-user-pct');
           if (!nuData.error && nuData.hasRealData) {
             DATA.kpis.newPct    = nuData.newPct;
-            DATA.kpis.newPctSub = `<span style="color:#FFD700">${escHtml(nuData.newCount)}&nbsp;new</span> / <span style="color:var(--green)">${escHtml(nuData.returningCount)}&nbsp;returning</span>`;
+            DATA.kpis.newPctSub = `<span style="color:var(--yellow)">${escHtml(nuData.newCount)}&nbsp;new</span> / <span style="color:var(--green)">${escHtml(nuData.returningCount)}&nbsp;returning</span>`;
           } else {
             console.warn('New-user-pct parsing failed or no data, using mock value');
           }
@@ -4980,17 +5004,17 @@
             DATA.kpis.musicRate     = (counts.music_toggled    / gameStarts * 100).toFixed(0) + '%';
             DATA.kpis.leaveRate     = (counts.leave_game       / gameStarts * 100).toFixed(0) + '%';
             DATA.kpis.surveyRate    = (counts.survey_submitted / gameStarts * 100).toFixed(0) + '%';
-            DATA.kpis.scorecardSub  = `<span style="color:var(--green)">${escHtml(counts.scorecard_viewed)}&nbsp;viewed</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`;
-            DATA.kpis.musicSub      = `<span style="color:var(--green)">${escHtml(counts.music_toggled)}&nbsp;toggled</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`;
-            DATA.kpis.leaveSub      = `<span style="color:var(--green)">${escHtml(counts.leave_game)}&nbsp;left</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`;
-            DATA.kpis.surveySub     = `<span style="color:var(--green)">${escHtml(counts.survey_submitted)}&nbsp;submitted</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`;
+            DATA.kpis.scorecardSub  = `<span style="color:var(--green)">${escHtml(counts.scorecard_viewed)}&nbsp;viewed</span> / <span style="color:var(--yellow)">${escHtml(gameStarts)}&nbsp;starts</span>`;
+            DATA.kpis.musicSub      = `<span style="color:var(--green)">${escHtml(counts.music_toggled)}&nbsp;toggled</span> / <span style="color:var(--yellow)">${escHtml(gameStarts)}&nbsp;starts</span>`;
+            DATA.kpis.leaveSub      = `<span style="color:var(--green)">${escHtml(counts.leave_game)}&nbsp;left</span> / <span style="color:var(--yellow)">${escHtml(gameStarts)}&nbsp;starts</span>`;
+            DATA.kpis.surveySub     = `<span style="color:var(--green)">${escHtml(counts.survey_submitted)}&nbsp;submitted</span> / <span style="color:var(--yellow)">${escHtml(gameStarts)}&nbsp;starts</span>`;
           }
           const bossAttempts = DATA.bossAnalysis?.boss1?.overall?.attempts || 0;
           DATA.kpis.bossReachRate = bossAttempts > 0 && gameStarts > 0
             ? (bossAttempts / gameStarts * 100).toFixed(0) + '%'
             : '—';
           DATA.kpis.bossReachSub = bossAttempts > 0 && gameStarts > 0
-            ? `<span style="color:var(--green)">${escHtml(bossAttempts)}&nbsp;attempts</span> / <span style="color:#FFD700">${escHtml(gameStarts)}&nbsp;starts</span>`
+            ? `<span style="color:var(--green)">${escHtml(bossAttempts)}&nbsp;attempts</span> / <span style="color:var(--yellow)">${escHtml(gameStarts)}&nbsp;starts</span>`
             : 'boss_attempt / game_start';
           populateKPIs(DATA.kpis);
         } else {
@@ -5069,7 +5093,7 @@
         if (!tbodyLeft) return;
 
         if (!entries.length) {
-          tbodyLeft.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;opacity:0.5">No leaderboard data available.</td></tr>';
+          tbodyLeft.innerHTML = '<tr><td colspan="5" style="padding:24px;text-align:center;opacity:0.5">No leaderboard data available.</td></tr>';
           return;
         }
 
@@ -5086,15 +5110,13 @@
             const score = (e.score || 0).toLocaleString();
             const platform = e.platform === 'desktop' ? 'Desktop' : 'Mobile';
             const movement = e.movement_group === 'B' ? 'Full Dir' : 'Horizontal';
-            const date = e.date ? e.date.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
             const rowStyle = rank <= 3 ? 'color:var(--cyan)' : '';
             return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05); ${rowStyle}">
-              <td style="padding:7px 12px; opacity:0.6">${rank}</td>
+              <td style="padding:7px 12px; opacity:var(--dim-light)">${rank}</td>
               <td style="padding:7px 12px; font-weight:${rank <= 3 ? 'bold' : 'normal'}">${player}</td>
               <td style="padding:7px 12px; text-align:right">${score}</td>
-              <td style="padding:7px 12px; opacity:0.7">${platform}</td>
-              <td style="padding:7px 12px; opacity:0.7">${movement}</td>
-              <td style="padding:7px 12px; opacity:0.5">${date}</td>
+              <td style="padding:7px 12px; opacity:var(--dim-heavy)">${platform}</td>
+              <td style="padding:7px 12px; opacity:var(--dim-heavy)">${movement}</td>
             </tr>`;
           }).join('');
         }
