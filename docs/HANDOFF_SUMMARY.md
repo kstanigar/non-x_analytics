@@ -2,11 +2,33 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** July 3, 2026 (Session 26 — GA4 Admin: outcome custom dimension registered)
+**Last Updated:** August 14, 2026 (Session 27 — Mobile bottom nav + leaderboard-first reorder)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## August 14, 2026 — Leaderboard-First Reorder + Mobile Bottom Nav (Session 27)
+
+**Status:** ✅ COMPLETE — August 14, 2026 — user visually confirmed
+
+### What Changed (`live.html`)
+1. **Leaderboard moved to first tab** — desktop nav, mobile nav, and `.page` DOM order all reordered so Leaderboard loads first (per WAI-ARIA APG tab-order standard: DOM order must match tablist order). Top-50 cap already existed (`fetchLeaderboard()` `.limit(50)`), no change needed there. Plan: `docs/Leaderboard_First_Page_Plan.md`
+2. **Mobile hamburger menu replaced** with a 5-button bottom pill nav (Leaderboard / Filter / center accordion / Case Study / Data Dict), matching user-supplied reference screenshot. Filter and center buttons open bottom sheets. Plan: `docs/Mobile_Bottom_Nav_Plan.md`
+3. **Sticky-position fix** — `.mobile-bottom-nav` changed `position: fixed` → `sticky` to fix a real mobile-browser bug (dynamic toolbar desyncs layout/visual viewport, making `fixed` elements visually correct but unclickable until scrolled to bottom — confirmed via WebKit bug tracker + MDN). Required moving nav's HTML to end of `<body>` flow. Found and fixed a pre-existing missing/misunderstood `.wrapper` closing tag along the way. Plan: `docs/Mobile_Nav_Sticky_Fix_Plan.md`
+4. **3 follow-up bugs fixed**, all confirmed via MDN/spec research before coding:
+   - `.csv-toast` had no `pointer-events: none`, silently blocking bottom-nav clicks even while invisible — fixed
+   - Bottom sheets converted to native **HTML Popover API** (`popover="auto"`) — fixes a z-index stacking-context bug (nav sat outside `.wrapper`'s stacking context, sheets sat inside it, so sheets could never render on top regardless of z-index) at the platform level via the browser's top layer; also gets native light-dismiss (fixes sheets not closing when another nav button is tapped) for free
+   - Popover open/close animation: `transition` + `@starting-style` proved unreliable (CSS Transitions occupy a cascade origin above even `!important`) — replaced with `@keyframes`, the MDN-recommended pattern
+   - Follow-up: `[popover]` UA stylesheet resets `color`, making sheet list text unreadable — added explicit `color: var(--text)` to `.bottom-sheet`
+   - Plan + full research citations: `docs/Mobile_Nav_Bugfixes_Plan.md`
+
+### Also This Session
+- Corrected stale `docs/PRIORITIES.md` — XEN-1 was marked "pending" but was actually resolved via a minimal 3-change fix back on July 29, 2026 (full 17-change plan superseded by legal research); corrected to ✅ RESOLVED
+- Corrected `docs/Security_Audit_P5.md` — H-4 AWS WAF cost was underestimated at $5/mo; actual cost with 3 managed rule groups is ~$8/mo (missing $1/mo-per-rule-group line item)
+- M-5 Cloudflare proxy item in `PRIORITIES.md` marked superseded — future AWS hosting migration (S3 + CloudFront) will solve the same header-injection problem natively via CloudFront Response Headers Policy, no need for a separate Cloudflare proxy
 
 ---
 

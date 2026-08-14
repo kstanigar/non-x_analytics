@@ -2,7 +2,7 @@
 
 **Purpose:** Source of truth for all project tasks. Documents what needs to be done (Pending) and what has been completed (Completed). Updated when planning tasks and when marking tasks complete.
 
-**Last Updated:** July 3, 2026 (Session 26 — GA4 Admin: outcome custom dimension registered)
+**Last Updated:** August 14, 2026 (XEN-1 corrected to RESOLVED — was stale as "pending"; confirmed via Xenon_3 repo search)
 
 **Agent Instructions:** Cross-reference with HANDOFF_SUMMARY.md to ensure completed tasks are synced.
 
@@ -14,22 +14,19 @@
 
 ---
 
-### 🔴 XEN-1: Leaderboard Privacy Disclosure — ⬜ IMPLEMENTATION PENDING (Xenon_3 repo)
+### ✅ XEN-1: Leaderboard Privacy Disclosure — RESOLVED (superseded by legal research, July 29, 2026)
 
-**Plan complete** — `docs/XEN-1_Privacy_Disclosure_Plan.md` — 17 changes, GDPR/COPPA/CCPA verified
-**Plan also copied to:** `Xenon_3/docs/XEN-1_Privacy_Disclosure_Plan.md` — July 2, 2026
+**Original plan** — `docs/XEN-1_Privacy_Disclosure_Plan.md` — 17-change 3-checkbox consent banner + Firestore consent_log overhaul, written July 2, 2026. **Superseded — full plan never implemented.**
 
-**Implementation deferred** — will be implemented during a dedicated Xenon_3 session.
+**Resolution:** July 29, 2026 legal research (`Xenon_3/docs/archive/planning/XEN-1_Compliance_Research_Findings.md`) determined the full overhaul was not legally required — game is general-audience (no COPPA age-gate obligation), GDPR doesn't apply extraterritorially, CCPA thresholds not met. Only the false "anonymized"/"no PII" claims in terms/privacy pages needed correcting.
 
-**Status per repo:**
-- Xenon_3 — Changes 1–13b: ⬜ Pending
-- non-x_analytics — Changes 14–17: ⬜ Pending
+**Minimal fix shipped instead (3 changes, not 17):**
+- Xenon_3 PR #157 — merged July 29, 2026
+- non-x_analytics PR #6 — merged July 29, 2026 — commit `a27b81b` "fix: correct inaccurate no-PII claim re: public leaderboard"
 
-**Key decisions confirmed:**
-- Banner: 3 independent checkboxes (analytics, leaderboard, age) + Confirm button
-- Consent logged to Firestore `consent_log` collection (GDPR Article 30)
-- Existing 27 entries purged ✅ DONE — July 2, 2026 (no grandfathering)
-- Analytics toggle confirmed at `index.html:573–579` — preserved after XEN-1; Change 13b updates Section 3 description only
+**Plan doc archived to:** `Xenon_3/docs/archive/planning/XEN-1_Privacy_Disclosure_Plan.md` (superseded)
+
+**No further action needed.** Confirmed via Xenon_3 repo search (git history + file grep) — Aug 14, 2026.
 
 ---
 
@@ -41,7 +38,7 @@
 - L-1: Google Fonts `@import` → `<link>` tag — ✅ COMPLETE July 3, 2026 — commit `0192f83`
 - JS extraction to `dashboard.js` (L-1 complete — now unblocked)
 - CSP drop `'unsafe-inline'` (blocked by JS extraction)
-- Cloudflare proxy / M-5 `frame-ancestors`
+- ~~Cloudflare proxy / M-5 `frame-ancestors`~~ — SUPERSEDED Aug 14, 2026: site will migrate to AWS hosting (S3 + CloudFront) eventually; CloudFront Response Headers Policy natively solves the same problem (X-Frame-Options, Referrer-Policy, header-based CSP incl. `frame-ancestors`) without adding Cloudflare as a third-party proxy. Fold into future AWS hosting migration task instead of doing standalone.
 - H-4: AWS WAF (post-launch trigger: bot patterns in CloudWatch)
 
 **GA4 Admin:**
@@ -68,7 +65,7 @@
 - Tier Performance Metrics: `DATA.aiAgent.tierMetrics` never populated — decision needed: BigQuery handler vs CSV approach
 
 **Xenon_3:**
-- XEN-1: ✅ PLAN COMPLETE — implementation deferred to Xenon_3 repo. **Full plan:** `docs/XEN-1_Privacy_Disclosure_Plan.md` — 17 changes, GDPR/COPPA/CCPA verified — July 2, 2026
+- XEN-1: ✅ RESOLVED — full 17-change plan superseded by legal research (not required); minimal 3-change fix shipped via PR #157 (Xenon_3) + PR #6 (non-x_analytics) — July 29, 2026
 
 ---
 
