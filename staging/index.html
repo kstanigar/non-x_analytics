@@ -1137,7 +1137,7 @@
       header {
         flex-direction: column;
         gap: 16px;
-        align-items: flex-start;
+        align-items: stretch;
       }
     }
 
@@ -1176,6 +1176,16 @@
 
       .header-meta {
         font-size: 0.65rem;
+      }
+
+      .header-sep {
+        display: none;
+        /* Separator dot not needed once GA4/Lambda API drop to their own line */
+      }
+
+      .header-api {
+        display: block;
+        margin-top: 2px;
       }
 
       /* Navigation tabs - horizontal scroll */
@@ -1240,6 +1250,8 @@
       .version-filter {
         width: 100%;
         margin-bottom: 16px;
+        display: none;
+        /* Redundant with bottom-nav Filter pill (#mobile-filter-sheet) */
       }
 
       select,
@@ -1683,7 +1695,7 @@
     <header>
       <div class="logo-block">
         <h1><a href="https://nonx.standingtiger.com/" target="_blank" rel="noopener">NON-X</a></h1>
-        <p>Analytics Command Center &nbsp;·&nbsp; GA4 · Lambda API</p>
+        <p>Analytics Command Center<span class="header-sep"> &nbsp;·&nbsp; </span><span class="header-api">GA4 · Lambda API</span></p>
       </div>
       <div class="header-meta">
         <div>Measurement ID <span>G-9ECFZ9JBE5</span></div>
