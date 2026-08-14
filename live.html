@@ -13,7 +13,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
     script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.gstatic.com;
@@ -1084,6 +1084,7 @@
       color: var(--text);
       z-index: 2000;
       opacity: 0;
+      pointer-events: none;
       transform: translateY(10px);
       transition: opacity 0.25s, transform 0.25s;
       max-width: 420px;
@@ -1091,6 +1092,7 @@
 
     .csv-toast.show {
       opacity: 1;
+      pointer-events: auto;
       transform: translateY(0);
     }
 
@@ -1257,103 +1259,121 @@
       }
 
       .mobile-nav-wrapper {
+        display: none; /* replaced by .mobile-bottom-nav */
+      }
+
+      /* ─── Mobile Bottom Nav Bar ─── */
+      .mobile-bottom-nav {
+        position: sticky;
+        bottom: 12px;
+        width: fit-content;
+        margin: 24px auto 0; /* flow-based centering; top gap separates it from footer content above */
         display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 28px;
-      }
-
-      .hamburger-label {
-        font-family: var(--mono);
-        font-size: 0.8rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--green);
-        font-weight: 600;
-      }
-
-      /* ISSUE 9: Active tab name indicator (shows which tab is currently selected) */
-      .active-tab-name {
-        color: var(--yellow);        /* Yellow to distinguish active tab from section label */
-        font-weight: 600;         /* Bold to emphasize current location */
-        letter-spacing: 0.1em;    /* Match hamburger-label letter-spacing */
-      }
-
-      /* Hamburger button styling */
-      .hamburger-btn {
-        background: transparent;
+        align-items: flex-end;
+        gap: 4px;
+        background: var(--bg2);
         border: 1px solid var(--border);
-        color: var(--cyan);
-        width: 44px;
-        height: 44px;
-        cursor: pointer;
+        border-radius: 32px;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+        z-index: 1500;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      }
+
+      .bottom-nav-btn {
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
-        gap: 5px;
-        padding: 0;
-        transition: all 0.2s;
-        position: relative;
-        z-index: 1001;
+        gap: 2px;
+        background: transparent;
+        border: none;
+        color: var(--text-dim);
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 6px 10px;
+        cursor: pointer;
+        transition: color 0.2s;
       }
 
-      .hamburger-btn:hover {
-        border-color: var(--cyan);
+      .bottom-nav-btn.active {
+        color: var(--cyan);
+        text-shadow: 0 0 8px var(--cyan-glow);
+      }
+
+      .bottom-nav-btn .icon {
+        font-size: 1.2rem;
+      }
+
+      .bottom-nav-btn.center {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--bg);
+        border: 2px solid var(--cyan);
+        transform: translateY(-14px);
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0,255,255,0.3);
+      }
+
+      .bottom-nav-btn.center .icon {
+        font-size: 1.5rem;
+      }
+
+      .bottom-nav-btn.center.active {
         background: var(--cyan-dim);
       }
 
-      .hamburger-btn:active {
-        transform: scale(0.95);
+      /* ─── Bottom Sheets (tab sheet + filter sheet share this pattern) ─── */
+      /* Native popover — sits in the browser's top layer, immune to ancestor
+         stacking contexts (fixes nav-vs-sheet z-index bug). Reset UA defaults
+         (inset/width/height/margin/padding/border) before applying our styles. */
+      .bottom-sheet {
+        position: fixed;
+        inset: auto 0 0 0;
+        width: auto;
+        height: auto;
+        margin: 0;
+        padding: 0 0 16px;
+        border: none;
+        border-top: 2px solid var(--cyan);
+        max-height: 60vh;
+        background: var(--bg);
+        color: var(--text); /* UA [popover] default resets color; must restore explicitly, inheritance alone isn't enough */
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 20px rgba(0,255,255,0.2);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        transform: translateY(100%);
       }
 
-      /* Hamburger bars (animated) */
-      .hamburger-btn span {
-        width: 22px;
-        height: 2px;
-        background: var(--green);
-        transition: all 0.3s ease;
-        display: block;
+      /* Keyframe animations (not transition + @starting-style) — avoids the
+         CSS Transitions cascade origin, which outranks even !important while
+         active and made the transition-based approach unreliable to control. */
+      .bottom-sheet:popover-open {
+        animation: bottom-sheet-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
       }
 
-      /* Hamburger animation when open */
-      .hamburger-btn.open span:nth-child(1) {
-        transform: translateY(7px) rotate(45deg);
+      @keyframes bottom-sheet-enter {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
       }
 
-      .hamburger-btn.open span:nth-child(2) {
+      .bottom-sheet::backdrop {
+        background: rgba(0, 0, 0, 0.6);
         opacity: 0;
       }
 
-      .hamburger-btn.open span:nth-child(3) {
-        transform: translateY(-7px) rotate(-45deg);
+      .bottom-sheet:popover-open::backdrop {
+        animation: bottom-sheet-backdrop-enter 0.3s ease forwards;
       }
 
-      /* Mobile menu overlay */
-      .mobile-menu {
-        position: fixed;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        max-width: 280px;
-        height: 100vh;
-        background: var(--bg);
-        border-right: 2px solid var(--cyan);
-        box-shadow: 2px 0 20px rgba(0, 255, 255, 0.3);
-        z-index: 2000;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        display: flex;
-        flex-direction: column;
+      @keyframes bottom-sheet-backdrop-enter {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
 
-      .mobile-menu.open {
-        left: 0;
-      }
-
-      /* Mobile menu header */
-      .mobile-menu-header {
+      .bottom-sheet-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1362,12 +1382,21 @@
         background: var(--bg2);
       }
 
-      .mobile-menu-title {
+      .bottom-sheet-title {
         font-family: var(--mono);
         font-size: 0.75rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: var(--cyan);
+      }
+
+      .bottom-sheet-group-label {
+        padding: 10px 20px 4px;
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-dim);
       }
 
       .close-btn {
@@ -1389,25 +1418,26 @@
         transform: rotate(90deg);
       }
 
-      /* Mobile menu tabs */
-      .mobile-menu .tab {
+      .bottom-sheet .tab,
+      .bottom-sheet .filter-option {
         padding: 16px 20px;
         border: none;
         border-bottom: 1px solid rgba(0, 255, 255, 0.1);
         width: 100%;
         text-align: left;
         background: transparent;
-        position: static;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         transition: all 0.2s;
       }
 
-      .mobile-menu .tab:hover {
+      .bottom-sheet .tab:hover,
+      .bottom-sheet .filter-option:hover {
         background: var(--cyan-dim);
         padding-left: 24px;
       }
 
-      .mobile-menu .tab.active {
+      .bottom-sheet .tab.active,
+      .bottom-sheet .filter-option.active {
         background: rgba(0, 255, 255, 0.1);
         border-left: 3px solid var(--cyan);
         padding-left: 17px;
@@ -1415,24 +1445,6 @@
         text-shadow: 0 0 10px var(--cyan-glow);
       }
 
-      /* Backdrop overlay (darkens page when menu open) */
-      .mobile-menu::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 100%;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.6);
-        transition: opacity 0.3s;
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      .mobile-menu.open::before {
-        opacity: 1;
-        pointer-events: auto;
-      }
     }
 
     /* Desktop styles - ensure mobile elements hidden */
@@ -1443,6 +1455,11 @@
 
       .nav-tabs.desktop-nav {
         display: flex;
+      }
+
+      .mobile-bottom-nav,
+      .bottom-sheet {
+        display: none;
       }
     }
 
@@ -1718,47 +1735,87 @@
     <!-- NAV -->
     <!-- Desktop tabs (hidden on mobile) -->
     <nav class="nav-tabs desktop-nav">
-      <div class="tab active" onclick="switchTab('overview')">Overview</div>
+      <div class="tab active" onclick="switchTab('leaderboard')">Leaderboard</div>
+      <div class="tab" onclick="switchTab('overview')">Overview</div>
       <div class="tab" onclick="switchTab('funnel')">Funnel</div>
       <div class="tab" onclick="switchTab('bosses')">Boss Analysis</div>
       <div class="tab" onclick="switchTab('ai')">AI Agent</div>
       <div class="tab" onclick="switchTab('ab')">A/B Tests</div>
       <div class="tab" onclick="switchTab('platform')">Platform</div>
-      <div class="tab" onclick="switchTab('leaderboard')">Leaderboard</div>
       <div class="tab" onclick="switchTab('case-study')">Case Study</div>
       <div class="tab" onclick="switchTab('data-dict')">Data Dict</div>
     </nav>
 
-    <!-- Mobile hamburger menu (visible only on mobile) -->
-    <div class="mobile-nav-wrapper">
-      <button class="hamburger-btn" id="hamburger-toggle" onclick="toggleMobileMenu()" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-      <span class="hamburger-label">DASHBOARDS <span class="active-tab-name">- OVERVIEW</span></span>
+    <!-- Mobile bottom sheets (visible only on mobile; native popovers — top-layer rendering, immune to ancestor stacking contexts) -->
+    <nav class="bottom-sheet" id="mobile-tab-sheet" popover="auto">
+      <div class="bottom-sheet-header">
+        <span class="bottom-sheet-title">More Dashboards</span>
+        <button class="close-btn" onclick="closeTabSheet()" aria-label="Close">✕</button>
+      </div>
+      <div class="tab" onclick="switchTab('overview'); closeTabSheet()">📊 Overview</div>
+      <div class="tab" onclick="switchTab('funnel'); closeTabSheet()">📈 Funnel</div>
+      <div class="tab" onclick="switchTab('bosses'); closeTabSheet()">⚔️ Boss Analysis</div>
+      <div class="tab" onclick="switchTab('ai'); closeTabSheet()">🤖 AI Agent</div>
+      <div class="tab" onclick="switchTab('ab'); closeTabSheet()">🧪 A/B Tests</div>
+      <div class="tab" onclick="switchTab('platform'); closeTabSheet()">📱 Platform</div>
+    </nav>
 
-      <nav class="mobile-menu" id="mobile-menu">
-        <div class="mobile-menu-header">
-          <span class="mobile-menu-title">Navigation</span>
-          <button class="close-btn" onclick="closeMobileMenu()" aria-label="Close menu">✕</button>
-        </div>
-        <div class="tab active" onclick="switchTab('overview'); closeMobileMenu()">📊 Overview</div>
-        <div class="tab" onclick="switchTab('funnel'); closeMobileMenu()">📈 Funnel</div>
-        <div class="tab" onclick="switchTab('bosses'); closeMobileMenu()">⚔️ Boss Analysis</div>
-        <div class="tab" onclick="switchTab('ai'); closeMobileMenu()">🤖 AI Agent</div>
-        <div class="tab" onclick="switchTab('ab'); closeMobileMenu()">🧪 A/B Tests</div>
-        <div class="tab" onclick="switchTab('platform'); closeMobileMenu()">📱 Platform</div>
-        <div class="tab" onclick="switchTab('leaderboard'); closeMobileMenu()">🏆 Leaderboard</div>
-        <div class="tab" onclick="switchTab('case-study'); closeMobileMenu()">📋 Case Study</div>
-        <div class="tab" onclick="switchTab('data-dict'); closeMobileMenu()">📖 Data Dict</div>
-      </nav>
-    </div>
+    <nav class="bottom-sheet" id="mobile-filter-sheet" popover="auto">
+      <div class="bottom-sheet-header">
+        <span class="bottom-sheet-title">Data Range</span>
+        <button class="close-btn" onclick="closeFilterSheet()" aria-label="Close">✕</button>
+      </div>
+      <div class="bottom-sheet-group-label">Version 4.3 (Current)</div>
+      <div class="filter-option" data-value="7day-43" onclick="selectFilterOption(this)">Last 7 Days</div>
+      <div class="filter-option" data-value="30day-43" onclick="selectFilterOption(this)">Last 30 Days</div>
+      <div class="filter-option" data-value="90day-43" onclick="selectFilterOption(this)">Last 90 Days</div>
+      <div class="filter-option active" data-value="alltime-43" onclick="selectFilterOption(this)">All Time</div>
+      <div class="bottom-sheet-group-label">All Versions</div>
+      <div class="filter-option" data-value="7day-all" onclick="selectFilterOption(this)">Last 7 Days</div>
+      <div class="filter-option" data-value="30day-all" onclick="selectFilterOption(this)">Last 30 Days</div>
+      <div class="filter-option" data-value="90day-all" onclick="selectFilterOption(this)">Last 90 Days</div>
+    </nav>
 
     <!-- ════════════════════════════════════════
        PAGE 1: OVERVIEW
   ═══════════════════════════════════════════ -->
-    <div class="page active" id="page-overview">
+    <!-- ════════════════════════════════════════
+       PAGE 1: LEADERBOARD
+  ═══════════════════════════════════════════ -->
+    <div class="page active" id="page-leaderboard">
+
+      <div class="section-label">All-Time Top 50 — Personal Bests</div>
+      <div class="kpi-grid" id="leaderboard-kpis">
+        <div class="kpi"><div class="kpi-label">Total Entries</div><div class="kpi-value" id="lb-total">—</div></div>
+        <div class="kpi"><div class="kpi-label">Top Score</div><div class="kpi-value" id="lb-top">—</div></div>
+        <div class="kpi"><div class="kpi-label">Desktop Players</div><div class="kpi-value" id="lb-desktop">—</div></div>
+        <div class="kpi"><div class="kpi-label">Full Direction %</div><div class="kpi-value" id="lb-movement">—</div></div>
+      </div>
+
+      <div style="margin-top:16px">
+        <table style="width:100%; border-collapse:collapse; font-size:13px">
+          <thead>
+            <tr style="color:var(--cyan); text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)">
+              <th style="padding:8px 12px">#</th>
+              <th style="padding:8px 12px">Player</th>
+              <th style="padding:8px 12px; text-align:right">Score</th>
+              <th style="padding:8px 12px">Platform</th>
+              <th style="padding:8px 12px">Movement</th>
+              <th style="padding:8px 12px">Date</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody-left">
+            <tr><td colspan="6" style="padding:24px; text-align:center; opacity:0.5">Loading leaderboard...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ════════════════════════════════════════
+       PAGE 2: OVERVIEW
+  ═══════════════════════════════════════════ -->
+    <div class="page" id="page-overview">
 
       <div class="section-label">Top-Line KPIs <span class="section-info" data-tooltip="Core metrics — how many people played, won, and came back.">ⓘ</span></div>
       <div class="kpi-grid">
@@ -2158,39 +2215,6 @@
         <strong>💡 Decision Framework:</strong> If Music ON (Group A) wins on win rate + replay: keep ON as default. If
         Music OFF (Group B) wins or no difference: default OFF (respects user autonomy). For movement, measure avg level
         reached and session duration as primary signals. Minimum 200 sessions per group before concluding.
-      </div>
-
-    </div>
-
-    <!-- ════════════════════════════════════════
-       PAGE 5B: LEADERBOARD
-  ═══════════════════════════════════════════ -->
-    <div class="page" id="page-leaderboard">
-
-      <div class="section-label">All-Time Top 50 — Personal Bests</div>
-      <div class="kpi-grid" id="leaderboard-kpis">
-        <div class="kpi"><div class="kpi-label">Total Entries</div><div class="kpi-value" id="lb-total">—</div></div>
-        <div class="kpi"><div class="kpi-label">Top Score</div><div class="kpi-value" id="lb-top">—</div></div>
-        <div class="kpi"><div class="kpi-label">Desktop Players</div><div class="kpi-value" id="lb-desktop">—</div></div>
-        <div class="kpi"><div class="kpi-label">Full Direction %</div><div class="kpi-value" id="lb-movement">—</div></div>
-      </div>
-
-      <div style="margin-top:16px">
-        <table style="width:100%; border-collapse:collapse; font-size:13px">
-          <thead>
-            <tr style="color:var(--cyan); text-align:left; border-bottom:1px solid rgba(255,255,255,0.1)">
-              <th style="padding:8px 12px">#</th>
-              <th style="padding:8px 12px">Player</th>
-              <th style="padding:8px 12px; text-align:right">Score</th>
-              <th style="padding:8px 12px">Platform</th>
-              <th style="padding:8px 12px">Movement</th>
-              <th style="padding:8px 12px">Date</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard-tbody-left">
-            <tr><td colspan="6" style="padding:24px; text-align:center; opacity:0.5">Loading leaderboard...</td></tr>
-          </tbody>
-        </table>
       </div>
 
     </div>
@@ -6067,73 +6091,54 @@
 
         document.getElementById('page-' + name).classList.add('active');
 
-        // ISSUE 9: Update mobile hamburger label with active tab name
-        const tabNames = {
-          'overview': 'OVERVIEW',
-          'funnel': 'FUNNEL',
-          'bosses': 'BOSS ANALYSIS',
-          'ai': 'AI AGENT',
-          'ab': 'A/B TESTS',
-          'leaderboard': 'LEADERBOARD',
-          'platform': 'PLATFORM',
-          'case-study': 'CASE STUDY',
-          'data-dict': 'DATA DICTIONARY'
-        };
-
-        const activeTabLabel = document.querySelector('.active-tab-name');
-        if (activeTabLabel && tabNames[name]) {
-          activeTabLabel.textContent = `- ${tabNames[name]}`;
-        }
-      }
-
-      // ─── MOBILE MENU FUNCTIONS ────────────────────────────────────────
-
-      function toggleMobileMenu() {
-        const mobileMenu = document.getElementById('mobile-menu');
-        const hamburgerBtn = document.getElementById('hamburger-toggle');
-
-        const isOpen = mobileMenu.classList.contains('open');
-
-        if (isOpen) {
-          closeMobileMenu();
+        // Sync bottom-nav-bar active state
+        document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
+        const directMap = { leaderboard: 'btn-leaderboard', 'case-study': 'btn-case-study', 'data-dict': 'btn-data-dict' };
+        if (directMap[name]) {
+          document.getElementById(directMap[name])?.classList.add('active');
         } else {
-          mobileMenu.classList.add('open');
-          hamburgerBtn.classList.add('open');
-          document.body.style.overflow = 'hidden'; // Prevent page scroll when menu open
+          document.getElementById('btn-menu')?.classList.add('active'); // Overview/Funnel/Bosses/AI/A-B/Platform → center button
         }
+
+        // Sync sheet-item active state (for the 6 tabs living in the tab sheet)
+        document.querySelectorAll('#mobile-tab-sheet .tab').forEach(t => t.classList.remove('active'));
+        const sheetTab = Array.from(document.querySelectorAll('#mobile-tab-sheet .tab'))
+          .find(t => t.onclick.toString().includes(`switchTab('${name}')`));
+        sheetTab?.classList.add('active');
       }
 
-      function closeMobileMenu() {
-        const mobileMenu = document.getElementById('mobile-menu');
-        const hamburgerBtn = document.getElementById('hamburger-toggle');
+      // ─── MOBILE BOTTOM NAV: SHEET FUNCTIONS ────────────────────────────
+      // Both sheets are native popovers (popover="auto"): the platform handles
+      // top-layer stacking, light-dismiss (outside click/Escape), and closing
+      // one popover when another opens — no manual backdrop/Escape wiring needed.
 
-        mobileMenu.classList.remove('open');
-        hamburgerBtn.classList.remove('open');
-        document.body.style.overflow = ''; // Restore page scroll
+      function closeAllSheets() {
+        document.getElementById('mobile-tab-sheet')?.hidePopover();
+        document.getElementById('mobile-filter-sheet')?.hidePopover();
       }
+      function toggleTabSheet() { document.getElementById('mobile-tab-sheet')?.togglePopover(); }
+      function closeTabSheet() { document.getElementById('mobile-tab-sheet')?.hidePopover(); }
+      function toggleFilterSheet() { document.getElementById('mobile-filter-sheet')?.togglePopover(); }
+      function closeFilterSheet() { document.getElementById('mobile-filter-sheet')?.hidePopover(); }
 
-      // Close mobile menu when clicking backdrop
-      document.addEventListener('click', function (e) {
-        const mobileMenu = document.getElementById('mobile-menu');
-        const hamburgerBtn = document.getElementById('hamburger-toggle');
-
-        if (!mobileMenu || !hamburgerBtn) return; // Elements don't exist yet
-
-        const isMenuOpen = mobileMenu.classList.contains('open');
-        const clickedInsideMenu = mobileMenu.contains(e.target);
-        const clickedHamburger = hamburgerBtn.contains(e.target);
-
-        if (isMenuOpen && !clickedInsideMenu && !clickedHamburger) {
-          closeMobileMenu();
-        }
+      // Lock page scroll while either sheet is open, regardless of how it was closed
+      // (hidePopover(), light-dismiss click, or Escape) — 'toggle' event covers all paths.
+      ['mobile-tab-sheet', 'mobile-filter-sheet'].forEach(id => {
+        document.getElementById(id)?.addEventListener('toggle', function (e) {
+          document.body.style.overflow = e.newState === 'open' ? 'hidden' : '';
+        });
       });
 
-      // Close mobile menu on Escape key
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-          closeMobileMenu();
+      function selectFilterOption(el) {
+        document.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
+        el.classList.add('active');
+        const select = document.getElementById('data-range-select');
+        if (select) {
+          select.value = el.dataset.value;
+          applyDataRangeFilter();
         }
-      });
+        closeFilterSheet();
+      }
 
       // ═══════════════════════════════════════════════════════════════════
       // CSV DRAG-AND-DROP LOADER
@@ -6464,6 +6469,26 @@
         </span>
       </div>
     </footer>
+
+    <!-- Mobile bottom nav bar (visible only on mobile; sticky so it stays clickable regardless of mobile browser toolbar show/hide state) -->
+    <nav class="mobile-bottom-nav">
+      <button class="bottom-nav-btn active" id="btn-leaderboard" onclick="switchTab('leaderboard')" aria-label="Leaderboard">
+        <span class="icon">🏆</span><span>Board</span>
+      </button>
+      <button class="bottom-nav-btn" id="btn-filter" onclick="toggleFilterSheet()" aria-label="Data Filter">
+        <span class="icon">🔍</span><span>Filter</span>
+      </button>
+      <button class="bottom-nav-btn center" id="btn-menu" onclick="toggleTabSheet()" aria-label="More Dashboards">
+        <span class="icon">☰</span>
+      </button>
+      <button class="bottom-nav-btn" id="btn-case-study" onclick="switchTab('case-study')" aria-label="Case Study">
+        <span class="icon">📋</span><span>Story</span>
+      </button>
+      <button class="bottom-nav-btn" id="btn-data-dict" onclick="switchTab('data-dict')" aria-label="Data Dictionary">
+        <span class="icon">📖</span><span>Defs</span>
+      </button>
+    </nav>
+
 </body>
 
 </html>

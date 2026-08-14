@@ -372,14 +372,23 @@ el.innerHTML = `<span>${escHtml(value)}</span>`;
 
 ##### 5. Pricing
 
+**Corrected Aug 14, 2026** — original estimate omitted per-rule-group cost. AWS charges $1.00/month per managed rule group, not $0.00.
+
 | Component | Monthly Cost |
 |-----------|-------------|
 | WebACL (1 ACL) | $5.00 |
-| AWS Managed Rules (3 groups) | $0.00 (free) |
+| AWS Managed Rules (3 groups × $1.00/month) | $3.00 |
 | Rate-based rule | Included in WebACL |
 | Request processing (1,200/month) | ~$0.001 (negligible) |
 | CloudWatch Logs | $0.00 (under free tier) |
-| **Total** | **~$5.00/month** |
+| **Total** | **~$8.00/month** |
+
+**Free alternatives researched (Aug 14, 2026):** No AWS-native option provides free SQLi/XSS signature filtering — AWS WAF is the only service that does. Free-tier pieces that cover part of the job:
+- API Gateway throttling/usage plans — free, rate-limiting only, no payload inspection (already in place)
+- Lambda reserved concurrency — free, caps blast radius/cost runaway only
+- CloudWatch alarms/AWS Budgets — free, reactive alerting only, not preventive
+
+Source: AWS WAF Pricing (aws.amazon.com/waf/pricing), AWS WAF Managed Rule Groups docs, API Gateway throttling developer guide.
 
 ---
 
