@@ -1,7 +1,7 @@
 # Implementation Plan: Mobile Bottom Nav Bar (Replace Hamburger Menu)
 
 **Created:** August 14, 2026
-**Status:** ✅ COMPLETE — August 14, 2026 (superseded in part by `Mobile_Nav_Sticky_Fix_Plan.md` and `Mobile_Nav_Bugfixes_Plan.md` — position changed fixed→sticky, sheets converted to native popovers)
+**Status:** ✅ COMPLETE — August 14, 2026 — merged to main via commit `fad4766` (PR #7) (superseded in part by `Mobile_Nav_Sticky_Fix_Plan.md` and `Mobile_Nav_Bugfixes_Plan.md` — position changed fixed→sticky, sheets converted to native popovers)
 **Reference:** User-supplied screenshot — floating pill bottom bar, 4 flat icon+label buttons + 1 raised circular center button, mobile only
 
 ---

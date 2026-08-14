@@ -12,7 +12,9 @@
 
 ## August 14, 2026 — Leaderboard-First Reorder + Mobile Bottom Nav (Session 27)
 
-**Status:** ✅ COMPLETE — August 14, 2026 — user visually confirmed
+**Status:** ✅ COMPLETE — merged to main and live in production — August 14, 2026
+**Commits:** `30c4211` (feature branch) → PR #7 → merged to main via `fad4766`
+**Branch:** `feature/mobile-nav-leaderboard-first` — tested on staging, merged, deleted (local cleanup done)
 
 ### What Changed (`live.html`)
 1. **Leaderboard moved to first tab** — desktop nav, mobile nav, and `.page` DOM order all reordered so Leaderboard loads first (per WAI-ARIA APG tab-order standard: DOM order must match tablist order). Top-50 cap already existed (`fetchLeaderboard()` `.limit(50)`), no change needed there. Plan: `docs/Leaderboard_First_Page_Plan.md`

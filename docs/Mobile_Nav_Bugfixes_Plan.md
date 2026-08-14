@@ -1,7 +1,7 @@
 # Implementation Plan: Mobile Bottom Nav — 3 Post-Launch Bugs
 
 **Created:** August 14, 2026
-**Status:** ✅ COMPLETE — August 14, 2026 — user visually confirmed fixed
+**Status:** ✅ COMPLETE — August 14, 2026 — merged to main via commit `fad4766` (PR #7) — user visually confirmed fixed
 **Reported by:** User, via 3 screenshots on real mobile device, after the sticky-position fix shipped this session
 
 ---

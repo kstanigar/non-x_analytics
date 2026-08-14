@@ -1,7 +1,7 @@
 # Implementation Plan: Fix Bottom Nav Click-Through Bug (position:fixed → sticky)
 
 **Created:** August 14, 2026
-**Status:** ✅ COMPLETE — August 14, 2026
+**Status:** ✅ COMPLETE — August 14, 2026 — merged to main via commit `fad4766` (PR #7)
 
 ---
 
