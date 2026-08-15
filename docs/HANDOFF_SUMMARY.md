@@ -2,11 +2,29 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** August 14, 2026 (Session 28 — Leaderboard cleanup + mobile header/footer fixes)
+**Last Updated:** August 15, 2026 (Session 29 — Toast notification repositioned to top-right)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## August 15, 2026 — Toast Notification Repositioned to Top-Right (Session 29)
+
+**Status:** 🟡 IN PROGRESS — pushed to staging, pending user confirmation before merge to main
+**Branch:** `feature/toast-top-right` (commit `f8812e0`, plus a follow-up slide-direction commit)
+
+### What Changed (`live.html`)
+1. **`.csv-toast` position** (`live.html:1077`) — `bottom: 24px` → `top: 24px`. User reported the "Live data updated successfully" fly-in toast (shown on date-range filter change via `applyDataRangeFilter()` → `showToast()`) was better suited to top-right on mobile; requested move from bottom-right.
+2. **`.csv-toast` slide direction** (`live.html:1090`) — `transform: translateY(10px)` → `translateY(-10px)`, so the toast now starts above its resting position and drops down into place, matching the new top-right anchor (previously it started below and slid up, which matched the old bottom-right anchor). `.csv-toast.show` (`translateY(0)`) unchanged.
+
+### Context
+- No mobile-specific media query exists for `.csv-toast` — desktop and mobile share identical positioning, so this change applies to both screen sizes.
+- Research performed via Haiku agent (per Rule 1) to locate the notification before proposing any change; confirmed exact file/line locations and trigger chain (`live.html:1730` select → `live.html:5064` `applyDataRangeFilter()` → `live.html:5046` `showToast()` call → `live.html:6227` `showToast()` definition).
+
+### Next Steps
+- User to test on staging, then confirm merge to main.
 
 ---
 
