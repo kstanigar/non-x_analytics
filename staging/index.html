@@ -1290,7 +1290,7 @@
       /* ─── Mobile Bottom Nav Bar ─── */
       .mobile-bottom-nav {
         position: sticky;
-        bottom: 12px;
+        bottom: max(12px, env(safe-area-inset-bottom, 0px)); /* safe-area applied to outer offset, not stacked into padding */
         width: fit-content;
         margin: 24px auto 0; /* flow-based centering; top gap separates it from footer content above */
         display: flex;
@@ -1299,7 +1299,7 @@
         background: var(--bg2);
         border: 1px solid var(--border);
         border-radius: 32px;
-        padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+        padding: 8px 12px;
         z-index: 1500;
         box-shadow: 0 4px 20px rgba(0,0,0,0.5);
       }
