@@ -2,11 +2,32 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** August 15, 2026 (Session 29 — Toast notification repositioned to top-right)
+**Last Updated:** August 15, 2026 (Session 30 — Mobile bottom nav pill double safe-area padding fix)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## August 15, 2026 — Mobile Bottom Nav Pill Double Safe-Area Padding Fix (Session 30)
+
+**Status:** ✅ COMPLETE — confirmed on staging, merged to main — August 15, 2026
+**Commit:** `97c992e` on `feature/mobile-nav-safe-area-fix` — tested on staging, fast-forward merged to main
+**Branch:** `feature/mobile-nav-safe-area-fix` — tested on staging, merged, cleanup pending this session
+
+### What Changed (`live.html`)
+1. **`.mobile-bottom-nav` bottom offset** (`live.html:1293`) — `bottom: 12px` → `bottom: max(12px, env(safe-area-inset-bottom, 0px))`
+2. **`.mobile-bottom-nav` padding** (`live.html:1302`) — `padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px))` → `padding: 8px 12px`
+
+### Context
+- User reported extra padding at the bottom of the pill-shaped bottom nav on mobile (screenshot-confirmed).
+- Root cause: the nav was double-compensating for the iOS home indicator — `bottom: 12px` (outer offset) plus `env(safe-area-inset-bottom)` stacked into inner bottom padding, totaling ~54px of gap on notched iPhones (~34px inset) instead of the intended ~12-34px.
+- Fix researched and confirmed via Haiku agents against MDN, W3C CSS Environment Variables spec, and WebKit's "Designing Websites for iPhone X" guidance: `env(safe-area-inset-bottom)` should be applied once, to the outer offset via `max()`, not stacked into padding as well.
+- `index.html` has no `.mobile-bottom-nav` element — unaffected, no change needed.
+
+### Next Steps
+- None — complete. Git branch cleanup pending (this session).
 
 ---
 
