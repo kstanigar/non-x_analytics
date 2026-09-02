@@ -12,8 +12,9 @@
 
 ## September 2, 2026 — Firebase App Check Added to Leaderboard Reads (Session 31)
 
-**Status:** ⚠️ IN PROGRESS — fixed and verified on `staging`, not yet merged to `main`/production
-**Commits:** `40c4d5f` (App Check addition), `1d1a237` (CSP fix) on `staging`
+**Status:** ✅ COMPLETE — merged to `main`, verified live in production
+**Commits:** `40c4d5f` (App Check addition), `1d1a237` (CSP fix), `a17edb6` (merge — resolved a real conflict with `main`'s own Session 30 doc entry, renumbered this work to Session 31), `f5c9a75` (reconciled `Firebase_Config.md`/`Issues_And_Bugs.md` with the July 3 "not needed" decision this supersedes)
+**Branch:** `staging` → `main`, fast-forward, no PR
 
 ### Why
 Triggered by a Xenon_3 post-indexing security audit (`Xenon_3/docs/PROJECT_LOG.md`, Sept 2 2026): the Firebase App Check console showed 64% of Firestore requests as "unverified: outdated client." Root cause traced to this dashboard — `live.html`'s Leaderboard tab does a direct client-side Firestore read (`live.html:5089`) with no App Check integration, unlike `game.html`. Not bot abuse; this dashboard was the source.
@@ -27,14 +28,18 @@ Triggered by a Xenon_3 post-indexing security audit (`Xenon_3/docs/PROJECT_LOG.m
 ### The Mistake — and the fix
 First `connect-src` addition used `https://firebaseappcheck.googleapis.com` — guessed by analogy to `firestore.googleapis.com`/`securetoken.googleapis.com`, not verified against the actual endpoint the SDK calls. Deployed to `staging`, and the live browser console immediately showed every App Check token fetch blocked by our own CSP (`appCheck/fetch-network-error`, "Refused to connect because it violates the document's Content Security Policy") — the real call target is `content-firebaseappcheck.googleapis.com` (with the `content-` prefix), confirmed directly from the blocked-request URL in the console error. Fixed in `1d1a237`. Lesson: for App Check specifically, the token-exchange host doesn't follow the plain `<service>.googleapis.com` pattern used by other Firebase services — verify the exact host from a live request/error rather than pattern-matching from other CSP entries.
 
-### Verification (staging)
-CSP fix confirmed live: no more `appCheck/fetch-network-error` or blocked `exchangeRecaptchaV3Token` calls in console (only harmless `.js.map` source-map 404s from DevTools, unrelated). Leaderboard tab renders correctly (29 entries). Firebase App Check metrics (last 60 min) moved from the 36%-verified baseline to 57% verified / 14% unverified — confirms this domain's reads are now passing App Check.
+### Verification (staging, then production)
+CSP fix confirmed live on `staging`: no more `appCheck/fetch-network-error` or blocked `exchangeRecaptchaV3Token` calls in console (only harmless `.js.map` source-map 404s from DevTools, unrelated). Leaderboard tab renders correctly (29 entries). Firebase App Check metrics (last 60 min) moved from the 36%-verified baseline to 57% verified / 14% unverified.
 
-**Correction:** an earlier note here claimed `staging` carried substantial unmerged work beyond this fix (Security Audit P5, XEN-1 privacy disclosure, H3 XSS fix). That was wrong — checked via `git merge-base --is-ancestor` against `origin/main`, and all of that work is already on `main`. `staging` is only 2 commits ahead of `main`: exactly the App Check work above. A merge now would ship only this.
+**Correction (superseded by the merge note below):** an earlier draft of this entry claimed `staging` carried substantial unmerged work beyond this fix (Security Audit P5, XEN-1 privacy disclosure, H3 XSS fix). That was wrong — checked via `git merge-base --is-ancestor` against `origin/main`, and all of that work was already on `main`. The actual gap turned out to be the opposite direction: `main` had one commit `staging` didn't (`fff579c`, a doc-only Session 30 entry pushed directly to `main` on Aug 15) — a real, if small, merge conflict, resolved in `a17edb6` (see Commits above).
+
+Re-verified against **production** (`kstanigar.github.io/non-x_analytics/`, `main` branch, confirmed via the git indicator in DevTools) after the merge: console clean (same harmless `.js.map` messages only), leaderboard renders 29 entries. App Check metrics (last 60 min, production): **67% verified, 0% outdated** (down from 64% outdated at the start of this session) — the number this fix targeted is now fully resolved. A 33% "unverified: invalid" bucket appeared on both `staging` and production checks; read as an artifact of our own rapid test reloads (short-lived reCAPTCHA tokens expiring/reusing across quick refreshes) rather than a new issue, but not yet confirmed against real (non-test) traffic.
+
+Docs reconciled in `f5c9a75`: `Issues_And_Bugs.md` and `Firebase_Config.md` both had a July 3, 2026 decision on record that this dashboard didn't need App Check (correct at the time — reads are public, `allow read: if true`). Updated both to mark that superseded and explain why: not a security fix, a signal-quality fix so App Check's metrics reflect the real game client instead of being muddied by this dashboard's unregistered reads.
 
 ### Next Steps
-- Merge `staging` → `main` — clean, App-Check-only diff, ready
-- Optional follow-up (owner decision, not yet made): enable "Enforce" on Firestore App Check in the Firebase console once real (non-test) traffic confirms the verified rate holds up
+- Re-check App Check metrics once real (non-test) traffic has passed through — confirm the 33% "invalid" bucket settles, and get an honest 7-day verified/outdated read (the ~July 6–7 re-check target from `Firebase_Config.md` was missed and never done — still owed, now unblocked by this fix)
+- Optional follow-up (owner decision, not yet made): enable "Enforce" on Firestore App Check in the Firebase console once the above confirms real-traffic numbers are healthy
 
 ---
 
