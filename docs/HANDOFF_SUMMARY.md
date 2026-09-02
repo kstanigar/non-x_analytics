@@ -2,11 +2,39 @@
 
 **Purpose:** Living document updated in real-time during each session. Documents all work, research, implementations, and fixes as they happen.
 
-**Last Updated:** August 15, 2026 (Session 29 — Toast notification repositioned to top-right)
+**Last Updated:** September 2, 2026 (Session 30 — Firebase App Check added to leaderboard reads)
 
 **Agent Instructions:** On session start, read the last 4 session entries below and scan for any incomplete tasks across all entries. Cross-reference with PRIORITIES.md to ensure sync.
 
 **Archive:** Entries before June 13 (KPI Tile Bug Fix and earlier) are in `docs/archive/HANDOFF_ARCHIVE.md`
+
+---
+
+## September 2, 2026 — Firebase App Check Added to Leaderboard Reads (Session 30)
+
+**Status:** ⚠️ IN PROGRESS — fixed and verified on `staging`, not yet merged to `main`/production
+**Commits:** `40c4d5f` (App Check addition), `1d1a237` (CSP fix) on `staging`
+
+### Why
+Triggered by a Xenon_3 post-indexing security audit (`Xenon_3/docs/PROJECT_LOG.md`, Sept 2 2026): the Firebase App Check console showed 64% of Firestore requests as "unverified: outdated client." Root cause traced to this dashboard — `live.html`'s Leaderboard tab does a direct client-side Firestore read (`live.html:5089`) with no App Check integration, unlike `game.html`. Not bot abuse; this dashboard was the source.
+
+### What Changed (`live.html`)
+1. Added `firebase-app-check-compat.js` script tag (same 10.8.0 version as the other Firebase compat scripts)
+2. Added `firebase.appCheck().activate(new firebase.appCheck.ReCaptchaV3Provider(...), true)` using the same reCAPTCHA v3 site key already live in `game.html` — right before the existing `firebase.firestore()` call
+3. Extended the page's CSP meta tag: `script-src` +`https://www.google.com/recaptcha/`, new `frame-src` directive, `connect-src` extended for the App Check token exchange
+4. Companion console step (not code): added `kstanigar.github.io` to the reCAPTCHA v3 site key's allowed domains list in the Google reCAPTCHA admin console (same site key/project as `nonx.standingtiger.com`)
+
+### The Mistake — and the fix
+First `connect-src` addition used `https://firebaseappcheck.googleapis.com` — guessed by analogy to `firestore.googleapis.com`/`securetoken.googleapis.com`, not verified against the actual endpoint the SDK calls. Deployed to `staging`, and the live browser console immediately showed every App Check token fetch blocked by our own CSP (`appCheck/fetch-network-error`, "Refused to connect because it violates the document's Content Security Policy") — the real call target is `content-firebaseappcheck.googleapis.com` (with the `content-` prefix), confirmed directly from the blocked-request URL in the console error. Fixed in `1d1a237`. Lesson: for App Check specifically, the token-exchange host doesn't follow the plain `<service>.googleapis.com` pattern used by other Firebase services — verify the exact host from a live request/error rather than pattern-matching from other CSP entries.
+
+### Verification (staging)
+CSP fix confirmed live: no more `appCheck/fetch-network-error` or blocked `exchangeRecaptchaV3Token` calls in console (only harmless `.js.map` source-map 404s from DevTools, unrelated). Leaderboard tab renders correctly (29 entries). Firebase App Check metrics (last 60 min) moved from the 36%-verified baseline to 57% verified / 14% unverified — confirms this domain's reads are now passing App Check.
+
+**Correction:** an earlier note here claimed `staging` carried substantial unmerged work beyond this fix (Security Audit P5, XEN-1 privacy disclosure, H3 XSS fix). That was wrong — checked via `git merge-base --is-ancestor` against `origin/main`, and all of that work is already on `main`. `staging` is only 2 commits ahead of `main`: exactly the App Check work above. A merge now would ship only this.
+
+### Next Steps
+- Merge `staging` → `main` — clean, App-Check-only diff, ready
+- Optional follow-up (owner decision, not yet made): enable "Enforce" on Firestore App Check in the Firebase console once real (non-test) traffic confirms the verified rate holds up
 
 ---
 
