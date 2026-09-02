@@ -127,7 +127,9 @@ match /consent_log/{doc} {
 |--------|------------|----------|--------|
 | `nonx.standingtiger.com` | ✅ Yes | reCAPTCHA v3 | Live (June 14, 2026) |
 | `dev.nonx.standingtiger.com` | ✅ Yes | reCAPTCHA v3 | Live (June 14, 2026) |
-| `kstanigar.github.io` | ❌ No | — | Not needed — dashboard reads only (`allow read: if true`) |
+| `kstanigar.github.io` | ✅ Yes | reCAPTCHA v3 | Live (Sept 2, 2026) — see note below |
+
+**Note on `kstanigar.github.io` (added Sept 2, 2026):** The July 3, 2026 decision not to register this domain was correct at the time — `allow read: if true` means these reads never needed App Check for *access control*. What changed: `live.html`'s direct Firestore read (leaderboard tab) was an unregistered client generating "unverified: outdated client" traffic mixed into the same App Check metrics used to judge the real game client (`nonx.standingtiger.com`) — see the 48%-outdated Jul 3 reading below, which likely included some of this dashboard's own traffic alongside the GitHub-link players it was attributed to. Registering it isn't a security fix; it's a signal-quality fix so the metrics below actually reflect game-client health. See `docs/HANDOFF_SUMMARY.md` Session 31 and `Xenon_3/docs/PROJECT_LOG.md` (Sept 2, 2026 post-indexing security audit) for the full trigger and implementation.
 
 ### Enforcement Status
 
@@ -152,7 +154,11 @@ Enforcement blocks ALL Firestore operations (including reads) — at current met
 
 **Fix:** Direct players to `nonx.standingtiger.com` (not GitHub link). Outdated % should decrease as players switch to production URL.
 
-**Re-check enforcement readiness:** ~July 6–7, 2026. Prior metrics (June 23): 33% verified / 7% outdated.
+**Re-check enforcement readiness:** ~July 6–7, 2026. Prior metrics (June 23): 33% verified / 7% outdated. **Never re-checked — overdue.** See Sept 2, 2026 note below; a real re-check (full 7-day window) should happen now that the dashboard no longer contributes to "outdated" traffic.
+
+### App Check Request Metrics — Sept 2, 2026 update (short-window, not a full re-check)
+
+After registering `kstanigar.github.io` and fixing a CSP misconfiguration that initially blocked its App Check token exchange (see `docs/HANDOFF_SUMMARY.md` Session 31), a 60-minute window on `staging` showed verified requests up from a 36% baseline to 57%, with "outdated" down from 64% to 14%. **This is a small, mixed-traffic (real + our own testing) window, not comparable to the 7-day table above** — treat as a directional signal only. A proper 7-day re-check against the Jul 3 table is still the real "enforcement readiness" check and hasn't been done.
 
 ### reCAPTCHA v3 Site Key
 
@@ -217,6 +223,7 @@ The `AIzaSyDumeBRk__-lcKFJA2WLD7Wi-0y6OuFZlo` key is flagged by GitHub as a `goo
 | July 3, 2026 | Firebase_Config.md created — all config documented; kstanigar.github.io missing from API key referrers identified | Session 25 |
 | July 3, 2026 | `https://kstanigar.github.io/*` added to API key HTTP referrer restrictions — all 4 domains now configured | Session 25 |
 | July 3, 2026 | GitHub Secret Scanning alert dismissed as "False positive" on non-x_analytics repo — ISSUE-010 fully resolved | Session 25 |
+| Sept 2, 2026 | App Check (reCAPTCHA v3) registered on `kstanigar.github.io`; `live.html` CSP + code updated to activate it — reverses the July 3 "not needed" call for signal-quality reasons, not security | Session 31 |
 
 ---
 
@@ -224,5 +231,6 @@ The `AIzaSyDumeBRk__-lcKFJA2WLD7Wi-0y6OuFZlo` key is flagged by GitHub as a `goo
 
 - ✅ `kstanigar.github.io/*` added to API key HTTP referrer restrictions (July 3, 2026)
 - ✅ GitHub Secret Scanning alert dismissed as "False positive" (July 3, 2026)
-- [ ] Re-check App Check enforcement readiness ~July 6–7, 2026
+- ✅ App Check registered on `kstanigar.github.io` (Sept 2, 2026) — see Sept 2 note above
+- [ ] Re-check App Check enforcement readiness — original ~July 6–7, 2026 target missed; now blocked on a real 7-day metrics window post-Sept 2 (dashboard registration), not just the 60-min directional check already done
 - [ ] Add `consent_log` Firestore rules when implementing XEN-1

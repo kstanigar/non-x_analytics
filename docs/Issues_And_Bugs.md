@@ -111,7 +111,7 @@ GitHub Secret Scanning flagged `apiKey: "AIzaSyDumeBRk__-lcKFJA2WLD7Wi-0y6OuFZlo
 
 **App Check:** `nonx.standingtiger.com` registered (reCAPTCHA v3). Enforcement intentionally disabled — 48% of requests are "outdated" (real players using GitHub URL instead of production URL, not malicious). Re-check enforcement readiness ~July 6–7.
 
-**kstanigar.github.io + App Check:** Dashboard does not need App Check registration. `allow read: if true` — no token required for reads. Dashboard never writes to Firestore.
+**kstanigar.github.io + App Check:** ~~Dashboard does not need App Check registration. `allow read: if true` — no token required for reads. Dashboard never writes to Firestore.~~ **Superseded Sept 2, 2026 (Session 31):** still true that this was never a security requirement — but the dashboard's unregistered reads were showing up as "unverified: outdated client" in the App Check metrics used to judge the real game client's traffic, muddying that signal. Registered `kstanigar.github.io` with reCAPTCHA v3 App Check for signal-quality reasons, not access control. See `docs/Firebase_Config.md` and `docs/HANDOFF_SUMMARY.md` Session 31.
 
 #### All Actions Completed
 
