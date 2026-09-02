@@ -16,11 +16,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'none';
-    script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.gstatic.com;
+    script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.gstatic.com https://www.google.com/recaptcha/;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src https://fonts.gstatic.com;
     img-src 'self' data:;
-    connect-src https://6waopo3jh1.execute-api.us-east-2.amazonaws.com https://firestore.googleapis.com;
+    connect-src https://6waopo3jh1.execute-api.us-east-2.amazonaws.com https://firestore.googleapis.com https://firebaseappcheck.googleapis.com https://www.google.com/recaptcha/;
+    frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/;
     form-action 'none';
     base-uri 'none';
     object-src 'none';
@@ -33,6 +34,7 @@
     crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check-compat.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap">
@@ -3127,6 +3129,15 @@
         messagingSenderId: "404220834268",
         appId: "1:404220834268:web:6cb71367bf62569ad5df19"
       });
+      // App Check (reCAPTCHA v3) — same site key as the game client (game.html), same
+      // Firebase project. Requires this page's domain to be added to that reCAPTCHA
+      // site key's allowed domains list in the Google reCAPTCHA admin console before
+      // this will pass; otherwise getLimitedUseToken/activate fails silently and
+      // Firestore reads fall back to "unverified" until Enforce is off (current state).
+      firebase.appCheck().activate(
+        new firebase.appCheck.ReCaptchaV3Provider('6LdsiR4tAAAAACW1fmCReUAQPTyiuuJX4O8ZicWh'),
+        true // isTokenAutoRefreshEnabled
+      );
       const _db = firebase.firestore();
 
       // ── SAMPLE DATA (replace with GA4 exports) ──────────────────────
